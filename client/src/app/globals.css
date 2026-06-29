@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  /* Plana Theme Colors (Light Pink Core, Lavender Accent) */
+  --plana-primary: #FFA6C9; /* Light Pink */
+  --plana-primary-light: #FFC4DB; /* Softer Pink */
+  --plana-primary-dark: #FF88B3; /* Deep Light Pink */
+  --plana-accent: #E0CFFC; /* Light Lavender Accent */
+  
+  --plana-bg-base: #F8F9FA; /* Off-white base background */
+  --plana-bg-panel: rgba(255, 255, 255, 0.7); /* Glassmorphism panel */
+  --plana-text-main: #333333; /* Dark text for light background */
+  --plana-text-muted: #666666;
+  --plana-border: rgba(255, 166, 201, 0.4); /* Subtle light pink border */
+  
+  --background: var(--plana-bg-base);
+  --foreground: var(--plana-text-main);
+}
+
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('/fonts/Title_Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('/fonts/Title_Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('/fonts/Title_Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GyeonggiBatang';
+  src: url('/fonts/Batang_Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GyeonggiBatang';
+  src: url('/fonts/Batang_Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'GyeonggiTitle', sans-serif;
+  --font-mono: var(--font-geist-mono);
+  
+  --color-plana-primary: var(--plana-primary);
+  --color-plana-primary-light: var(--plana-primary-light);
+  --color-plana-primary-dark: var(--plana-primary-dark);
+  --color-plana-accent: var(--plana-accent);
+  --color-plana-bg-panel: var(--plana-bg-panel);
+  --color-plana-border: var(--plana-border);
+}
+
+body {
+  background-color: var(--plana-bg-base);
+  background-image: url('/images/ui/plana_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--foreground);
+  font-family: 'GyeonggiTitle', sans-serif;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.5); 
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--plana-primary); 
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--plana-primary-dark); 
+}
+
+/* Diagonal utilities for Blue Archive UI Style */
+.clip-diagonal {
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+.glass-panel {
+  background: var(--plana-bg-panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--plana-border);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* Lobby Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; translate: 50px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+.fade-in-anim {
+  animation: fade-in 1.2s ease-out forwards;
+}
+
+.slide-in-right-anim {
+  opacity: 0;
+  animation: slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

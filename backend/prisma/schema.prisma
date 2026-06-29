@@ -1,0 +1,167 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Student {
+  id              Int           @id @default(autoincrement())
+  name            String
+  school          String
+  squadType       SquadType
+  tacticRole      TacticRole
+  bulletType      BulletType
+  armorType       ArmorType
+  weaponType      WeaponType
+  position        Position
+  starGrade       Int           @default(1)
+  isLimited       Boolean       @default(false)
+  imagePath       String?
+  equipmentSlot1  String?
+  equipmentSlot2  String?
+  equipmentSlot3  String?
+  primaryOopart   String?
+  secondaryOopart String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  collections     Collection[]
+  growthPlans     GrowthPlan[]
+  stats           StudentStats?
+}
+
+model StudentStats {
+  id             Int      @id @default(autoincrement())
+  studentId      Int      @unique
+  maxHP          Int?
+  attackPower    Int?
+  defensePower   Int?
+  healPower      Int?
+  accuracy       Int?
+  evasion        Int?
+  criticalRate   Int?
+  criticalDamage Int?
+  stability      Int?
+  firingRange    Int?
+  ccStrength     Int?
+  ccResistance   Int?
+  updatedAt      DateTime @updatedAt
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  uid         Int          @unique @default(autoincrement())
+  username    String       @unique
+  password    String
+  role        Role         @default(USER)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  nickname    String?
+  collections Collection[]
+  growthPlans GrowthPlan[]
+}
+
+model Collection {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  studentId Int
+  starGrade Int      @default(3)
+  isOwned   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  details   Json?
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, studentId])
+}
+
+model GrowthPlan {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  studentId          Int
+  currentLevel       Int      @default(1)
+  currentEx          Int      @default(1)
+  currentBasic       Int      @default(1)
+  currentEnh         Int      @default(1)
+  currentSub         Int      @default(1)
+  currentEquip1      Int      @default(1)
+  currentEquip2      Int      @default(1)
+  currentEquip3      Int      @default(1)
+  targetLevel        Int      @default(85)
+  targetEx           Int      @default(5)
+  targetBasic        Int      @default(10)
+  targetEnh          Int      @default(10)
+  targetSub          Int      @default(10)
+  targetEquip1       Int      @default(8)
+  targetEquip2       Int      @default(8)
+  targetEquip3       Int      @default(8)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  currentStar        Int      @default(3)
+  targetStar         Int      @default(5)
+  currentAbility     Int      @default(0)
+  currentWeaponLevel Int      @default(1)
+  currentWeaponStar  Int      @default(0)
+  targetAbility      Int      @default(0)
+  targetWeaponLevel  Int      @default(1)
+  targetWeaponStar   Int      @default(0)
+  student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum SquadType {
+  Main
+  Support
+}
+
+enum TacticRole {
+  DamageDealer
+  Tanker
+  Healer
+  Supporter
+  Ride
+}
+
+enum BulletType {
+  Explosion
+  Pierce
+  Mystic
+  Vibration
+  Decomposition
+}
+
+enum ArmorType {
+  LightArmor
+  HeavyArmor
+  MysticArmor
+  ElasticArmor
+  CompositeArmor
+}
+
+enum WeaponType {
+  AR
+  SR
+  SG
+  SMG
+  MG
+  HG
+  GL
+  RL
+  MT
+  RG
+  FT
+}
+
+enum Position {
+  Front
+  Middle
+  Back
+}
+
+enum Role {
+  USER
+  ADMIN
+}

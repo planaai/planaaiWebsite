@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Next.js
+.next/
+out/
+build/
+
+# Vite / React / Frontend
+dist/
+dist-ssr/
+
+# Backend / Express / Node
+uploads/
+/backend/uploads/
+*.log
+
+# Prisma
+/backend/generated/prisma
+/backend/prisma/*.db
+/backend/prisma/*.db-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keys and Certificates
+*.pem
+*.key
+*.cert
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo

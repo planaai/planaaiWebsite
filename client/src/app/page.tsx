@@ -1,0 +1,74 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator } from 'lucide-react';
+
+const menuItems = [
+  { num: '01', title: '컬렉션', path: '/collection', icon: Users },
+  { num: '02', title: '도감', path: '/archive', icon: BookOpen },
+  { num: '03', title: '선물', path: '/gifts', icon: Gift },
+  { num: '04', title: '가챠 시뮬레이터', path: '/gacha', icon: Sparkles },
+  { num: '05', title: '육성 플래너', path: '/planner', icon: Target },
+  { num: '06', title: '청휘석 계산기', path: '/pyroxene', icon: Calculator },
+  { num: '07', title: '계정', path: '/account', icon: User },
+];
+
+export default function LobbyPage() {
+  return (
+    <div className="fixed inset-0 w-full h-full flex items-center justify-center overflow-hidden z-20 bg-transparent">
+      
+      {/* Central Content Wrapper */}
+      <div className="w-full max-w-[1100px] flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24 px-6 md:px-12">
+        
+        {/* Left side: Huge Logo */}
+        <div className="flex-1 flex items-center justify-center fade-in-anim">
+          <img 
+            src="/images/logo.png" 
+            alt="PLANA.AI Logo" 
+            className="w-full max-w-[350px] md:max-w-[450px] lg:max-w-[500px] h-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.9)] transform transition-transform duration-700 hover:scale-105"
+          />
+        </div>
+
+        {/* Right side: Menu Buttons */}
+        <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[400px]">
+          <div className="w-full flex flex-col gap-4">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <Link 
+                  key={item.num} 
+                  href={item.path}
+                  className="group relative block w-full h-[4.5rem] bg-[var(--plana-bg-panel)]/90 backdrop-blur-xl border border-[var(--plana-border)] shadow-lg transition-all duration-300 transform -skew-x-12 hover:translate-x-4 hover:border-[var(--plana-primary)] hover:bg-white/95 hover:shadow-[0_0_30px_rgba(255,166,201,0.6)] slide-in-right-anim"
+                  style={{ 
+                    animationDelay: `${index * 0.08}s`
+                  }}
+                >
+                  {/* Accent bar on the left (skewed with the button) */}
+                  <div className="absolute top-0 left-0 w-2 md:w-3 h-full bg-[var(--plana-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  <div className="flex items-center justify-between w-full h-full px-6 md:px-8 transform skew-x-12">
+                    <div className="flex items-center gap-3 md:gap-5">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100/50 border border-slate-200 flex items-center justify-center text-slate-500 group-hover:bg-[var(--plana-primary-light)] group-hover:border-[var(--plana-primary)] group-hover:text-white transition-all shadow-sm group-hover:shadow-[0_0_10px_rgba(255,166,201,0.5)] group-hover:scale-110">
+                        <Icon size={20} className="w-4 h-4 md:w-5 md:h-5" />
+                      </div>
+                      <span className="text-lg md:text-xl font-bold text-slate-700 tracking-tight group-hover:text-[var(--plana-primary-dark)] transition-colors">
+                        {item.title}
+                      </span>
+                    </div>
+                    
+                    <span className="text-2xl md:text-3xl font-black text-slate-300/50 group-hover:text-[var(--plana-primary-light)]/40 transition-colors tracking-tighter italic mr-2 md:mr-0">
+                      {item.num}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
