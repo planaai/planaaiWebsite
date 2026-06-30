@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, CheckCircle } from 'lucide-react';
+import { Search, Filter, CheckCircle, User } from 'lucide-react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { useFormationStore } from '@/store/formationStore';
+import { useAlert } from '@/contexts/AlertContext';
 
 interface Props {
   masterData: StudentMaster[];
@@ -18,13 +19,21 @@ export function RosterPanel({ masterData, schema }: Props) {
   const [filterArmorType, setFilterArmorType] = useState('');
 
   const records = useArchiveStore(state => state.records);
-  const { rosterType, mode, teams, assignStudent, removeStudent } = useFormationStore();
+  const { rosterType, mode, teams, activeTeamId, assignStudent, removeStudent } = useFormationStore();
+  const { showConfirm } = useAlert();
+
+  const [sortingTeamsSnapshot, setSortingTeamsSnapshot] = useState(teams);
+
+  // Update sorting snapshot only when filters or active team changes, not when assigning
+  React.useEffect(() => {
+    setSortingTeamsSnapshot(teams);
+  }, [activeTeamId, searchQuery, filterSchool, filterRole, filterFieldType, filterAttackType, filterArmorType, rosterType, mode]);
 
   const getLabel = (type: string, key: string) => {
     return schema?.enums[type]?.values?.find(v => v.key === key)?.label || key;
   };
 
-  // Check if a student is already assigned to any team
+  // Check if a student is already assigned to any team (Live data for overlay)
   const getAssignedTeamIds = (studentId: number): string[] => {
     const assignedIds: string[] = [];
     teams.forEach(t => {
@@ -36,7 +45,7 @@ export function RosterPanel({ masterData, schema }: Props) {
   };
 
   const filteredData = useMemo(() => {
-    return masterData.filter(master => {
+    const filtered = masterData.filter(master => {
       const isOwned = !!records[master.id];
       if (rosterType === 'collection' && !isOwned) return false;
 
@@ -55,7 +64,34 @@ export function RosterPanel({ masterData, schema }: Props) {
       
       return true;
     });
-  }, [masterData, records, searchQuery, filterSchool, filterRole, filterFieldType, filterAttackType, filterArmorType, rosterType]);
+
+    // Sort assigned students to the top using the snapshot
+    filtered.sort((a, b) => {
+      const aTeamIndex = sortingTeamsSnapshot.findIndex(t => t.strikers.includes(a.id) || t.specials.includes(a.id));
+      const bTeamIndex = sortingTeamsSnapshot.findIndex(t => t.strikers.includes(b.id) || t.specials.includes(b.id));
+      
+      const aAssigned = aTeamIndex !== -1;
+      const bAssigned = bTeamIndex !== -1;
+
+      if (aAssigned && !bAssigned) return -1;
+      if (!aAssigned && bAssigned) return 1;
+      
+      if (aAssigned && bAssigned) {
+        // Active team students first, then sort by team index
+        const aIsActive = aTeamIndex === sortingTeamsSnapshot.findIndex(t => t.id === activeTeamId);
+        const bIsActive = bTeamIndex === sortingTeamsSnapshot.findIndex(t => t.id === activeTeamId);
+        
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+        
+        return aTeamIndex - bTeamIndex;
+      }
+      
+      return 0;
+    });
+
+    return filtered;
+  }, [masterData, records, searchQuery, filterSchool, filterRole, filterFieldType, filterAttackType, filterArmorType, rosterType, mode, sortingTeamsSnapshot]);
 
   const handleDragStart = (e: React.DragEvent, studentId: number, fieldType: string) => {
     // We normalize field type to 'striker' or 'special'
@@ -66,18 +102,43 @@ export function RosterPanel({ masterData, schema }: Props) {
   const handleStudentClick = (studentId: number, fieldType: string) => {
     const normalizedType = fieldType.toLowerCase() as 'striker' | 'special';
 
-    // Auto-fill the first available empty slot of the correct type in the active team
     const activeTeam = teams.find(t => t.id === useFormationStore.getState().activeTeamId);
     if (!activeTeam) return;
 
     const slotArray = normalizedType === 'striker' ? activeTeam.strikers : activeTeam.specials;
-    const firstEmptyIndex = slotArray.findIndex(id => id === null);
-
-    if (firstEmptyIndex !== -1) {
-      assignStudent(activeTeam.id, normalizedType, firstEmptyIndex, studentId);
-    } else {
-      console.warn(`No empty ${normalizedType} slot available`);
+    
+    // Check if the student is already in the active team
+    const currentSlotIndex = slotArray.findIndex(id => id === studentId);
+    if (currentSlotIndex !== -1) {
+      // If already assigned to this team, remove them
+      removeStudent(activeTeam.id, normalizedType, currentSlotIndex);
+      return;
     }
+
+    // Auto-fill logic
+    const doAssign = () => {
+      const firstEmptyIndex = slotArray.findIndex(id => id === null);
+      if (firstEmptyIndex !== -1) {
+        assignStudent(activeTeam.id, normalizedType, firstEmptyIndex, studentId);
+      } else {
+        console.warn(`No empty ${normalizedType} slot available`);
+      }
+    };
+
+    const assignedTeams = getAssignedTeamIds(studentId);
+    if (mode === 'raid' && assignedTeams.length > 0) {
+      const existingTeam = teams.find(t => t.id === assignedTeams[0]);
+      if (existingTeam) {
+        showConfirm(
+          '편성 확인',
+          `이 학생은 ${existingTeam.name}에 이미 편성되어 있습니다. 확인을 누르시면 기존 부대에서 제외되어 현재 부대로 옮겨집니다.`,
+          doAssign
+        );
+        return;
+      }
+    }
+
+    doAssign();
   };
 
   return (
@@ -125,9 +186,8 @@ export function RosterPanel({ masterData, schema }: Props) {
           {filteredData.map(master => {
             const isOwned = !!records[master.id];
             const assignedTeams = getAssignedTeamIds(master.id);
-            const isAssigned = assignedTeams.length > 0;
-            // In raid mode, if assigned to any team, can't be used (or visually grayed out, though they can re-assign which moves them)
-            const isAssignedElsewhereRaid = mode === 'raid' && isAssigned;
+            const isAssignedToActive = assignedTeams.includes(activeTeamId);
+            const isAssigned = mode === 'raid' ? assignedTeams.length > 0 : isAssignedToActive;
             const normalizedType = master.fieldType.toLowerCase();
 
             return (
@@ -142,11 +202,11 @@ export function RosterPanel({ masterData, schema }: Props) {
                   <img 
                     src={master.portraitUrl} 
                     alt={master.name} 
-                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xl">
-                    {master.name.charAt(0)}
+                  <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[var(--plana-primary)] transition-colors">
+                    <User size={32} strokeWidth={1.5} />
                   </div>
                 )}
                 

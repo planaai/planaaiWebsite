@@ -78,7 +78,7 @@ export function TeamTabs() {
             
             {/* Active indicator bar */}
             {isActive && (
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#facc15] rounded-l-lg"></div>
+              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#facc15]"></div>
             )}
           </div>
         );

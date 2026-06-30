@@ -32,11 +32,12 @@ interface Props {
 export default function PyroxeneCalculator({ data, events }: Props) {
   const today = new Date();
 
-  const startYear = today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
-  const startMonth = today.getMonth() === 11 ? 0 : today.getMonth() + 1;
-  const startDate = useMemo(() => new Date(startYear, startMonth, 1), [startYear, startMonth]);
+  const [startDateStr, setStartDateStr] = useState<string>(
+    today.toISOString().split('T')[0]
+  );
+  const startDate = useMemo(() => new Date(startDateStr), [startDateStr]);
 
-  const defaultTargetDate = new Date(startYear, startMonth + 1, 0);
+  const defaultTargetDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const [targetDateStr, setTargetDateStr] = useState<string>(
     defaultTargetDate.toISOString().split('T')[0]
   );
@@ -350,21 +351,24 @@ export default function PyroxeneCalculator({ data, events }: Props) {
               기간 설정
             </h2>
             <div className="space-y-4 mb-8">
-              <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
-                <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">목표 날짜 지정</label>
-                <input
-                  type="date"
-                  className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
-                  value={targetDateStr}
-                  onChange={(e) => setTargetDateStr(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2 text-sm text-[var(--plana-text-muted)] bg-white/30 p-4 rounded-xl border border-white/50">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">계산 시작일</span>
-                  <span className="text-[var(--plana-text-main)] font-bold bg-white/70 px-3 py-1 rounded-md">
-                    {startYear}년 {startMonth + 1}월 1일
-                  </span>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+                  <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">계산 시작일</label>
+                  <input
+                    type="date"
+                    className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+                    value={startDateStr}
+                    onChange={(e) => setStartDateStr(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+                  <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">목표 날짜 지정</label>
+                  <input
+                    type="date"
+                    className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+                    value={targetDateStr}
+                    onChange={(e) => setTargetDateStr(e.target.value)}
+                  />
                 </div>
               </div>
             </div>
@@ -744,7 +748,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
               <div>
                 <h2 className="text-3xl font-bold text-[var(--plana-text-main)] tracking-tight">청휘석 계산 보고서</h2>
                 <div className="flex gap-4 mt-1 text-[var(--plana-text-muted)] text-[13px]">
-                  <p>결산 기간: {formatDate(new Date(startYear, startMonth, 1))} ~ {formatDate(targetDate)}</p>
+                  <p>결산 기간: {formatDate(startDate)} ~ {formatDate(targetDate)}</p>
                   <p>| 작성일: {formatDate(today)}</p>
                 </div>
               </div>

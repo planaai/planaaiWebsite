@@ -7,6 +7,7 @@ export interface ApTimelineStep {
   isImportant?: boolean;
   barAp?: number;
   mailboxAp?: number;
+  mailboxDetails?: { name: string; amount: number }[];
 }
 
 export interface ApCalculationResult {
@@ -88,12 +89,23 @@ export function calculateApSchedule(
   let barAp = startHoardTime > now ? targetNaturalAp : Math.min(maxAp, currentAp + Math.floor(differenceInMinutes(mailboxTime, now) / 6));
   let mailboxAp = 0;
   let hoardedAp = 0; 
+  let mailboxDetails: { name: string; amount: number }[] = [];
+
+  const addToMailbox = (name: string, amount: number) => {
+    if (amount <= 0) return;
+    const existing = mailboxDetails.find(i => i.name === name);
+    if (existing) {
+      existing.amount += amount;
+    } else {
+      mailboxDetails.push({ name, amount });
+    }
+  };
 
   timeline.push({
     time: mailboxTime,
     action: 'D-1 우편함 작업 시작 (로그인)',
     description: `접속 시 자연 회복된 분량인 ${barAp} AP 보유`,
-    barAp, mailboxAp
+    barAp, mailboxAp, mailboxDetails: [...mailboxDetails]
   });
 
   let timeOffset = 1;
@@ -103,11 +115,12 @@ export function calculateApSchedule(
     let toMailbox = 150 - toBar;
     barAp += toBar;
     hoardedAp += toMailbox; 
+    addToMailbox('2주 AP 패키지', toMailbox);
     timeline.push({
       time: addMinutes(mailboxTime, timeOffset++),
       action: '2주 AP 패키지 자동 수령',
       description: '접속과 동시에 자동으로 수령됩니다.',
-      barAp, mailboxAp: mailboxAp + hoardedAp
+      barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
     });
   }
 
@@ -116,11 +129,14 @@ export function calculateApSchedule(
     let remainingPyro = targetPyroxeneRefreshes;
     let pvpSpent = 0;
     let pyroSpent = 0;
+    let addedPvpToMailbox = 0;
+    let addedPyroToMailbox = 0;
 
     while (remainingPvp > 0 && barAp < 999) {
       let toBar = Math.min(90, 999 - barAp);
       barAp += toBar;
       mailboxAp += (90 - toBar);
+      addedPvpToMailbox += (90 - toBar);
       remainingPvp--;
       pvpSpent++;
     }
@@ -129,9 +145,13 @@ export function calculateApSchedule(
       let toBar = Math.min(120, 999 - barAp);
       barAp += toBar;
       mailboxAp += (120 - toBar);
+      addedPyroToMailbox += (120 - toBar);
       remainingPyro--;
       pyroSpent++;
     }
+
+    addToMailbox('전술대회 상점 코인', addedPvpToMailbox);
+    addToMailbox('청휘석 AP 충전', addedPyroToMailbox);
 
     let desc = '';
     if (pvpSpent > 0) desc += `대항전 코인 ${pvpSpent}회(${pvpSpent * 90} AP) 구매.\n`;
@@ -143,7 +163,7 @@ export function calculateApSchedule(
       action: 'AP 충전 및 구매',
       description: desc.trim(),
       isImportant: true,
-      barAp, mailboxAp: mailboxAp + hoardedAp
+      barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
     });
   }
 
@@ -151,11 +171,12 @@ export function calculateApSchedule(
     let toBar = Math.min(cafeAp, Math.max(0, 999 - barAp));
     barAp += toBar;
     mailboxAp += (cafeAp - toBar);
+    addToMailbox('카페 AP', cafeAp - toBar);
     timeline.push({
       time: addMinutes(mailboxTime, timeOffset++),
       action: '카페 AP 수거',
       description: `카페 AP ${cafeAp} 수거 (우편함 보관)`,
-      barAp, mailboxAp: mailboxAp + hoardedAp
+      barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
     });
   }
 
@@ -163,11 +184,12 @@ export function calculateApSchedule(
     let toBar = Math.min(150, Math.max(0, 999 - barAp));
     barAp += toBar;
     mailboxAp += (150 - toBar);
+    addToMailbox('일일 미션', 150 - toBar);
     timeline.push({
       time: addMinutes(mailboxTime, timeOffset++),
       action: '일일 미션 AP 수령',
       description: `일일 미션 보상 150 AP 수령 (우편함 보관)`,
-      barAp, mailboxAp: mailboxAp + hoardedAp
+      barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
     });
   }
 
@@ -175,11 +197,12 @@ export function calculateApSchedule(
     let toBar = Math.min(150, Math.max(0, 999 - barAp));
     barAp += toBar;
     hoardedAp += (150 - toBar);
+    addToMailbox(`출석부 ${todayAttendance}일차`, 150 - toBar);
     timeline.push({
       time: addMinutes(mailboxTime, timeOffset++),
       action: `출석부 ${todayAttendance}일차 AP 수령`,
       description: `출석 보상 150 AP 수령 (우편함 보관)`,
-      barAp, mailboxAp: mailboxAp + hoardedAp
+      barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
     });
   }
 
@@ -189,9 +212,9 @@ export function calculateApSchedule(
   timeline.push({
     time: dDayTime,
     action: 'D-Day 이벤트 당일 (우편함 작업)',
-    description: `아래 자원들을 모두 수령하고 소모합니다.`,
+    description: `1. 보유 중인 999 AP를 먼저 소모하세요.\n2. 우편함에 누적된 존버 AP를 꺼내서 소모하세요.\n3. 아래 나오는 당일 자원들을 '수령 -> 소모' 순서로 반복 처리하세요.`,
     isImportant: true,
-    barAp, mailboxAp: mailboxAp + hoardedAp
+    barAp, mailboxAp: mailboxAp + hoardedAp, mailboxDetails: [...mailboxDetails]
   });
 
   let dDayTotal = barAp + mailboxAp + hoardedAp;
@@ -277,7 +300,7 @@ export function calculateApSchedule(
   timeline.push({
     time: targetDate,
     action: '모든 AP 소모 완료',
-    description: `최종 획득 가능 AP: ${dDayTotal} AP\n-3486 AP 처럼 한꺼번에 계산됩니다.`,
+    description: `최종 획득 가능 AP: ${dDayTotal} AP`,
     isImportant: true,
     barAp: 0, mailboxAp: 0
   });

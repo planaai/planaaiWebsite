@@ -1,7 +1,8 @@
 import React from 'react';
 import type { StudentMaster } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
-import { X, Plus } from 'lucide-react';
+import { useAlert } from '@/contexts/AlertContext';
+import { X, Plus, User } from 'lucide-react';
 
 interface Props {
   type: 'striker' | 'special';
@@ -12,7 +13,8 @@ interface Props {
 }
 
 export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
-  const { removeStudent, assignStudent, swapStudents } = useFormationStore();
+  const { mode, teams, removeStudent, assignStudent, swapStudents } = useFormationStore();
+  const { showConfirm } = useAlert();
 
   const handleDragStart = (e: React.DragEvent) => {
     if (student) {
@@ -45,7 +47,21 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
             swapStudents(parsed.sourceTeamId, parsed.sourceType, parsed.sourceIndex, teamId, type, index);
           } else {
             // Assign from roster
-            assignStudent(teamId, type, index, parsed.studentId);
+            const doAssign = () => assignStudent(teamId, type, index, parsed.studentId);
+            
+            if (mode === 'raid') {
+              const assignedTeam = teams.find(t => t.strikers.includes(parsed.studentId) || t.specials.includes(parsed.studentId));
+              if (assignedTeam && assignedTeam.id !== teamId) {
+                showConfirm(
+                  '편성 확인',
+                  `이 학생은 ${assignedTeam.name}에 이미 편성되어 있습니다. 확인을 누르시면 기존 부대에서 제외되어 현재 부대로 옮겨집니다.`,
+                  doAssign
+                );
+                return;
+              }
+            }
+            
+            doAssign();
           }
         } else {
           console.warn(`Cannot assign ${parsed.type} to ${type} slot`);
@@ -94,7 +110,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className={`relative flex flex-col items-center justify-end group shrink-0 transition-transform duration-300 hover:-translate-y-2 cursor-pointer ${sizeClasses}`}
+        className={`relative flex flex-col items-center justify-end group shrink-0 cursor-pointer ${sizeClasses}`}
       >
         {/* Character Image */}
         {student ? (
@@ -103,19 +119,19 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
               <img
                 src={student.fullIllustUrl}
                 alt={student.name}
-                className="w-[200%] max-w-none object-cover transition-transform duration-500 group-hover:scale-105 drop-shadow-xl"
+                className="w-[200%] max-w-none object-cover drop-shadow-xl"
                 style={{ objectPosition: 'center 20%' }}
               />
             ) : student.portraitUrl ? (
               <img
                 src={student.portraitUrl}
                 alt={student.name}
-                className="w-[120%] object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-xl"
+                className="w-[120%] object-contain drop-shadow-xl"
               />
             ) : (
               <div className="relative mb-8 pointer-events-auto">
-                <div className={`${isCompact ? 'w-[65px] h-[65px] text-xl' : 'w-[100px] h-[100px] text-3xl'} bg-slate-200/80 rounded-full flex items-center justify-center text-slate-500 font-bold shadow-lg`}>
-                  {student.name.charAt(0)}
+                <div className={`${isCompact ? 'w-[65px] h-[65px]' : 'w-[100px] h-[100px]'} bg-slate-100/80 rounded-full flex items-center justify-center text-slate-400 shadow-lg group-hover:text-[var(--plana-primary)] transition-colors`}>
+                  <User size={isCompact ? 32 : 48} strokeWidth={1.5} />
                 </div>
                 <button
                   onClick={handleRemove}
@@ -193,7 +209,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={`relative bg-white rounded-lg shadow-md flex items-center p-1 group shrink-0 transition-transform duration-300 hover:-translate-y-1 cursor-pointer border-b-4 ${specialSizeClasses} ${student ? 'border-[#315B9A]' : 'border-slate-300 bg-white/50 backdrop-blur-sm'}`}
+      className={`relative bg-white rounded-lg shadow-md flex items-center p-1 group shrink-0 cursor-pointer border-b-4 ${specialSizeClasses} ${student ? 'border-[#315B9A]' : 'border-slate-300 bg-white/50 backdrop-blur-sm'}`}
     >
       {student ? (
         <>
@@ -201,7 +217,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
              {student.portraitUrl ? (
                <img src={student.portraitUrl} alt={student.name} className="w-full h-full object-cover" />
              ) : (
-               <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl bg-slate-200">{student.name.charAt(0)}</div>
+               <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100 group-hover:text-[var(--plana-primary)] transition-colors"><User size={28} strokeWidth={1.5} /></div>
              )}
           </div>
           

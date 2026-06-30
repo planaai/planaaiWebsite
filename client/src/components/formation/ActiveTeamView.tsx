@@ -32,7 +32,7 @@ export function ActiveTeamView({ masterData, schema }: Props) {
           
 
 
-          <div className="flex justify-center items-end gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-full w-full h-full relative z-10 pl-24 md:pl-32 pr-2 sm:pr-4 overflow-x-auto custom-scrollbar">
+          <div className="flex justify-center items-end gap-4 sm:gap-6 md:gap-8 lg:gap-12 max-w-full w-full h-full relative z-10 pl-24 md:pl-32 pr-2 sm:pr-4 overflow-x-auto custom-scrollbar">
             {activeTeam.strikers.map((studentId, index) => (
               <TeamSlot
                 key={`striker-${index}`}

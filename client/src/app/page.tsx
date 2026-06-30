@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout } from 'lucide-react';
+import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal } from 'lucide-react';
+import { useAlert } from '@/contexts/AlertContext';
 
 const menuItems = [
   { num: '01', title: '컬렉션', path: '/collection', icon: Users },
@@ -12,15 +13,19 @@ const menuItems = [
   { num: '05', title: '육성 플래너', path: '/planner', icon: Target },
   { num: '06', title: '모의 편성', path: '/formation', icon: Layout },
   { num: '07', title: '청휘석 계산기', path: '/pyroxene', icon: Calculator },
-  { num: '08', title: '계정', path: '/account', icon: User },
+  { num: '08', title: 'AP 존버 계산기', path: '/ap-calculator', icon: BatteryCharging },
+  { num: '09', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
+  { num: '10', title: '계정', path: '/account', icon: User },
 ];
 
 export default function LobbyPage() {
+  const { showAlert } = useAlert();
+
   return (
     <div className="fixed inset-0 w-full h-full flex items-center justify-center overflow-hidden z-20 bg-transparent">
       
       {/* Central Content Wrapper */}
-      <div className="w-full max-w-[1100px] flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24 px-6 md:px-12">
+      <div className="w-full max-w-[1400px] flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24 px-6 md:px-12">
         
         {/* Left side: Huge Logo */}
         <div className="flex-1 flex items-center justify-center fade-in-anim">
@@ -32,14 +37,20 @@ export default function LobbyPage() {
         </div>
 
         {/* Right side: Menu Buttons */}
-        <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[400px]">
-          <div className="w-full flex flex-col gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center w-full max-w-[400px] md:max-w-[850px]">
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 md:grid-rows-5 md:grid-flow-col md:auto-cols-fr gap-4 md:gap-8">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
               return (
                 <Link 
                   key={item.num} 
                   href={item.path}
+                  onClick={(e) => {
+                    if (item.isComingSoon) {
+                      e.preventDefault();
+                      showAlert('알림', '선생님, 해당 기능은 준비중입니다.');
+                    }
+                  }}
                   className="group relative block w-full h-[4.5rem] bg-[var(--plana-bg-panel)]/90 backdrop-blur-xl border border-[var(--plana-border)] shadow-lg transition-all duration-300 transform -skew-x-12 hover:translate-x-4 hover:border-[var(--plana-primary)] hover:bg-white/95 hover:shadow-[0_0_30px_rgba(255,166,201,0.6)] slide-in-right-anim"
                   style={{ 
                     animationDelay: `${index * 0.08}s`

@@ -33,28 +33,33 @@ export function ApCalculator() {
   const [todayAttendance, setTodayAttendance] = useState<number>(0);
   
   const [result, setResult] = useState<ReturnType<typeof calculateApSchedule> | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadImage = async () => {
-    if (resultRef.current === null) return;
+    if (exportRef.current === null) return;
+    setIsExporting(true);
     
-    try {
-      const dataUrl = await toPng(resultRef.current, { 
-        cacheBust: true, 
-        backgroundColor: '#f8fafc',
-        style: {
-          padding: '24px',
-          borderRadius: '16px'
-        }
-      });
-      const link = document.createElement('a');
-      link.download = `ap-schedule-${format(new Date(), 'yyyyMMdd-HHmm')}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Failed to download image:', err);
-      alert('이미지 저장에 실패했습니다.');
-    }
+    // Give it a tiny delay to ensure React state updates and font rendering if necessary
+    setTimeout(async () => {
+      try {
+        const dataUrl = await toPng(exportRef.current!, { 
+          cacheBust: true, 
+          backgroundColor: '#f8fafc',
+          pixelRatio: 2
+        });
+        const link = document.createElement('a');
+        link.download = `ap-schedule-${format(new Date(), 'yyyyMMdd-HHmm')}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error('Failed to download image:', err);
+        alert('이미지 저장에 실패했습니다.');
+      } finally {
+        setIsExporting(false);
+      }
+    }, 150);
   };
 
   const handleCalculate = () => {
@@ -264,7 +269,7 @@ export function ApCalculator() {
       {/* 우측: 타임라인 패널 */}
       <div className="lg:w-1/2">
       {result ? (
-        <div className="bg-white/60 p-6 rounded-xl border border-[var(--plana-border)] shadow-sm h-full flex flex-col">
+        <div className="bg-white/60 p-6 rounded-xl border border-[var(--plana-border)] shadow-sm">
           <div className="flex justify-end mb-4">
             <button 
               onClick={handleDownloadImage}
@@ -275,7 +280,7 @@ export function ApCalculator() {
             </button>
           </div>
           
-          <div ref={resultRef} className="bg-white/80 p-6 rounded-xl">
+          <div ref={resultRef} className={`w-full ${!isExporting ? 'max-h-[600px] overflow-y-auto pr-2 custom-scrollbar' : ''}`}>
           <div className="border-b border-[var(--plana-border)] pb-4 mb-6">
             <h3 className="text-xl font-bold text-[var(--plana-text-main)] flex items-center gap-2">
               <span className="text-[var(--plana-primary)]">✧</span> 결과 타임라인
@@ -290,32 +295,53 @@ export function ApCalculator() {
           </div>
 
           {result.isPossible && result.timeline.length > 0 && (
-            <div className="relative border-l-2 border-[var(--plana-border)] ml-3 space-y-6">
+            <div className="relative border-l-2 border-[var(--plana-border)] ml-8 space-y-6 mt-4">
               {result.timeline.map((step, idx) => (
                 <div key={idx} className="relative ml-8">
                   <span className="absolute flex items-center justify-center w-6 h-6 bg-[var(--plana-primary-light)]/20 rounded-full -left-[45px] ring-4 ring-white">
                     <div className="w-2.5 h-2.5 bg-[var(--plana-primary)] rounded-full"></div>
                   </span>
+                  
                   <div className="flex flex-col bg-white/80 p-4 rounded-lg border border-[var(--plana-border)] shadow-sm">
-                    <span className="text-sm text-[var(--plana-text-muted)] font-mono mb-1">
+                    <span className="text-sm text-[var(--plana-text-muted)] font-mono mb-1 block">
                       {format(step.time, 'yyyy년 MM월 dd일 HH:mm')}
                     </span>
-                    <h4 className={`text-lg font-semibold ${step.isImportant ? 'text-[var(--plana-primary-dark)]' : 'text-[var(--plana-text-main)]'}`}>
+                    <h4 className={`text-lg font-bold ${step.isImportant ? 'text-[var(--plana-primary-dark)]' : 'text-[var(--plana-text-main)]'}`}>
                       {step.action}
                     </h4>
-                    <p className="text-[var(--plana-text-muted)] text-sm mt-1 whitespace-pre-line">
+                    <p className="text-[var(--plana-text-muted)] text-sm whitespace-pre-line mt-1">
                       {step.description}
                     </p>
+                    
                     {step.barAp !== undefined && step.mailboxAp !== undefined && (
-                      <div className="mt-3 bg-[var(--plana-background)] p-3 rounded-lg flex flex-col sm:flex-row justify-between text-sm border border-[var(--plana-border)] gap-2">
+                      <div className="bg-[var(--plana-background)] p-3 rounded-lg flex flex-col sm:flex-row justify-between gap-2 text-sm border border-[var(--plana-border)] mt-3">
                         <span className="font-semibold text-[var(--plana-text-main)] flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-[var(--plana-primary)]"></span>
                           현재 보유 AP: <span className="text-[var(--plana-primary-dark)]">{step.barAp}</span> <span className="text-[var(--plana-text-muted)] font-normal text-xs">/ 999</span>
                         </span>
-                        <span className="font-semibold text-[var(--plana-text-main)] flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-orange-400"></span>
-                          우편함 누적 AP: <span className="text-orange-500">{step.mailboxAp}</span>
-                        </span>
+                        <div className="relative group flex items-center">
+                          <span className={`font-semibold text-[var(--plana-text-main)] flex items-center gap-2 ${step.mailboxDetails && step.mailboxDetails.length > 0 ? 'cursor-help' : ''}`}>
+                            <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                            우편함 누적 AP: 
+                            <span className={`text-orange-500 ${step.mailboxDetails && step.mailboxDetails.length > 0 ? 'border-b border-dashed border-orange-500' : ''}`}>
+                              {step.mailboxAp}
+                            </span>
+                          </span>
+                          
+                          {step.mailboxDetails && step.mailboxDetails.length > 0 && (
+                            <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block w-48 bg-white text-[var(--plana-text-main)] text-xs rounded-xl p-3 shadow-lg border border-[var(--plana-border)] z-10">
+                              <p className="font-bold border-b border-[var(--plana-border)] pb-1 mb-2 text-[var(--plana-primary-dark)]">우편함 상세</p>
+                              <div className="flex flex-col gap-1.5">
+                                {step.mailboxDetails.map(item => (
+                                  <div key={item.name} className="flex justify-between items-center">
+                                    <span className="text-[var(--plana-text-muted)] font-medium">{item.name}</span>
+                                    <span className="text-orange-500 font-bold">+{item.amount}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -330,6 +356,73 @@ export function ApCalculator() {
           <p>좌측에서 옵션을 설정하고 '계산하기'를 누르면<br/>이곳에 타임라인이 표시됩니다.</p>
         </div>
       )}
+      </div>
+      
+      {/* Hidden Export Template */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+        {result && result.isPossible && (
+          <div ref={exportRef} className="bg-[#f8fafc] p-8 w-[900px] rounded-2xl relative font-sans text-gray-800">
+            <div className="border-b-2 border-[var(--plana-primary)] pb-4 mb-6">
+              <h2 className="text-3xl font-bold text-[var(--plana-text-main)] flex items-center gap-3">
+                <span className="text-[var(--plana-primary)] text-4xl">✧</span> AP 존버 시뮬레이션 결과
+              </h2>
+              <div className="flex gap-4 mt-2 font-bold">
+                <p className="text-[var(--plana-primary-dark)] text-xl">최종 목표 AP: {result.totalHoardedAp} AP</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-5 mt-4">
+              {result.timeline.map((step, idx) => (
+                <div key={idx} className="flex flex-col bg-white p-5 rounded-xl border border-[var(--plana-border)] shadow-sm relative">
+                  <div className="absolute -top-3 -left-3 flex items-center justify-center w-8 h-8 bg-[var(--plana-primary)] text-white font-bold rounded-full border-4 border-[#f8fafc] shadow-sm z-10 text-sm">
+                    {idx + 1}
+                  </div>
+                  
+                  <div className="ml-2 flex flex-col h-full">
+                    <span className="text-xs text-[var(--plana-text-muted)] font-mono mb-1 block">
+                      {format(step.time, 'yyyy년 MM월 dd일 HH:mm')}
+                    </span>
+                    <h4 className={`text-base font-bold ${step.isImportant ? 'text-[var(--plana-primary-dark)]' : 'text-[var(--plana-text-main)]'}`}>
+                      {step.action}
+                    </h4>
+                    <p className="text-[var(--plana-text-muted)] text-sm whitespace-pre-line mt-1.5 leading-relaxed">
+                      {step.description}
+                    </p>
+                    
+                    {step.barAp !== undefined && step.mailboxAp !== undefined && (
+                      <div className="bg-[#f1f5f9] p-3 rounded-lg flex flex-col gap-2 text-sm border border-slate-200 mt-auto pt-3">
+                        <span className="font-semibold text-slate-700 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[var(--plana-primary)]"></span>
+                          현재 보유 AP: <span className="text-[var(--plana-primary-dark)]">{step.barAp}</span> <span className="text-slate-500 font-normal text-xs">/ 999</span>
+                        </span>
+                        <div className="flex items-center">
+                          <span className="font-semibold text-slate-700 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                            우편함 누적 AP: 
+                            <span className="text-orange-500">
+                              {step.mailboxAp}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-6 border-t-2 border-dashed border-gray-200 flex justify-end items-end">
+              <div className="flex items-center gap-4 relative">
+                <div className="text-right z-10 pb-2">
+                  <div className="text-sm text-gray-500 font-bold mb-0.5">보고서 작성자</div>
+                  <div className="text-2xl font-black text-[var(--plana-primary-dark)] tracking-wider">프라나</div>
+                </div>
+                <div className="w-24 h-24 relative z-0">
+                  <img src="/images/plana_stamp.png" alt="Plana Stamp" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-none h-auto object-contain drop-shadow-sm opacity-90 -rotate-12" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>
