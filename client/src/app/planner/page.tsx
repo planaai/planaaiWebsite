@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { fetchServerData, fetchSchema } from '@/lib/api';
+import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { PlannerView } from '@/components/planner/PlannerView';
 
@@ -11,13 +11,16 @@ export default function PlannerPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadData() {
-      const [{ masterData }, s] = await Promise.all([fetchServerData(), fetchSchema()]);
+      const [{ masterData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
+      if (cancelled) return;
       setMasterData(masterData);
       setSchema(s);
       setLoading(false);
     }
     loadData();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) {

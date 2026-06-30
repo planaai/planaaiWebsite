@@ -17,7 +17,7 @@ echo [3/4] Starting Frontend Server (Vite)...
 start /b cmd /c "cd frontend && set NODE_OPTIONS=--max-old-space-size=2048 && npm run dev"
 
 echo [4/4] Starting Client Server (Next.js Port 3001)...
-start /b cmd /c "cd client && set NODE_OPTIONS=--max-old-space-size=2048 && npm run dev"
+start /b cmd /c "cd client && set NODE_OPTIONS=--max-old-space-size=8192 && npm run dev"
 
 echo.
 echo ===================================

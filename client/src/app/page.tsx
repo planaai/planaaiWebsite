@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator } from 'lucide-react';
+import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout } from 'lucide-react';
 
 const menuItems = [
   { num: '01', title: '컬렉션', path: '/collection', icon: Users },
@@ -10,8 +10,9 @@ const menuItems = [
   { num: '03', title: '선물', path: '/gifts', icon: Gift },
   { num: '04', title: '가챠 시뮬레이터', path: '/gacha', icon: Sparkles },
   { num: '05', title: '육성 플래너', path: '/planner', icon: Target },
-  { num: '06', title: '청휘석 계산기', path: '/pyroxene', icon: Calculator },
-  { num: '07', title: '계정', path: '/account', icon: User },
+  { num: '06', title: '모의 편성', path: '/formation', icon: Layout },
+  { num: '07', title: '청휘석 계산기', path: '/pyroxene', icon: Calculator },
+  { num: '08', title: '계정', path: '/account', icon: User },
 ];
 
 export default function LobbyPage() {

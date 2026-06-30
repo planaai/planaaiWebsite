@@ -54,7 +54,15 @@ export function Navbar() {
             </li>
             <li className="text-slate-300">/</li>
             <li>
+              <Link href="/formation" className="px-4 hover:text-[var(--plana-primary)] transition-colors">모의 편성</Link>
+            </li>
+            <li className="text-slate-300">/</li>
+            <li>
               <Link href="/pyroxene" className="px-4 hover:text-[var(--plana-primary)] transition-colors">청휘석 계산기</Link>
+            </li>
+            <li className="text-slate-300">/</li>
+            <li>
+              <Link href="/ap-calculator" className="px-4 hover:text-[var(--plana-primary)] transition-colors">AP 존버 계산기</Link>
             </li>
           </ul>
 
@@ -76,9 +84,9 @@ export function Navbar() {
                 <LogIn size={16} /> 로그인
               </Link>
             )}
-            <button className="hover:text-[var(--plana-primary)] transition-colors">
+            <Link href="/settings" className="hover:text-[var(--plana-primary)] transition-colors">
               <Settings size={18} />
-            </button>
+            </Link>
           </div>
         </nav>
 

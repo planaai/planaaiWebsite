@@ -31,7 +31,7 @@ interface Props {
 
 export default function PyroxeneCalculator({ data, events }: Props) {
   const today = new Date();
-  
+
   const startYear = today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
   const startMonth = today.getMonth() === 11 ? 0 : today.getMonth() + 1;
   const startDate = useMemo(() => new Date(startYear, startMonth, 1), [startYear, startMonth]);
@@ -48,7 +48,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
   const [tacticalRank, setTacticalRank] = useState<string>(defaultTacRank);
   const [taTier, setTaTier] = useState<string>(data.totalAssaultTiers[0]?.name || '플래티넘');
   const [attendanceDay, setAttendanceDay] = useState<number>(1);
-  
+
   const [selectedMonthlyPkgs, setSelectedMonthlyPkgs] = useState<Record<string, number>>({});
   const [selectedWeeklyPkgs, setSelectedWeeklyPkgs] = useState<Record<string, number>>({});
   const [selectedOneTimePkgs, setSelectedOneTimePkgs] = useState<Record<string, number>>({});
@@ -60,13 +60,13 @@ export default function PyroxeneCalculator({ data, events }: Props) {
   const handleExport = async () => {
     if (!exportRef.current) return;
     setIsExporting(true);
-    
+
     try {
       const dataUrl = await htmlToImage.toPng(exportRef.current, {
         pixelRatio: 2,
         backgroundColor: '#ffffff'
       });
-      
+
       const link = document.createElement('a');
       link.href = dataUrl;
       const now = new Date();
@@ -126,29 +126,29 @@ export default function PyroxeneCalculator({ data, events }: Props) {
     let monthlyPurchases = 0;
     let mondayPurchases = 0;
     let attendancePyroxene = 0;
-    
+
     let currentAttDay = startAttendanceDay;
 
     for (let d = new Date(start); d <= target; d.setDate(d.getDate() + 1)) {
       // 1st of month logic
       if (d.getDate() === 1) monthlyPurchases++;
-      
+
       // Monday logic
       if (d.getDay() === 1) mondayPurchases++;
-      
+
       // Attendance logic
       if (currentAttDay === 5) attendancePyroxene += 50;
       else if (currentAttDay === 10) attendancePyroxene += 100;
-      
+
       currentAttDay++;
       if (currentAttDay > 10) currentAttDay = 1;
     }
 
     const tacAmount = data.tacticalRanks.find(r => r.rank === tacticalRank)?.amount || 10;
-    
+
     const dailyTotal = (data.dailyQuests + tacAmount) * diffDays;
     const weeklyTotal = data.weeklyQuests * diffWeeks;
-    
+
     let upfrontTotal = 0;
     let dailyTotalFromPkgs = 0;
 
@@ -176,7 +176,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
         const itemTotalCost = pkg.cost * monthlyPurchases * count;
         totalCost += itemTotalCost;
         if (itemTotalCost > 0) {
-           costBreakdown.push({ label: name, count: monthlyPurchases * count, cost: itemTotalCost, perItem: pkg.cost });
+          costBreakdown.push({ label: name, count: monthlyPurchases * count, cost: itemTotalCost, perItem: pkg.cost });
         }
       }
     });
@@ -187,7 +187,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
       const pkg = data.weeklyPackages.find(p => p.name === name);
       if (pkg) {
         const purchases = name.includes('2주 AP') ? monthlyPurchases : mondayPurchases;
-        
+
         if (name.includes('2주 AP')) {
           upfrontTotal += pkg.amount * monthlyPurchases * count;
         } else {
@@ -197,7 +197,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
         const itemTotalCost = pkg.cost * purchases * count;
         totalCost += itemTotalCost;
         if (itemTotalCost > 0) {
-           costBreakdown.push({ label: name, count: purchases * count, cost: itemTotalCost, perItem: pkg.cost });
+          costBreakdown.push({ label: name, count: purchases * count, cost: itemTotalCost, perItem: pkg.cost });
         }
       }
     });
@@ -211,7 +211,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
         const itemTotalCost = pkg.cost * count;
         totalCost += itemTotalCost;
         if (itemTotalCost > 0) {
-           costBreakdown.push({ label: name, count: count, cost: itemTotalCost, perItem: pkg.cost });
+          costBreakdown.push({ label: name, count: count, cost: itemTotalCost, perItem: pkg.cost });
         }
       }
     });
@@ -227,7 +227,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
       const eStart = new Date(event.startDate);
       const eEnd = new Date(event.endDate);
       const eReward = new Date(event.rewardDate);
-      
+
       eStart.setHours(0, 0, 0, 0);
       eEnd.setHours(0, 0, 0, 0);
       eReward.setHours(0, 0, 0, 0);
@@ -236,7 +236,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
 
       const overlapStart = new Date(Math.max(start.getTime(), eStart.getTime()));
       const overlapEnd = new Date(Math.min(target.getTime(), eEnd.getTime()));
-      
+
       if (overlapStart <= overlapEnd) {
         let overlapDays = Math.floor((overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         overlapDays = Math.min(overlapDays, 7); // Max 7 days
@@ -289,7 +289,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
 
       const weightA = getWeight(a.name, data.weeklyPackages.indexOf(a));
       const weightB = getWeight(b.name, data.weeklyPackages.indexOf(b));
-      
+
       return weightA - weightB;
     });
   }, [data.weeklyPackages]);
@@ -309,12 +309,13 @@ export default function PyroxeneCalculator({ data, events }: Props) {
   };
 
   const getPackageImage = (pkgName: string) => {
-    return `/images/package/${pkgName}.png`;
+    const sanitizedName = pkgName.replace(' (초회)', ' 초회');
+    return `/images/package/${sanitizedName}.png`;
   };
 
   return (
     <div className="space-y-6 slide-in-right-anim pb-20">
-      
+
       {/* Header section */}
       <div className="flex justify-between items-start xl:items-center gap-4 flex-col xl:flex-row border-b-2 border-[var(--plana-border)] pb-4">
         <div className="flex items-center gap-3">
@@ -328,8 +329,8 @@ export default function PyroxeneCalculator({ data, events }: Props) {
             </p>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={handleExport}
           disabled={isExporting}
           className="flex items-center gap-2 bg-[var(--plana-primary)] text-white px-4 py-2 rounded-lg font-bold shadow-md hover:bg-[var(--plana-primary-dark)] transition-colors disabled:opacity-50 shrink-0"
@@ -340,12 +341,12 @@ export default function PyroxeneCalculator({ data, events }: Props) {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        
+
         {/* Left Column: Settings */}
         <div className="xl:col-span-5 space-y-6">
           <div className="glass-panel p-6 rounded-2xl">
             <h2 className="text-xl font-bold text-[var(--plana-text-main)] flex items-center gap-2 mb-6 border-b border-[var(--plana-border)] pb-3">
-              <Calendar className="w-5 h-5 text-[var(--plana-primary)]" /> 
+              <Calendar className="w-5 h-5 text-[var(--plana-primary)]" />
               기간 설정
             </h2>
             <div className="space-y-4 mb-8">
@@ -369,14 +370,14 @@ export default function PyroxeneCalculator({ data, events }: Props) {
             </div>
 
             <h2 className="text-xl font-bold text-[var(--plana-text-main)] flex items-center gap-2 mb-6 border-b border-[var(--plana-border)] pb-3">
-              <Settings className="w-5 h-5 text-[var(--plana-primary)]" /> 
+              <Settings className="w-5 h-5 text-[var(--plana-primary)]" />
               인게임 성적
             </h2>
             <div className="space-y-4 mb-8">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">오늘 출석일 (1~10일)</label>
-                  <select 
+                  <select
                     className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)]"
                     value={attendanceDay}
                     onChange={e => setAttendanceDay(Number(e.target.value))}
@@ -388,7 +389,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">전술대회 등수</label>
-                  <select 
+                  <select
                     className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)]"
                     value={tacticalRank}
                     onChange={e => setTacticalRank(e.target.value)}
@@ -405,10 +406,10 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                   <div className="flex items-center gap-3">
                     {getTierImage(taTier) && (
                       <div className="w-12 h-12 relative flex-shrink-0">
-                        <Image src={getTierImage(taTier)!} alt={taTier} fill className="object-contain drop-shadow-sm" />
+                        <Image src={getTierImage(taTier)!} alt={taTier} fill unoptimized sizes="48px" className="object-contain drop-shadow-sm" />
                       </div>
                     )}
-                    <select 
+                    <select
                       className="w-full bg-white text-[var(--plana-text-main)] p-3 rounded-lg border border-[var(--plana-border)] outline-none"
                       value={taTier}
                       onChange={e => setTaTier(e.target.value)}
@@ -430,7 +431,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
 
             <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-3 mb-4 border-b border-[var(--plana-border)] pb-3">
               <h2 className="text-xl font-bold text-[var(--plana-text-main)] flex items-center gap-2 whitespace-nowrap">
-                <ShoppingCart className="w-5 h-5 text-[var(--plana-primary)]" /> 
+                <ShoppingCart className="w-5 h-5 text-[var(--plana-primary)]" />
                 과금 패키지
               </h2>
               <div className="flex gap-1 bg-gray-100/50 p-1 rounded-xl w-full xl:w-auto overflow-x-auto custom-scrollbar">
@@ -462,14 +463,14 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                     if (pkg.limit === 1) {
                       return (
                         <div key={pkg.name} className="group relative flex items-center gap-4 bg-white/30 p-3 rounded-lg border border-transparent hover:border-[var(--plana-border)] transition-colors cursor-pointer" onClick={() => toggleMonthlyPkg(pkg.name, !selectedMonthlyPkgs[pkg.name])}>
-                          <input 
-                            type="checkbox" 
-                            className="hidden" 
+                          <input
+                            type="checkbox"
+                            className="hidden"
                             checked={!!selectedMonthlyPkgs[pkg.name]}
                             onChange={(e) => toggleMonthlyPkg(pkg.name, e.target.checked)}
                           />
                           <div className="w-14 h-14 relative flex-shrink-0">
-                            <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill className="object-contain drop-shadow-sm" />
+                            <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill unoptimized sizes="56px" className="object-contain drop-shadow-sm" />
                           </div>
                           <div className="flex flex-col">
                             <span className="text-[14px] text-[var(--plana-text-main)] group-hover:text-[var(--plana-primary-dark)]">{pkg.name}</span>
@@ -485,7 +486,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                       return (
                         <div key={pkg.name} className="flex items-center gap-4 bg-white/30 p-3 rounded-lg border border-transparent hover:border-[var(--plana-border)] transition-colors">
                           <div className="w-16 h-16 relative flex-shrink-0">
-                            <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill className="object-contain drop-shadow-sm" />
+                            <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill unoptimized sizes="64px" className="object-contain drop-shadow-sm" />
                           </div>
                           <div className="flex flex-col flex-1">
                             <div className="flex justify-between items-center mb-1">
@@ -514,7 +515,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                   {sortedWeeklyPackages.map(pkg => (
                     <div key={pkg.name} className="flex items-center gap-4 bg-white/30 p-3 rounded-lg border border-transparent hover:border-[var(--plana-border)] transition-colors">
                       <div className="w-16 h-16 relative flex-shrink-0">
-                        <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill className="object-contain drop-shadow-sm" />
+                        <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill sizes="64px" className="object-contain drop-shadow-sm" />
                       </div>
                       <div className="flex flex-col flex-1">
                         <div className="flex justify-between items-center mb-1">
@@ -543,8 +544,8 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                   </div>
                   {ONE_TIME_PACKAGES.filter(p => p.isHot).map(pkg => (
                     <div key={pkg.name} className="flex items-center gap-4 bg-white/30 p-3 rounded-lg border border-transparent hover:border-[var(--plana-border)] transition-colors">
-                      <div className="w-16 h-16 relative flex-shrink-0 bg-gray-200/50 rounded-lg flex items-center justify-center">
-                        <span className="text-[10px] text-gray-400 font-bold">이미지</span>
+                      <div className="w-16 h-16 relative flex-shrink-0">
+                        <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill sizes="64px" className="object-contain drop-shadow-sm" />
                       </div>
                       <div className="flex flex-col flex-1">
                         <div className="flex justify-between items-center mb-1">
@@ -567,14 +568,14 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                       </div>
                     </div>
                   ))}
-                  
+
                   <div className="pt-6 pb-2 border-b-2 border-dashed border-[var(--plana-border)] mb-3">
                     <span className="text-[13px] font-bold text-[var(--plana-primary-dark)]">일반 상시 패키지</span>
                   </div>
                   {ONE_TIME_PACKAGES.filter(p => !p.isHot).map(pkg => (
                     <div key={pkg.name} className="flex items-center gap-4 bg-white/30 p-3 rounded-lg border border-transparent hover:border-[var(--plana-border)] transition-colors">
-                      <div className="w-16 h-16 relative flex-shrink-0 bg-gray-200/50 rounded-lg flex items-center justify-center">
-                        <span className="text-[10px] text-gray-400 font-bold">이미지</span>
+                      <div className="w-16 h-16 relative flex-shrink-0">
+                        <Image src={getPackageImage(pkg.name)} alt={pkg.name} fill sizes="64px" className="object-contain drop-shadow-sm" />
                       </div>
                       <div className="flex flex-col flex-1">
                         <div className="flex justify-between items-center mb-1">
@@ -602,31 +603,31 @@ export default function PyroxeneCalculator({ data, events }: Props) {
             </div>
           </div>
         </div>
-        
+
         {/* Right Column: Results & Events */}
         <div className="xl:col-span-7 space-y-6">
-          
+
           {/* Result Card */}
           <div className="glass-panel p-8 rounded-3xl flex items-center gap-8 relative">
             <div className="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none z-0">
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-[var(--plana-primary-light)]/20 rounded-full blur-2xl"></div>
               <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[var(--plana-accent)]/20 rounded-full blur-2xl"></div>
             </div>
-            
+
             <div className="group w-28 h-28 relative flex-shrink-0 z-30 hover:scale-105 transition-transform duration-300 cursor-help">
-              <Image src="/pyroxene.png" alt="Pyroxene" fill className="object-contain drop-shadow-md" />
-              
+              <Image src="/pyroxene.png" alt="Pyroxene" fill unoptimized sizes="112px" className="object-contain drop-shadow-md" />
+
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none w-64 bg-white/95 backdrop-blur-sm shadow-xl rounded-xl p-4 border-2 border-[var(--plana-primary-light)] z-50">
                 <p className="text-[12px] font-semibold text-[var(--plana-text-main)] leading-relaxed">
                   어른의 카드로 구입할 수 있는 신비한 보석.<br />
                   다양한 상품을 거래할 수 있다.<br />
                   <br />
-                  어느 파랑색 AI가 많이 좋아한다.
+                  파랑색 AI가 많이 좋아한다.
                 </p>
               </div>
             </div>
-            
+
             <div className="flex flex-col z-10 w-full">
               <span className="text-[var(--plana-text-muted)] text-lg font-semibold mb-1">예상 누적 청휘석</span>
               <div className="flex items-baseline gap-2">
@@ -643,13 +644,13 @@ export default function PyroxeneCalculator({ data, events }: Props) {
           {costBreakdown.length > 0 && (
             <div className="bg-[#f9f9f9] border border-gray-300 p-8 rounded shadow-sm relative font-mono text-gray-800 rotate-1 transform-gpu hover:rotate-0 transition-transform duration-300 max-w-lg mx-auto mt-6">
               <div className="absolute top-4 right-4 w-28 h-28 drop-shadow-md z-10">
-                <Image src="/images/mass.png" alt="Stamp" fill className="object-contain" />
+                <Image src="/images/mass.png" alt="Stamp" fill unoptimized sizes="112px" className="object-contain" />
               </div>
               <div className="text-center mb-6 border-b-2 border-dashed border-gray-400 pb-6 mt-4">
                 <h3 className="text-2xl font-bold mb-1 tracking-tight">어른의 카드 청구서</h3>
                 <p className="text-xs text-gray-500 uppercase tracking-widest">SCHALE Invoice</p>
               </div>
-              
+
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-xs text-gray-500 font-bold border-b border-gray-300 pb-2">
                   <span>ITEM</span>
@@ -668,7 +669,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
                   </div>
                 ))}
               </div>
-              
+
               <div className="border-t-2 border-dashed border-gray-400 pt-6 flex justify-between items-end">
                 <span className="font-bold text-xl tracking-tight">TOTAL</span>
                 <div className="text-right">
@@ -684,7 +685,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
           {/* Breakdown List */}
           <div className="glass-panel p-6 rounded-2xl">
             <h3 className="text-lg font-bold text-[var(--plana-text-main)] mb-4 flex items-center gap-2">
-              <ListCollapse className="w-5 h-5 text-[var(--plana-primary-dark)]" /> 
+              <ListCollapse className="w-5 h-5 text-[var(--plana-primary-dark)]" />
               상세 내역 (총 {totalAmount.toLocaleString()}개)
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -701,7 +702,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
           {activeEvents.length > 0 && (
             <div className="glass-panel p-6 rounded-2xl fade-in-anim">
               <h3 className="text-lg font-bold text-[var(--plana-text-main)] mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[var(--plana-primary-dark)]" /> 
+                <Sparkles className="w-5 h-5 text-[var(--plana-primary-dark)]" />
                 반영된 이벤트 스케줄
               </h3>
               <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
@@ -725,14 +726,14 @@ export default function PyroxeneCalculator({ data, events }: Props) {
               </div>
             </div>
           )}
-          
+
         </div>
       </div>
 
       {/* Hidden Export Template */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-        <div 
-          ref={exportRef} 
+        <div
+          ref={exportRef}
           className="bg-white p-10 w-[800px] relative font-sans text-gray-800"
           style={{ background: 'linear-gradient(to bottom right, #f4f7fb, #ffffff)' }}
         >
@@ -749,75 +750,75 @@ export default function PyroxeneCalculator({ data, events }: Props) {
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-8">
             {/* Left: Pyroxene Breakdown */}
             <div>
-               <h3 className="text-lg font-bold text-[var(--plana-text-main)] mb-3 border-b pb-2 flex items-center gap-2">
-                 <ListCollapse className="w-5 h-5" /> 청휘석 수급 상세
-               </h3>
-               <div className="space-y-2">
-                 {breakdown.map((item, idx) => (
-                   <div key={idx} className="flex justify-between items-center text-[13px] border-b border-gray-100 pb-1">
-                     <span className="text-gray-600">{item.label}</span>
-                     <span className="font-bold flex items-center gap-1">
-                       {item.value.toLocaleString()}
-                       <img src="/pyroxene.png" alt="pyroxene" className="w-4 h-4 object-contain" />
-                     </span>
-                   </div>
-                 ))}
-               </div>
+              <h3 className="text-lg font-bold text-[var(--plana-text-main)] mb-3 border-b pb-2 flex items-center gap-2">
+                <ListCollapse className="w-5 h-5" /> 청휘석 수급 상세
+              </h3>
+              <div className="space-y-2">
+                {breakdown.map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-[13px] border-b border-gray-100 pb-1">
+                    <span className="text-gray-600">{item.label}</span>
+                    <span className="font-bold flex items-center gap-1">
+                      {item.value.toLocaleString()}
+                      <img src="/pyroxene.png" alt="pyroxene" className="w-4 h-4 object-contain" />
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            
+
             {/* Right: Receipt */}
             <div>
-               {costBreakdown.length > 0 ? (
-                 <div className="bg-[#f9f9f9] border border-gray-300 p-6 rounded shadow-sm relative font-mono text-gray-800 rotate-1 max-w-sm mx-auto">
-                    <div className="absolute top-2 right-2 w-16 h-16 drop-shadow-md z-10">
-                      <img src="/images/mass.png" alt="Stamp" className="w-full h-full object-contain" />
-                    </div>
-                    <div className="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-4 mt-2">
-                      <h4 className="text-xl font-bold mb-1 tracking-tight">어른의 카드 청구서</h4>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">SCHALE Invoice</p>
-                    </div>
-                    
-                    <div className="space-y-3 mb-6">
-                      <div className="flex justify-between text-[10px] text-gray-500 font-bold border-b border-gray-300 pb-1">
-                        <span>ITEM</span>
-                        <div className="flex gap-2 w-7/12 justify-end">
-                          <span className="w-8 text-right">QTY</span>
-                          <span className="w-20 text-right">AMOUNT</span>
-                        </div>
-                      </div>
-                      {costBreakdown.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-[11px] border-b border-gray-100 pb-1">
-                          <span className="font-medium truncate pr-2">{item.label}</span>
-                          <div className="flex gap-2 w-7/12 justify-end whitespace-nowrap">
-                            <span className="w-8 text-right text-gray-600">x{item.count}</span>
-                            <span className="w-20 text-right">₩{(item.cost).toLocaleString()}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="border-t-2 border-dashed border-gray-400 pt-4 flex justify-between items-end">
-                      <span className="font-bold text-lg tracking-tight">TOTAL</span>
-                      <div className="text-right">
-                        <span className="text-[10px] text-gray-500 block mb-0.5">KRW</span>
-                        <span className="text-xl font-extrabold text-[var(--plana-primary-dark)]">
-                          ₩{totalCost.toLocaleString()}
-                        </span>
+              {costBreakdown.length > 0 ? (
+                <div className="bg-[#f9f9f9] border border-gray-300 p-6 rounded shadow-sm relative font-mono text-gray-800 rotate-1 max-w-sm mx-auto">
+                  <div className="absolute top-2 right-2 w-16 h-16 drop-shadow-md z-10">
+                    <img src="/images/mass.png" alt="Stamp" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-4 mt-2">
+                    <h4 className="text-xl font-bold mb-1 tracking-tight">어른의 카드 청구서</h4>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">SCHALE Invoice</p>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-[10px] text-gray-500 font-bold border-b border-gray-300 pb-1">
+                      <span>ITEM</span>
+                      <div className="flex gap-2 w-7/12 justify-end">
+                        <span className="w-8 text-right">QTY</span>
+                        <span className="w-20 text-right">AMOUNT</span>
                       </div>
                     </div>
-                 </div>
-               ) : (
-                 <div className="h-full flex items-center justify-center text-[var(--plana-text-muted)] text-sm border-2 border-dashed border-gray-300 bg-white/30 rounded-lg p-6 text-center font-bold">
-                   [보고서 가이드]<br/>청구서를 여기에 부착해 주세요.
-                 </div>
-               )}
+                    {costBreakdown.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-[11px] border-b border-gray-100 pb-1">
+                        <span className="font-medium truncate pr-2">{item.label}</span>
+                        <div className="flex gap-2 w-7/12 justify-end whitespace-nowrap">
+                          <span className="w-8 text-right text-gray-600">x{item.count}</span>
+                          <span className="w-20 text-right">₩{(item.cost).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t-2 border-dashed border-gray-400 pt-4 flex justify-between items-end">
+                    <span className="font-bold text-lg tracking-tight">TOTAL</span>
+                    <div className="text-right">
+                      <span className="text-[10px] text-gray-500 block mb-0.5">KRW</span>
+                      <span className="text-xl font-extrabold text-[var(--plana-primary-dark)]">
+                        ₩{totalCost.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-[var(--plana-text-muted)] text-sm border-2 border-dashed border-gray-300 bg-white/30 rounded-lg p-6 text-center font-bold">
+                  [보고서 가이드]<br />청구서를 여기에 부착해 주세요.
+                </div>
+              )}
             </div>
           </div>
-          
+
           <div className="mt-8 border-t-2 border-[var(--plana-primary)] pt-4 flex justify-between items-end">
             <div className="text-sm text-[var(--plana-text-muted)] font-bold flex items-center relative">
               <span className="relative z-10">문서 작성자 : 프라나</span>

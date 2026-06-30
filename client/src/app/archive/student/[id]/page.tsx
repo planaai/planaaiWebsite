@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchServerData, fetchSchema } from '@/lib/api';
+import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { MasterDetailView } from '@/components/archive/MasterDetailView';
 
@@ -15,14 +15,17 @@ export default function ArchiveStudentPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadData() {
-      const [{ masterData }, s] = await Promise.all([fetchServerData(), fetchSchema()]);
+      const [{ masterData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
+      if (cancelled) return;
       const student = masterData.find(m => m.id === id) || null;
       setMaster(student);
       setSchema(s);
       setLoading(false);
     }
     loadData();
+    return () => { cancelled = true; };
   }, [id]);
 
   if (loading) {

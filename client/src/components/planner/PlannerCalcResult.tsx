@@ -90,7 +90,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <h4 className="text-sm font-bold text-slate-800">고유무기</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.elephs > 0 && renderItem({ name: '엘레프', amount: data.elephs, iconUrl: schema?.resourceIcons?.Eleph || '' })}
+                  {data.elephs > 0 && renderItem({ name: isCombined ? '엘레프' : `${title.replace(' 필요 재화', '')}의 엘레프`, amount: data.elephs, iconUrl: schema?.resourceIcons?.Eleph || '' })}
                   {data.weaponItems && Object.values(data.weaponItems).map((item: any) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>

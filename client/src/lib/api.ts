@@ -30,17 +30,24 @@ api.interceptors.response.use(
 
 export { api };
 
-export const fetchServerData = async (): Promise<{ masterData: StudentMaster[], archiveData: any[] }> => {
-  try {
-    const resArchive = await api.get('/archive');
-    const data = resArchive.data.data || [];
-    const masterData = data.map((d: any) => d.master);
-    const archiveData = data.map((d: any) => d.archive).filter(Boolean);
-    return { masterData, archiveData };
-  } catch (error) {
-    console.error('Failed to fetch server data:', error);
-    return { masterData: [], archiveData: [] };
+export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: any[] }> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const resArchive = await api.get('/archive');
+      const data = resArchive.data.data || [];
+      const masterData = data.map((d: any) => d.master);
+      const archiveData = data.map((d: any) => d.archive).filter(Boolean);
+      return { masterData, archiveData };
+    } catch (error: any) {
+      if (i === retries - 1) {
+        console.error('Failed to fetch server data after retries:', error);
+        return { masterData: [], archiveData: [] };
+      }
+      // 실패 시 1초 대기 후 재시도
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
+  return { masterData: [], archiveData: [] };
 };
 
 export const fetchSchema = async (): Promise<SchemaConfig | null> => {
@@ -75,6 +82,11 @@ export const updateProfile = async (nickname: string) => {
 
 export const fetchCurrentUser = async () => {
   const res = await api.get('/auth/me');
+  return res.data;
+};
+
+export const deleteCollectionFromServer = async () => {
+  const res = await api.delete('/collection');
   return res.data;
 };
 

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { performTenPull, performSinglePull } from '@/lib/gachaLogic';
 import gachaData from '@/data/gacha.json';
 import { Sparkles, RotateCcw } from 'lucide-react';
-import { fetchServerData } from '@/lib/api';
+import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 
 interface GachaResult {
@@ -19,10 +19,19 @@ export default function GachaPage() {
   const [pullHistory, setPullHistory] = useState<GachaResult[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [masterDataMap, setMasterDataMap] = useState<Record<string, StudentMaster>>({});
+  const animTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (animTimerRef.current) clearTimeout(animTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
     async function loadMasterData() {
-      const { masterData } = await fetchServerData();
+      const { masterData } = await getCachedServerData();
+      if (cancelled) return;
       const map: Record<string, StudentMaster> = {};
       masterData.forEach(student => {
         const normalizedName = student.name.replace(/\s+/g, '');
@@ -31,13 +40,14 @@ export default function GachaPage() {
       setMasterDataMap(map);
     }
     loadMasterData();
+    return () => { cancelled = true; };
   }, []);
 
   const banner = gachaData.banners[activeBannerIndex] || gachaData.banners[0];
 
   const handlePull = (type: 'single' | 'ten') => {
     setIsAnimating(true);
-    setTimeout(() => {
+    animTimerRef.current = setTimeout(() => {
       const pullResults = type === 'single' ? performSinglePull(activeBannerIndex) : performTenPull(activeBannerIndex);
       setResults(pullResults);
       setPullHistory(prev => [...prev, ...pullResults]);

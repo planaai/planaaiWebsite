@@ -671,14 +671,7 @@ try {
   console.log('Failed to load plana_mapped.json, using empty array.', e.message);
 }
 
-let personalArchiveDB = [];
-
-// personalArchiveDB를 Map으로 변환하여 O(1) 조회 (기존 O(n) find 제거)
-let archiveMap = new Map();
-const rebuildArchiveMap = () => {
-  archiveMap = new Map(personalArchiveDB.map(p => [p.studentId, p]));
-};
-rebuildArchiveMap();
+// Archive data is now stored in Prisma DB, so we no longer need the in-memory personalArchiveDB.
 
 app.get('/api/students/names', (req, res) => {
   res.json(studentMasterDB.map(s => s.name));
@@ -689,9 +682,9 @@ app.get('/api/archive', optionalAuth, async (req, res) => {
     const requiredFields = schemaConfig.statFields.filter(f => f.required).map(f => f.key);
     
     // Fetch collections from Prisma instead of memory
-    const collections = await prisma.collection.findMany({
+    const collections = req.user ? await prisma.collection.findMany({
       where: { userId: req.user.id }
-    });
+    }) : [];
     
     const userArchiveMap = new Map();
     collections.forEach(c => {
@@ -738,7 +731,6 @@ app.put('/api/master/students/:id', (req, res) => {
 });
 app.delete('/api/master/students/:id', (req, res) => {
   studentMasterDB = studentMasterDB.filter(s => s.id !== parseInt(req.params.id));
-  personalArchiveDB = personalArchiveDB.filter(p => p.studentId !== parseInt(req.params.id));
   res.json({ status: 'success' });
 });
 
@@ -788,21 +780,7 @@ app.get('/api/master/gacha/status', (req, res) => {
   }
 });
 
-app.post('/api/archive/upload', (req, res) => {
-  const records = Array.isArray(req.body) ? req.body : [req.body];
-  
-  for (const record of records) {
-    const { studentId, level, currentStars, bondRank, skillLevels, equipment, uniqueWeapon, stats, potentialLevels } = record;
-    const existingIndex = personalArchiveDB.findIndex(p => p.studentId === studentId);
-    if (existingIndex >= 0) {
-      personalArchiveDB[existingIndex] = { ...personalArchiveDB[existingIndex], level, currentStars: currentStars || personalArchiveDB[existingIndex].currentStars, bondRank: bondRank || personalArchiveDB[existingIndex].bondRank, skillLevels, equipment, uniqueWeapon, stats: { ...personalArchiveDB[existingIndex].stats, ...stats }, potentialLevels, capturedAt: new Date().toISOString() };
-    } else {
-      personalArchiveDB.push({ studentId, level, currentStars: currentStars || 3, bondRank: bondRank || 1, skillLevels, equipment, uniqueWeapon, stats, potentialLevels, capturedAt: new Date().toISOString() });
-    }
-  }
-  rebuildArchiveMap(); // archiveMap 동기화
-  res.json({ status: 'success' });
-});
+
 
 const ocrErrorsDir = path.join(__dirname, 'uploads', 'ocr-errors');
 if (!fs.existsSync(ocrErrorsDir)) fs.mkdirSync(ocrErrorsDir, { recursive: true });

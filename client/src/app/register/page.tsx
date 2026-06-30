@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -13,6 +13,13 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   
   const router = useRouter();
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +31,7 @@ export default function Register() {
       const res = await api.post('/auth/register', { username, password });
       if (res.data.status === 'success') {
         setSuccess('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-        setTimeout(() => {
+        redirectTimerRef.current = setTimeout(() => {
           router.push('/login');
         }, 1500);
       }

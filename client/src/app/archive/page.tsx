@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { fetchServerData, fetchSchema } from '@/lib/api';
+import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { RosterView } from '@/components/archive/RosterView';
 import { useArchiveStore } from '@/store/archiveStore';
@@ -12,19 +12,19 @@ export default function ArchivePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadData() {
-      const [{ masterData, archiveData }, s] = await Promise.all([fetchServerData(), fetchSchema()]);
+      const [{ masterData, archiveData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
+      if (cancelled) return;
       setMasterData(masterData);
       setSchema(s);
       
-      // Auto-sync from server for testing
-      if (archiveData && archiveData.length > 0) {
-        useArchiveStore.getState().syncFromServer(archiveData);
-      }
+
       
       setLoading(false);
     }
     loadData();
+    return () => { cancelled = true; };
   }, []);
 
   if (loading) {

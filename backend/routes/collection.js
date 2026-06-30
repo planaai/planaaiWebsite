@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { optionalAuth } = require('../middleware/auth');
+const { optionalAuth, requireAuth } = require('../middleware/auth');
 const { prisma } = require('../db');
 
 const router = express.Router();
@@ -8,6 +8,9 @@ const router = express.Router();
 // 내 컬렉션 조회
 router.get('/', optionalAuth, async (req, res) => {
   try {
+    if (!req.user) {
+      return res.json({ status: 'success', collections: [], lastSyncTime: null });
+    }
     const collections = await prisma.collection.findMany({
       where: { userId: req.user.id }
     });
@@ -25,7 +28,7 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 // 컬렉션 동기화 (Upsert 방식)
-router.post('/sync', optionalAuth, async (req, res) => {
+router.post('/sync', requireAuth, async (req, res) => {
   const { collections } = req.body; // 배열 형태로 전달
   if (!Array.isArray(collections)) {
     return res.status(400).json({ error: 'collections 배열이 필요합니다.' });
@@ -103,6 +106,19 @@ router.get('/public/:uid', async (req, res) => {
     });
   } catch (error) {
     console.error('Public collection fetch error:', error);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 사용자의 모든 컬렉션 삭제
+router.delete('/', requireAuth, async (req, res) => {
+  try {
+    const deleted = await prisma.collection.deleteMany({
+      where: { userId: req.user.id }
+    });
+    res.json({ status: 'success', deletedCount: deleted.count });
+  } catch (error) {
+    console.error('Collection delete error:', error);
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

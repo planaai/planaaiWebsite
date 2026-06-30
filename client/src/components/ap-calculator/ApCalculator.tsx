@@ -1,0 +1,338 @@
+'use client';
+
+import React, { useState, useRef } from 'react';
+import { calculateApSchedule, ApTimelineStep } from './apLogic';
+import { format } from 'date-fns';
+import { toPng } from 'html-to-image';
+import { Download } from 'lucide-react';
+
+const CAFE_MAX_AP: Record<number, number> = {
+  1: 90,
+  2: 150,
+  3: 220,
+  4: 300,
+  5: 390,
+  6: 460,
+  7: 530,
+  8: 600,
+  9: 670,
+  10: 740,
+};
+
+export function ApCalculator() {
+  const [targetDateStr, setTargetDateStr] = useState<string>('');
+  const [currentAp, setCurrentAp] = useState<number>(0);
+  const [cafeRank, setCafeRank] = useState<number>(10);
+  const [useDailyQuest, setUseDailyQuest] = useState<boolean>(true);
+  const [useWeeklyQuest, setUseWeeklyQuest] = useState<boolean>(true);
+  const [pvpRefreshes, setPvpRefreshes] = useState<number>(0);
+  const [pyroxeneRefreshes, setPyroxeneRefreshes] = useState<number>(0);
+  const [useApPackage, setUseApPackage] = useState<boolean>(false);
+  const [userLevel, setUserLevel] = useState<number>(90);
+  const [hoardingDays, setHoardingDays] = useState<number>(1);
+  const [todayAttendance, setTodayAttendance] = useState<number>(0);
+  
+  const [result, setResult] = useState<ReturnType<typeof calculateApSchedule> | null>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadImage = async () => {
+    if (resultRef.current === null) return;
+    
+    try {
+      const dataUrl = await toPng(resultRef.current, { 
+        cacheBust: true, 
+        backgroundColor: '#f8fafc',
+        style: {
+          padding: '24px',
+          borderRadius: '16px'
+        }
+      });
+      const link = document.createElement('a');
+      link.download = `ap-schedule-${format(new Date(), 'yyyyMMdd-HHmm')}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to download image:', err);
+      alert('이미지 저장에 실패했습니다.');
+    }
+  };
+
+  const handleCalculate = () => {
+    if (!targetDateStr) {
+      alert('목표 시간을 입력해주세요.');
+      return;
+    }
+
+    const targetDate = new Date(targetDateStr);
+    const cafeAp = CAFE_MAX_AP[cafeRank] || 0;
+    
+    const res = calculateApSchedule(
+      targetDate,
+      currentAp,
+      cafeAp,
+      useDailyQuest,
+      pvpRefreshes,
+      pyroxeneRefreshes,
+      useApPackage,
+      userLevel,
+      23.5,
+      hoardingDays,
+      todayAttendance,
+      useWeeklyQuest
+    );
+    
+    setResult(res);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto mt-6">
+    <div className="flex flex-col lg:flex-row gap-8">
+      {/* 좌측: 입력 패널 */}
+      <div className="lg:w-1/2 glass-panel p-8 rounded-2xl shadow-sm h-fit">
+        <h2 className="text-2xl font-bold mb-4 text-[var(--plana-text-main)]">AP 존버 계산기</h2>
+        <p className="text-[var(--plana-text-muted)] mb-8 text-sm">
+          이벤트를 위해 최대한 많은 AP를 모으는 스케줄을 계산합니다.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">목표 시간 (이벤트/점검 끝나는 시간)</label>
+          <input 
+            type="datetime-local" 
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={targetDateStr}
+            onChange={(e) => setTargetDateStr(e.target.value)}
+          />
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">선생님 레벨</label>
+          <input 
+            type="number" 
+            min="1"
+            max="120"
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={userLevel}
+            onChange={(e) => setUserLevel(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">현재 보유 AP</label>
+          <input 
+            type="number" 
+            min="0"
+            max="999"
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={currentAp}
+            onChange={(e) => setCurrentAp(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">카페 랭크</label>
+          <select 
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={cafeRank}
+            onChange={(e) => setCafeRank(Number(e.target.value))}
+          >
+            {Object.keys(CAFE_MAX_AP).map(rank => (
+              <option key={rank} value={rank}>랭크 {rank} (최대 {CAFE_MAX_AP[Number(rank)]} AP)</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">전술 대회 코인 충전 횟수</label>
+          <select 
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={pvpRefreshes}
+            onChange={(e) => setPvpRefreshes(Number(e.target.value))}
+          >
+            <option value={0}>0회 (사용 안함)</option>
+            <option value={1}>1회 (90 AP)</option>
+            <option value={2}>2회 (180 AP)</option>
+            <option value={3}>3회 (270 AP)</option>
+            <option value={4}>4회 (360 AP)</option>
+          </select>
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">목표 청휘석 충전 횟수</label>
+          <select 
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={pyroxeneRefreshes}
+            onChange={(e) => setPyroxeneRefreshes(Number(e.target.value))}
+          >
+            {Array.from({ length: 21 }, (_, i) => (
+              <option key={i} value={i}>{i}회 ({i * 120} AP)</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">오늘 기준 출석부 일차</label>
+          <select 
+            className="w-full bg-white text-[var(--plana-text-main)] p-2 rounded-lg border border-[var(--plana-border)] outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] transition-all"
+            value={todayAttendance}
+            onChange={(e) => setTodayAttendance(Number(e.target.value))}
+          >
+            <option value={0}>사용 안 함</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(day => (
+              <option key={day} value={day}>{day}일차</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="md:col-span-2 flex flex-col gap-3 bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <div className="flex items-center">
+            <input 
+              type="checkbox" 
+              id="useDaily"
+              className="mr-3 w-5 h-5 accent-[var(--plana-primary)] cursor-pointer"
+              checked={useDailyQuest}
+              onChange={(e) => setUseDailyQuest(e.target.checked)}
+            />
+            <label htmlFor="useDaily" className="text-sm font-semibold text-[var(--plana-text-main)] cursor-pointer">일일 퀘스트 (150 AP) 우편함 저장</label>
+          </div>
+
+          <div className="flex items-center">
+            <input 
+              type="checkbox" 
+              id="useWeekly"
+              className="mr-3 w-5 h-5 accent-[var(--plana-primary)] cursor-pointer"
+              checked={useWeeklyQuest}
+              onChange={(e) => setUseWeeklyQuest(e.target.checked)}
+            />
+            <label htmlFor="useWeekly" className="text-sm font-semibold text-[var(--plana-text-main)] cursor-pointer">주간 퀘스트 (200 AP) 당일 수령</label>
+          </div>
+          
+          <div className="flex items-center">
+            <input 
+              type="checkbox" 
+              id="useApPkg"
+              className="mr-3 w-5 h-5 accent-[var(--plana-primary)] cursor-pointer"
+              checked={useApPackage}
+              onChange={(e) => setUseApPackage(e.target.checked)}
+            />
+            <label htmlFor="useApPkg" className="text-sm font-semibold text-[var(--plana-text-main)] cursor-pointer">
+              2주 AP 패키지 (150 AP) 우편함 저장 <span className="text-[var(--plana-text-muted)] font-normal text-xs ml-1">(이틀 존버 등 극단적 존버 시 체크)</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="bg-white/50 p-4 rounded-xl border border-[var(--plana-border)]">
+          <label className="block text-sm font-semibold text-[var(--plana-text-muted)] mb-2">존버 기간 (옵션)</label>
+          <div className="flex gap-4 mt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="hoardingDays"
+                className="w-4 h-4 text-[var(--plana-primary)] border-[var(--plana-border)] focus:ring-[var(--plana-primary-light)]"
+                checked={hoardingDays === 1}
+                onChange={() => setHoardingDays(1)}
+              />
+              <span className="text-[var(--plana-text-main)] text-sm">1일 존버 (기본)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="hoardingDays"
+                className="w-4 h-4 text-[var(--plana-primary)] border-[var(--plana-border)] focus:ring-[var(--plana-primary-light)]"
+                checked={hoardingDays === 2}
+                onChange={() => setHoardingDays(2)}
+              />
+              <span className="text-[var(--plana-text-main)] text-sm">2일 존버 (하드코어)</span>
+            </label>
+          </div>
+          {hoardingDays === 2 && (
+            <p className="text-xs text-[var(--plana-text-muted)] mt-2">
+              * 2주 AP 패키지를 2일치 모으는 택틱입니다. D-1일에 우편함 AP 소모 및 청휘석 재충전 과정이 추가됩니다.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <button 
+        onClick={handleCalculate}
+        className="w-full bg-[var(--plana-primary)] text-white font-bold py-3 px-4 rounded-xl shadow-md hover:bg-[var(--plana-primary-dark)] transition-colors mt-2"
+      >
+        계산하기
+      </button>
+      </div>
+
+      {/* 우측: 타임라인 패널 */}
+      <div className="lg:w-1/2">
+      {result ? (
+        <div className="bg-white/60 p-6 rounded-xl border border-[var(--plana-border)] shadow-sm h-full flex flex-col">
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={handleDownloadImage}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--plana-primary)] text-white text-sm font-semibold rounded-lg hover:bg-[var(--plana-primary-dark)] transition-colors shadow-sm"
+            >
+              <Download size={16} />
+              이미지로 저장
+            </button>
+          </div>
+          
+          <div ref={resultRef} className="bg-white/80 p-6 rounded-xl">
+          <div className="border-b border-[var(--plana-border)] pb-4 mb-6">
+            <h3 className="text-xl font-bold text-[var(--plana-text-main)] flex items-center gap-2">
+              <span className="text-[var(--plana-primary)]">✧</span> 결과 타임라인
+            </h3>
+            {result.isPossible ? (
+              <p className="text-[var(--plana-primary)] font-bold mt-2">
+                최종 목표 AP: {result.totalHoardedAp} AP
+              </p>
+            ) : (
+              <p className="text-red-500 font-bold mt-2">{result.errorMessage}</p>
+            )}
+          </div>
+
+          {result.isPossible && result.timeline.length > 0 && (
+            <div className="relative border-l-2 border-[var(--plana-border)] ml-3 space-y-6">
+              {result.timeline.map((step, idx) => (
+                <div key={idx} className="relative ml-8">
+                  <span className="absolute flex items-center justify-center w-6 h-6 bg-[var(--plana-primary-light)]/20 rounded-full -left-[45px] ring-4 ring-white">
+                    <div className="w-2.5 h-2.5 bg-[var(--plana-primary)] rounded-full"></div>
+                  </span>
+                  <div className="flex flex-col bg-white/80 p-4 rounded-lg border border-[var(--plana-border)] shadow-sm">
+                    <span className="text-sm text-[var(--plana-text-muted)] font-mono mb-1">
+                      {format(step.time, 'yyyy년 MM월 dd일 HH:mm')}
+                    </span>
+                    <h4 className={`text-lg font-semibold ${step.isImportant ? 'text-[var(--plana-primary-dark)]' : 'text-[var(--plana-text-main)]'}`}>
+                      {step.action}
+                    </h4>
+                    <p className="text-[var(--plana-text-muted)] text-sm mt-1 whitespace-pre-line">
+                      {step.description}
+                    </p>
+                    {step.barAp !== undefined && step.mailboxAp !== undefined && (
+                      <div className="mt-3 bg-[var(--plana-background)] p-3 rounded-lg flex flex-col sm:flex-row justify-between text-sm border border-[var(--plana-border)] gap-2">
+                        <span className="font-semibold text-[var(--plana-text-main)] flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[var(--plana-primary)]"></span>
+                          현재 보유 AP: <span className="text-[var(--plana-primary-dark)]">{step.barAp}</span> <span className="text-[var(--plana-text-muted)] font-normal text-xs">/ 999</span>
+                        </span>
+                        <span className="font-semibold text-[var(--plana-text-main)] flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                          우편함 누적 AP: <span className="text-orange-500">{step.mailboxAp}</span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white/40 border border-dashed border-[var(--plana-border)] rounded-xl h-full flex flex-col items-center justify-center p-8 text-center text-[var(--plana-text-muted)] min-h-[300px]">
+          <p>좌측에서 옵션을 설정하고 '계산하기'를 누르면<br/>이곳에 타임라인이 표시됩니다.</p>
+        </div>
+      )}
+      </div>
+
+    </div>
+    </div>
+  );
+}

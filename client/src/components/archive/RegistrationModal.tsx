@@ -101,19 +101,16 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
         };
       });
 
-      const res = await fetch(`${API_BASE}/archive/upload`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloads)
-      });
-      const data = await res.json();
-
-      if (data.status === 'success') {
-        const store = useArchiveStore.getState();
-        payloads.forEach(p => store.setRecord(p.studentId!, p as ArchiveRecord));
-        forms.forEach(f => { if (f._imageUrl) URL.revokeObjectURL(f._imageUrl); });
-        onClose();
+      const store = useArchiveStore.getState();
+      payloads.forEach(p => store.setRecord(p.studentId!, p as ArchiveRecord));
+      
+      // Force sync to server if authenticated
+      if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
+        store.syncToServer().catch(console.error);
       }
+
+      forms.forEach(f => { if (f._imageUrl) URL.revokeObjectURL(f._imageUrl); });
+      onClose();
     } catch (err) {
       console.error(err);
       alert('저장 중 오류가 발생했습니다.');

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { prisma } = require('../db');
 const { getLevelData, getHtmlData, getAbilityData } = require('../utils/growthData');
-const { optionalAuth } = require('../middleware/auth');
+const { optionalAuth, requireAuth } = require('../middleware/auth');
 
 const EX_SKILL_COSTS = {
   1: { credit: 80000, bd: [{ tier: 1, amount: 12 }], primary: [{ tier: 1, amount: 14 }], secondary: [] },
@@ -35,6 +35,7 @@ const getTierPrefix = (tier) => {
 
 router.get('/', optionalAuth, async (req, res) => {
     try {
+        if (!req.user) return res.json([]);
         const plans = await prisma.growthPlan.findMany({
             where: { userId: req.user.id },
             include: { student: true }
@@ -46,7 +47,7 @@ router.get('/', optionalAuth, async (req, res) => {
     }
 });
 
-router.post('/', optionalAuth, async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
     try {
         const { studentId } = req.body;
         const existing = await prisma.growthPlan.findFirst({
@@ -63,7 +64,7 @@ router.post('/', optionalAuth, async (req, res) => {
     }
 });
 
-router.put('/:id', optionalAuth, async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -93,7 +94,7 @@ router.put('/:id', optionalAuth, async (req, res) => {
     }
 });
 
-router.delete('/:id', optionalAuth, async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const plan = await prisma.growthPlan.findUnique({ where: { id: Number(id) } });
@@ -105,7 +106,7 @@ router.delete('/:id', optionalAuth, async (req, res) => {
     }
 });
 
-router.get('/calculate/:id', optionalAuth, async (req, res) => {
+router.get('/calculate/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const plan = await prisma.growthPlan.findUnique({ 

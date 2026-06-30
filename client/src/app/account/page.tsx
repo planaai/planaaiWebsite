@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, KeyRound, Save, Loader2, Check } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -13,14 +13,39 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/login');
-    } else if (user) {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      if (!isAuthenticated) {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          await useAuthStore.getState().checkAuth();
+          if (!useAuthStore.getState().isAuthenticated) {
+            router.replace('/login');
+          }
+        } else {
+          router.replace('/login');
+        }
+      }
+      setIsChecking(false);
+    };
+    init();
+  }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (user) {
       setNickname(user.nickname || user.username || '');
     }
-  }, [isAuthenticated, user, router]);
+  }, [user]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +62,21 @@ export default function AccountPage() {
       await updateProfile(nickname);
       updateNickname(nickname);
       setSuccessMsg('닉네임이 성공적으로 변경되었습니다!');
-      setTimeout(() => setSuccessMsg(''), 3000);
+      successTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err: any) {
       setErrorMsg(err.response?.data?.error || '닉네임 변경에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-slate-700 border-t-[var(--plana-primary)] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !user) return null;
 
@@ -70,9 +103,6 @@ export default function AccountPage() {
                 #{user.uid}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-2">
-              이 번호는 회원님의 컬렉션을 다른 사람에게 공유할 때 사용되는 고유 번호입니다.
-            </p>
           </div>
 
           <div className="mb-6 relative z-10">
@@ -117,7 +147,7 @@ export default function AccountPage() {
             <button
               type="submit"
               disabled={isLoading || nickname.trim() === (user.nickname || user.username)}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-[var(--plana-primary)] hover:bg-[var(--plana-primary-dark)] text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
               변경사항 저장
