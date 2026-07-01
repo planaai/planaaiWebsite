@@ -1,4 +1,4 @@
-export const API = 'http://localhost:3000';
+export const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const EX_COSTS: Record<number, any> = {
   2: { bd: { tier: 0, amount: 12 }, oopart1: { tier: 0, amount: 13 }, credit: 80000 },

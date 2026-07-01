@@ -256,9 +256,9 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
                 {master.fullIllustUrl ? (
-                  <img src={`http://localhost:3000${master.fullIllustUrl}`} className="absolute -bottom-10 w-[130%] max-h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
+                  <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${master.fullIllustUrl}`} className="absolute -bottom-10 w-[130%] max-h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
                 ) : master.portraitUrl ? (
-                  <img src={`http://localhost:3000${master.portraitUrl}`} className="absolute -bottom-10 w-[110%] max-h-[110%] object-contain pointer-events-none" alt={master.name} />
+                  <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${master.portraitUrl}`} className="absolute -bottom-10 w-[110%] max-h-[110%] object-contain pointer-events-none" alt={master.name} />
                 ) : (
                   <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
                     일러스트 없음
@@ -321,7 +321,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       ].map((stat, i) => (
                         <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded-md p-1.5 shadow-sm w-14">
                           <span className="text-[11px] text-slate-500 font-bold mb-0.5">{stat.label}</span>
-                          <img src={`http://localhost:3000/uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
+                          <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
                         </div>
                       ));
                     })()}
@@ -385,7 +385,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                           {/* Icon */}
                           <div className="w-14 h-14 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
                             {sData.iconUrl ? (
-                              <img src={`http://localhost:3000${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
+                              <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
@@ -447,7 +447,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   <div className="skew-x-[5deg] p-5 flex flex-col w-full h-full">
                     <div className="w-full h-28 bg-slate-50 flex items-center justify-center mb-4 border border-slate-100 rounded-lg">
                       {master.uniqueWeaponUrl ? (
-                        <img src={`http://localhost:3000${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
+                        <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
                       ) : (
                         <span className="text-slate-400 font-bold text-sm">이미지 없음</span>
                       )}
@@ -519,7 +519,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <div className="flex">
                         <div className="w-16 h-16 mr-4 flex-shrink-0 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-200">
                           {master.favoriteItemUrl ? (
-                            <img src={`http://localhost:3000${master.favoriteItemUrl}`} className="w-full h-full object-contain drop-shadow-md mix-blend-multiply" />
+                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${master.favoriteItemUrl}`} className="w-full h-full object-contain drop-shadow-md mix-blend-multiply" />
                           ) : (
                             <span className="text-slate-400 text-[10px] font-bold">이미지 없음</span>
                           )}
@@ -573,7 +573,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                         <div className="w-16 shrink-0 flex flex-col items-center justify-center">
                           {schema.resourceIcons?.Affinity?.level4 ? (
-                            <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level4}`} alt="매우 선호" className="w-8 h-8 object-contain drop-shadow-md" />
+                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level4}`} alt="매우 선호" className="w-8 h-8 object-contain drop-shadow-md" />
                           ) : (
                             <span className="text-[10px] font-black text-pink-500 bg-pink-100 border border-pink-200 px-2 py-1 rounded">매우 선호</span>
                           )}
@@ -581,7 +581,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         <div className="flex flex-wrap gap-3 border-l border-slate-200 pl-3">
                           {schema.gifts.filter(g => g.affinity.level4.includes(master.id)).map(g => (
                             <div key={g.key} className={`group relative w-16 h-16 ${g.tier === 'HighGrade' ? 'bg-pink-50' : 'bg-slate-50'} rounded-lg overflow-hidden flex items-center justify-center hover:brightness-95 transition-colors shadow-sm`} title={g.name}>
-                              {g.iconUrl ? <img src={`http://localhost:3000${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
+                              {g.iconUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
                               <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity p-1">
                                 <span className="text-slate-800 text-[9px] font-bold text-center leading-tight line-clamp-3">{g.name}</span>
                               </div>
@@ -596,7 +596,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                         <div className="w-16 shrink-0 flex flex-col items-center justify-center">
                           {schema.resourceIcons?.Affinity?.level3 ? (
-                            <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level3}`} alt="선호" className="w-7 h-7 object-contain drop-shadow-md" />
+                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level3}`} alt="선호" className="w-7 h-7 object-contain drop-shadow-md" />
                           ) : (
                             <span className="text-[10px] font-black text-blue-500 bg-blue-100 border border-blue-200 px-2 py-1 rounded">선호</span>
                           )}
@@ -604,7 +604,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         <div className="flex flex-wrap gap-3 border-l border-slate-200 pl-3">
                           {schema.gifts.filter(g => g.affinity.level3.includes(master.id)).map(g => (
                             <div key={g.key} className={`group relative w-16 h-16 ${g.tier === 'HighGrade' ? 'bg-pink-50' : 'bg-slate-50'} rounded-lg overflow-hidden flex items-center justify-center hover:brightness-95 transition-colors shadow-sm`} title={g.name}>
-                              {g.iconUrl ? <img src={`http://localhost:3000${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
+                              {g.iconUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
                               <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity p-1">
                                 <span className="text-slate-800 text-[9px] font-bold text-center leading-tight line-clamp-3">{g.name}</span>
                               </div>
@@ -619,7 +619,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                         <div className="w-16 shrink-0 flex flex-col items-center justify-center">
                           {schema.resourceIcons?.Affinity?.level2 ? (
-                            <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level2}`} alt="약간 선호" className="w-6 h-6 object-contain drop-shadow-md" />
+                            <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level2}`} alt="약간 선호" className="w-6 h-6 object-contain drop-shadow-md" />
                           ) : (
                             <span className="text-[10px] font-black text-emerald-500 bg-emerald-100 border border-emerald-200 px-2 py-1 rounded">약간 선호</span>
                           )}
@@ -627,7 +627,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         <div className="flex flex-wrap gap-3 border-l border-slate-200 pl-3">
                           {schema.gifts.filter(g => g.affinity.level2.includes(master.id)).map(g => (
                             <div key={g.key} className={`group relative w-16 h-16 ${g.tier === 'HighGrade' ? 'bg-pink-50' : 'bg-slate-50'} rounded-lg overflow-hidden flex items-center justify-center hover:brightness-95 transition-colors shadow-sm opacity-90 hover:opacity-100`} title={g.name}>
-                              {g.iconUrl ? <img src={`http://localhost:3000${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
+                              {g.iconUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${g.iconUrl}`} alt={g.name} className="w-12 h-12 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" /> : <span className="text-[8px] text-slate-400 text-center px-1">NO IMG</span>}
                               <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity p-1">
                                 <span className="text-slate-800 text-[9px] font-bold text-center leading-tight line-clamp-3">{g.name}</span>
                               </div>

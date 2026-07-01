@@ -129,7 +129,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                      {gift.tier === 'HighGrade' ? '고급' : '일반'}
                    </div>
                    {gift.iconUrl ? (
-                     <img src={`http://localhost:3000${gift.iconUrl}`} alt={gift.name} className="w-14 h-14 object-contain drop-shadow-sm z-10 hover:scale-110 transition-transform" />
+                     <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${gift.iconUrl}`} alt={gift.name} className="w-14 h-14 object-contain drop-shadow-sm z-10 hover:scale-110 transition-transform" />
                    ) : (
                      <span className="text-[var(--plana-text-muted)] text-xs font-bold">NO IMG</span>
                    )}
@@ -147,7 +147,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                   <div className="flex items-center gap-3">
                     <div className="w-16 shrink-0 flex flex-col items-end">
                       {schema.resourceIcons?.Affinity?.level4 ? (
-                        <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level4}`} alt="매우 선호" className="w-8 h-8 object-contain drop-shadow-md" />
+                        <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level4}`} alt="매우 선호" className="w-8 h-8 object-contain drop-shadow-md" />
                       ) : (
                         <span className="text-[10px] font-black text-[var(--plana-primary-dark)] bg-[var(--plana-primary-light)]/30 border border-[var(--plana-primary-light)] px-2 py-1 rounded">매우 선호</span>
                       )}
@@ -158,7 +158,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         if (!student) return null;
                         return (
                           <Link key={id} href={`/archive/student/${id}`} className="group relative w-16 h-16 bg-white border border-[var(--plana-primary-light)] rounded-lg overflow-hidden flex items-center justify-center hover:border-[var(--plana-accent)] transition-colors shadow-sm">
-                            {student.portraitUrl ? <img src={`http://localhost:3000${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
+                            {student.portraitUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-[var(--plana-primary)] text-[10px] font-bold text-center px-1 leading-tight">{student.name}</span>
                             </div>
@@ -174,7 +174,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                   <div className="flex items-center gap-3">
                     <div className="w-16 shrink-0 flex flex-col items-end">
                       {schema.resourceIcons?.Affinity?.level3 ? (
-                        <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level3}`} alt="상급" className="w-7 h-7 object-contain drop-shadow-md" />
+                        <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level3}`} alt="상급" className="w-7 h-7 object-contain drop-shadow-md" />
                       ) : (
                         <span className="text-[10px] font-black text-blue-500 bg-blue-100 border border-blue-200 px-2 py-1 rounded">상급</span>
                       )}
@@ -185,7 +185,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         if (!student) return null;
                         return (
                           <Link key={id} href={`/archive/student/${id}`} className="group relative w-14 h-14 bg-white border border-blue-200 rounded-lg overflow-hidden flex items-center justify-center hover:border-blue-400 transition-colors shadow-sm">
-                            {student.portraitUrl ? <img src={`http://localhost:3000${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
+                            {student.portraitUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-blue-500 text-[10px] font-bold text-center px-1 leading-tight">{student.name}</span>
                             </div>
@@ -201,7 +201,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                   <div className="flex items-center gap-3">
                     <div className="w-16 shrink-0 flex flex-col items-end">
                       {schema.resourceIcons?.Affinity?.level2 ? (
-                        <img src={`http://localhost:3000${schema.resourceIcons.Affinity.level2}`} alt="일반" className="w-6 h-6 object-contain drop-shadow-md" />
+                        <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${schema.resourceIcons.Affinity.level2}`} alt="일반" className="w-6 h-6 object-contain drop-shadow-md" />
                       ) : (
                         <span className="text-[10px] font-black text-emerald-500 bg-emerald-100 border border-emerald-200 px-2 py-1 rounded">일반</span>
                       )}
@@ -212,7 +212,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         if (!student) return null;
                         return (
                           <Link key={id} href={`/archive/student/${id}`} className="group relative w-12 h-12 bg-white border border-emerald-200 rounded-md overflow-hidden flex items-center justify-center hover:border-emerald-400 transition-colors shadow-sm opacity-90 hover:opacity-100">
-                            {student.portraitUrl ? <img src={`http://localhost:3000${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
+                            {student.portraitUrl ? <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${student.portraitUrl}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-emerald-500 text-[9px] font-bold text-center leading-tight truncate">{student.name.substring(0, 4)}</span>
                             </div>

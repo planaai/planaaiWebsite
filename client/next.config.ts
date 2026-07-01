@@ -1,14 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://127.0.0.1:3000/api/:path*',
-      },
-    ];
-  },
+  // Cloudflare 배포 시 rewrites 대신 환경 변수(NEXT_PUBLIC_API_URL)를 사용하여 직접 백엔드 도메인을 호출하도록 변경
 };
 
 export default nextConfig;
