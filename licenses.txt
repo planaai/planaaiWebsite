@@ -18,6 +18,9 @@ utilizes the following open-source libraries. We express our gratitude to the op
 
 Below is a list of the major open-source libraries used in this project along with their respective licenses:
 
+[Fonts]
+- 경기천년체 (Gyeonggi Millennium) : 공공누리 제1유형(출처표시) - 경기도
+
 [Frontend / Client - React & Next.js Ecosystem]
 - React (MIT)
 - Next.js (MIT)
