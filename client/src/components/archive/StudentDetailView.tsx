@@ -143,9 +143,9 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
                 {master.fullIllustUrl ? (
-                  <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}${master.fullIllustUrl}`} className="absolute -bottom-10 w-[130%] max-h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
+                  <img src={`${master.fullIllustUrl}`} className="absolute -bottom-10 w-[130%] max-h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
                 ) : master.portraitUrl ? (
-                  <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}${master.portraitUrl}`} className="absolute -bottom-10 w-[110%] max-h-[110%] object-contain pointer-events-none" alt={master.name} />
+                  <img src={`${master.portraitUrl}`} className="absolute -bottom-10 w-[110%] max-h-[110%] object-contain pointer-events-none" alt={master.name} />
                 ) : (
                   <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
                     일러스트 없음
@@ -208,7 +208,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       ].map((stat, i) => (
                         <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded-md p-1.5 shadow-sm w-14">
                           <span className="text-[11px] text-slate-500 font-bold mb-0.5">{stat.label}</span>
-                          <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
+                          <img src={`uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
                         </div>
                       ));
                     })()}
@@ -298,7 +298,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                           {/* Icon placeholder */}
                           <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
                             {sData.iconUrl ? (
-                              <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}${sData.iconUrl}`} alt={label} className="w-full h-full object-cover rounded-full" />
+                              <img src={`${sData.iconUrl}`} alt={label} className="w-full h-full object-cover rounded-full" />
                             ) : (
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
@@ -334,7 +334,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   <div className="skew-x-[5deg] p-5 flex flex-col w-full h-full">
                     <div className="w-full h-28 bg-slate-50 flex items-center justify-center mb-4 border border-slate-100">
                       {master.uniqueWeaponUrl ? (
-                        <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
+                        <img src={`${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
                       ) : (
                         <span className="text-slate-400 font-bold text-sm">이미지 없음</span>
                       )}

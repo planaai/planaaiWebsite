@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { StudentMaster, SchemaConfig } from '../types';
 
-export const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api') : (process.env.NEXT_PUBLIC_API_URL || 'http://140.245.70.15/api');
+export const API_BASE = typeof window !== 'undefined' ? '/api' : 'http://140.245.70.15/api';
 
 const api = axios.create({
   baseURL: API_BASE,
