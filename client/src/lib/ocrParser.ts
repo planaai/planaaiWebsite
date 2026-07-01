@@ -11,7 +11,7 @@ export async function processScreenshot(imageFile: File, masterData: StudentMast
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const response = await fetch(`api/archive/upload-vision`, {
+    const response = await fetch(`https://api.planaai.kro.kr/api/archive/upload-vision`, {
       method: 'POST',
       body: formData,
     });
