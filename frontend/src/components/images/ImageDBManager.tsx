@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Image as ImageIcon, Settings, Copy, Trash2, Edit2, Folder, FolderUp, Scissors, ClipboardPaste, CheckSquare, Square } from 'lucide-react';
 import type { ArchiveData, SchemaConfig } from '../../types';
@@ -338,9 +338,9 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
           <div>
             <h4 className="text-sm font-bold text-slate-300 mb-4 pb-2 border-b border-slate-700/50">전역 재료</h4>
             <div className="flex gap-6">
-              <ResourceIconUpload label="Credit" url={resourceIcons.Credit} onUpload={url => updateResourceIcon('Credit', url)} showToast={showToast} />
-              <ResourceIconUpload label="비의서" url={resourceIcons.SecretTechSheet} onUpload={url => updateResourceIcon('SecretTechSheet', url)} showToast={showToast} />
-              <ResourceIconUpload label="엘레프" url={resourceIcons.Eleph} onUpload={url => updateResourceIcon('Eleph', url)} showToast={showToast} />
+              <ResourceIconUpload label="Credit" url={resourceIcons.Credit || ''} onUpload={url => updateResourceIcon('Credit', url)} showToast={showToast} />
+              <ResourceIconUpload label="비의서" url={resourceIcons.SecretTechSheet || ''} onUpload={url => updateResourceIcon('SecretTechSheet', url)} showToast={showToast} />
+              <ResourceIconUpload label="엘레프" url={resourceIcons.Eleph || ''} onUpload={url => updateResourceIcon('Eleph', url)} showToast={showToast} />
             </div>
             <div className="mt-6">
               <div className="text-xs font-bold text-slate-500 mb-2">경험치 보고서 (초급 / 일반 / 고급 / 최상급)</div>

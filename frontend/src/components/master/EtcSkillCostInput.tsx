@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import type { SchemaConfig } from '../../types';
 import type { StudentMaster, CustomSkillCostItem, EtcSkillCost } from '../../types';
@@ -19,11 +19,6 @@ export function EtcSkillCostInput({ costs, onChange, schema }: EtcSkillCostInput
     { key: '1', label: '일반' },
     { key: '2', label: '고급' },
     { key: '3', label: '최상급' }
-  ];
-  const types = [
-    { key: 'BD', label: '전술 교육 BD' },
-    { key: 'Note', label: '기술 노트' },
-    { key: 'Secret', label: '비의서' }
   ];
 
   const updateCost = (

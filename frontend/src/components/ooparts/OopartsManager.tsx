@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { Database, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import type { SchemaConfig } from '../../types';

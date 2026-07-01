@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { Users, Plus } from 'lucide-react';
 import type { ArchiveData, SchemaConfig, StudentMaster } from '../../types';
