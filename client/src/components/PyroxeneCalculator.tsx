@@ -311,7 +311,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
 
   const getPackageImage = (pkgName: string) => {
     const sanitizedName = pkgName.replace(' (초회)', ' 초회');
-    return `/images/package/${sanitizedName}.png`;
+    return encodeURI(`/images/package/${sanitizedName}.png`);
   };
 
   return (
