@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Cloudflare 배포 시 rewrites 대신 환경 변수(NEXT_PUBLIC_API_URL)를 사용하여 직접 백엔드 도메인을 호출하도록 변경
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://140.245.70.15/api/:path*'
+      },
+      {
+        source: '/uploads/:path*',
+        destination: 'http://140.245.70.15/uploads/:path*'
+      }
+    ];
+  }
 };
 
 export default nextConfig;

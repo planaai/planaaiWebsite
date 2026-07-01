@@ -11,7 +11,7 @@ export async function processScreenshot(imageFile: File, masterData: StudentMast
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}api/archive/upload-vision`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}api/archive/upload-vision`, {
       method: 'POST',
       body: formData,
     });

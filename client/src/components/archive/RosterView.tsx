@@ -131,7 +131,7 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
                     {isOwned && record?.level ? `Lv.${record.level}` : `No.${master.studentNumber || '-'}`}
                   </span>
                   {master.portraitUrl ? (
-                    <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${master.portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
+                    <img src={`${process.env.NEXT_PUBLIC_API_URL || ''}${master.portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                       <span className="text-xs text-[var(--plana-text-muted)] font-bold">No Image</span>
