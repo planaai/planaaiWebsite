@@ -309,9 +309,45 @@ export default function PyroxeneCalculator({ data, events }: Props) {
     }
   };
 
+  const packageImageMap: Record<string, string> = {
+    "2주 AP 패키지": "ap_package_2w",
+    "신임교사용 활동 보고서 패키지 III": "activity_report_pkg_3",
+    "월간 청휘석 6600개": "monthly_pyroxene_6600",
+    "월간 청휘석 패키지": "monthly_pyroxene_pkg",
+    "주간 장비 패키지 I": "weekly_equip_pkg_1",
+    "주간 장비 패키지 II": "weekly_equip_pkg_2",
+    "주간 장비 패키지 III": "weekly_equip_pkg_3",
+    "주간 장비 패키지 IV": "weekly_equip_pkg_4",
+    "주간 장비 패키지 V": "weekly_equip_pkg_5",
+    "주간 장비 패키지 VI": "weekly_equip_pkg_6",
+    "주간 장비 패키지 VII": "weekly_equip_pkg_7",
+    "주간 활동 보고서 패키지 III": "weekly_activity_report_pkg_3",
+    "청휘석 1184개 초회": "pyroxene_1184_first",
+    "청휘석 120개 초회": "pyroxene_120_first",
+    "청휘석 1350개": "pyroxene_1350",
+    "청휘석 179개": "pyroxene_179",
+    "청휘석 2300개": "pyroxene_2300",
+    "청휘석 2352개 초회": "pyroxene_2352_first",
+    "청휘석 352개 초회": "pyroxene_352_first",
+    "청휘석 3920개 초회": "pyroxene_3920_first",
+    "청휘석 420개": "pyroxene_420",
+    "청휘석 4800개": "pyroxene_4800",
+    "청휘석 60개": "pyroxene_60",
+    "청휘석 6600개 초회": "pyroxene_6600_first",
+    "청휘석 660개": "pyroxene_660",
+    "청휘석 784개 초회": "pyroxene_784_first",
+    "청휘석 8000개 초회": "pyroxene_8000_first",
+    "하프 월간 청휘석 패키지": "half_monthly_pyroxene_pkg"
+  };
+
   const getPackageImage = (pkgName: string) => {
     const sanitizedName = pkgName.replace(' (초회)', ' 초회');
-    return `/images/package/${sanitizedName}.png`;
+    const englishName = packageImageMap[sanitizedName];
+    // If not found in map, fallback to original behavior (though Cloudflare might break it)
+    if (!englishName) {
+      return `/images/package/${sanitizedName}.png`;
+    }
+    return `/images/package/${englishName}.png`;
   };
 
   const [isMounted, setIsMounted] = useState(false);
