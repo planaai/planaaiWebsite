@@ -1,11 +1,16 @@
 import type { StudentMaster, SchemaConfig } from '../types';
 import { fetchServerData as _fetchServerData, fetchSchema as _fetchSchema } from './api';
 
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24�ð����� ���� (Cloudflare Workers ��û ����)
-const LS_KEY_DATA = 'planaai_server_data';
-const LS_KEY_DATA_TIME = 'planaai_server_data_time';
-const LS_KEY_SCHEMA = 'planaai_schema_data';
-const LS_KEY_SCHEMA_TIME = 'planaai_schema_time';
+/**
+ * 전역 데이터 캐시 - 매 페이지 전환마다 대규모 데이터를 반복 로드하는 것을 방지합니다.
+ * 
+ * 문제: 7개 페이지가 각각 useEffect에서 fetchServerData() (884KB JSON)를 호출하여
+ * SPA 네비게이션 시 이전 데이터가 GC되기 전에 새 데이터가 할당되어 메모리 압박이 발생.
+ * 
+ * 해결: 모듈 레벨 캐시 + 요청 중복 제거(deduplication)로 한 번만 로드
+ */
+
+const CACHE_TTL = 5 * 60 * 1000; // 5분
 
 // --- Server Data Cache ---
 let serverDataCache: { masterData: StudentMaster[]; archiveData: any[] } | null = null;
@@ -15,52 +20,26 @@ let serverDataPromise: Promise<{ masterData: StudentMaster[]; archiveData: any[]
 export async function getCachedServerData(): Promise<{ masterData: StudentMaster[]; archiveData: any[] }> {
   const now = Date.now();
 
-  // 1. �޸� ĳ�� Ȯ��
+  // 캐시가 유효하면 즉시 반환
   if (serverDataCache && (now - serverDataCacheTime < CACHE_TTL)) {
     return serverDataCache;
   }
 
-  // 2. ���� ���丮�� ĳ�� Ȯ�� (������ ȯ��)
-  if (typeof window !== 'undefined') {
-    try {
-      const lsTime = localStorage.getItem(LS_KEY_DATA_TIME);
-      if (lsTime && (now - parseInt(lsTime, 10) < CACHE_TTL)) {
-        const lsData = localStorage.getItem(LS_KEY_DATA);
-        if (lsData) {
-          const parsed = JSON.parse(lsData);
-          serverDataCache = parsed;
-          serverDataCacheTime = parseInt(lsTime, 10);
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to read server data from localStorage', e);
-    }
-  }
-
+  // 이미 진행 중인 요청이 있으면 그 Promise를 재사용 (deduplication)
   if (serverDataPromise) {
     return serverDataPromise;
   }
 
+  // 새 요청 시작
   serverDataPromise = _fetchServerData()
     .then(data => {
+      // API 통신 실패나 Abort로 인해 빈 배열이 반환된 경우 캐시하지 않음
       if (!data || data.masterData.length === 0) {
         serverDataPromise = null;
-        return data;
+        return data; // 이번엔 빈 값을 반환하지만 캐시되진 않음
       }
       serverDataCache = data;
       serverDataCacheTime = Date.now();
-      
-      // 3. �����͸� ���� ���丮���� ����
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(LS_KEY_DATA, JSON.stringify(data));
-          localStorage.setItem(LS_KEY_DATA_TIME, serverDataCacheTime.toString());
-        } catch (e) {
-          console.warn('Failed to save server data to localStorage (Quota Exceeded?)', e);
-        }
-      }
-
       serverDataPromise = null;
       return data;
     })
@@ -84,23 +63,6 @@ export async function getCachedSchema(): Promise<SchemaConfig | null> {
     return schemaCache;
   }
 
-  if (typeof window !== 'undefined') {
-    try {
-      const lsTime = localStorage.getItem(LS_KEY_SCHEMA_TIME);
-      if (lsTime && (now - parseInt(lsTime, 10) < CACHE_TTL)) {
-        const lsData = localStorage.getItem(LS_KEY_SCHEMA);
-        if (lsData) {
-          const parsed = JSON.parse(lsData);
-          schemaCache = parsed;
-          schemaCacheTime = parseInt(lsTime, 10);
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to read schema from localStorage', e);
-    }
-  }
-
   if (schemaPromise) {
     return schemaPromise;
   }
@@ -109,16 +71,6 @@ export async function getCachedSchema(): Promise<SchemaConfig | null> {
     .then(data => {
       schemaCache = data;
       schemaCacheTime = Date.now();
-      
-      if (typeof window !== 'undefined') {
-        try {
-          localStorage.setItem(LS_KEY_SCHEMA, JSON.stringify(data));
-          localStorage.setItem(LS_KEY_SCHEMA_TIME, schemaCacheTime.toString());
-        } catch (e) {
-          console.warn('Failed to save schema to localStorage', e);
-        }
-      }
-
       schemaPromise = null;
       return data;
     })
@@ -130,20 +82,12 @@ export async function getCachedSchema(): Promise<SchemaConfig | null> {
   return schemaPromise;
 }
 
+/**
+ * 캐시를 무효화합니다. 데이터가 서버에서 변경된 후 강제 새로고침이 필요할 때 사용합니다.
+ */
 export function invalidateCache() {
   serverDataCache = null;
   serverDataCacheTime = 0;
   schemaCache = null;
   schemaCacheTime = 0;
-  
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(LS_KEY_DATA);
-      localStorage.removeItem(LS_KEY_DATA_TIME);
-      localStorage.removeItem(LS_KEY_SCHEMA);
-      localStorage.removeItem(LS_KEY_SCHEMA_TIME);
-    } catch (e) {
-      // ignore
-    }
-  }
 }
