@@ -1,0 +1,52 @@
+OPEN SOURCE LICENSES & INTELLECTUAL PROPERTY NOTICE
+
+======================================================
+1. INTELLECTUAL PROPERTY NOTICE (지적재산권 공지)
+======================================================
+This project is a non-commercial, fan-made application based on the intellectual property of "Blue Archive" (블루 아카이브).
+- Developer (개발): NEXON Games Co., Ltd. (IO DIVISION / MX Studio)
+- Publisher (유통): NEXON Co., Ltd.
+
+All characters, images, lore, and related intellectual property of "Blue Archive" belong to NEXON and NEXON Games. This project is not affiliated with, officially endorsed by, or sponsored by NEXON or NEXON Games.
+
+
+======================================================
+2. OPEN SOURCE LICENSES (오픈소스 라이선스)
+======================================================
+This project, while retaining its own "All Rights Reserved" copyright for its proprietary source code, 
+utilizes the following open-source libraries. We express our gratitude to the open-source community.
+
+Below is a list of the major open-source libraries used in this project along with their respective licenses:
+
+[Frontend / Client - React & Next.js Ecosystem]
+- React (MIT)
+- Next.js (MIT)
+- Vite (MIT)
+- Tailwind CSS (MIT)
+- Lucide React (ISC)
+- Axios (MIT)
+- Zustand (MIT)
+- date-fns (MIT)
+- html2canvas (MIT)
+- html-to-image (MIT)
+- clsx (MIT)
+- tailwind-merge (MIT)
+- PostCSS (MIT)
+- Autoprefixer (MIT)
+
+[Backend - Express & Node.js Ecosystem]
+- Express (MIT)
+- Prisma (Apache 2.0)
+- PostgreSQL / pg (PostgreSQL License)
+- Bcrypt (MIT)
+- jsonwebtoken (MIT)
+- Multer (MIT)
+- Sharp (Apache 2.0)
+- SheetJS / xlsx (Apache 2.0)
+- Cheerio (MIT)
+- cors (MIT)
+- dotenv (BSD-2-Clause)
+- @google/generative-ai (Apache 2.0)
+- openai (MIT)
+
+Note: The full license texts for these libraries can be found in the respective 'node_modules' directories or their official open-source repositories. The use of these libraries complies with their permissive licenses which allow for use in proprietary and closed-source projects.
