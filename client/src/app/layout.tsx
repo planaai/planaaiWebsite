@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/ui/Navbar';
 import { AlertProvider } from '@/contexts/AlertContext';
+import { BetaNotice } from '@/components/ui/BetaNotice';
 
 export const metadata: Metadata = {
   title: 'Plana.AI',
@@ -19,12 +20,7 @@ export default function RootLayout({
         <AlertProvider>
           <Navbar />
           <div className="flex flex-col min-h-screen pt-16">
-            <div className="w-full bg-amber-50/80 backdrop-blur-sm border-b border-amber-200 px-4 py-2.5 text-center text-[13px] text-amber-800 shadow-sm flex items-center justify-center gap-2 z-40 relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-              <span className="font-medium tracking-tight">
-                <strong>[안내]</strong> 현재 사이트는 개발 중인 베타 버전으로, 일부 기능이 제한되거나 정보가 정확하지 않을 수 있습니다.
-              </span>
-            </div>
+            <BetaNotice />
             <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
               {children}
             </main>
