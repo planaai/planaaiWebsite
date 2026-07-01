@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Fragment } from 'react';
 import axios from 'axios';
 import { Image as ImageIcon, Settings, Copy, Trash2, Edit2, Folder, FolderUp, Scissors, ClipboardPaste, CheckSquare, Square } from 'lucide-react';
 import type { ArchiveData, SchemaConfig } from '../../types';
@@ -436,7 +436,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
               🏠 Root
             </span>
             {currentPath.split('/').filter(Boolean).map((part, index) => (
-              <React.Fragment key={index}>
+              <Fragment key={index}>
                 <span className="text-slate-500 mx-2">/</span>
                 <span 
                   className="cursor-pointer hover:text-blue-400 text-blue-300 font-bold transition-colors"
@@ -444,7 +444,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
                 >
                   {part}
                 </span>
-              </React.Fragment>
+              </Fragment>
             ))}
           </div>
         </div>
