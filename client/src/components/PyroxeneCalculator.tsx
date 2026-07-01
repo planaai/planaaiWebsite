@@ -311,8 +311,17 @@ export default function PyroxeneCalculator({ data, events }: Props) {
 
   const getPackageImage = (pkgName: string) => {
     const sanitizedName = pkgName.replace(' (초회)', ' 초회');
-    return encodeURI(`/images/package/${sanitizedName}.png`);
+    return `/images/package/${sanitizedName}.png`;
   };
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--plana-primary)]"></div></div>;
+  }
 
   return (
     <div className="space-y-6 slide-in-right-anim pb-20">
