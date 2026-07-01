@@ -55,3 +55,6 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Scratch scripts
+scratch/
