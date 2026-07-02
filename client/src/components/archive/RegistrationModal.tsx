@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIcon, Loader2 } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
@@ -24,6 +25,7 @@ type RegistrationForm = Partial<ArchiveRecord> & {
 };
 
 export function RegistrationModal({ isOpen, onClose, masterData, schema, initialEditRecord }: RegistrationModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'manual' | 'ocr'>('manual');
   const [forms, setForms] = useState<RegistrationForm[]>([]);
   const [nextId, setNextId] = useState(1);
@@ -32,6 +34,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
 
   // Initialize forms when modal opens
   React.useEffect(() => {
+    setMounted(true);
     if (isOpen) {
       if (initialEditRecord) {
         setForms([{ ...initialEditRecord, _localId: 0, _isCollapsed: false }]);
@@ -44,7 +47,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     }
   }, [isOpen, initialEditRecord]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleAddForm = () => {
     // Collapse all existing
@@ -165,8 +168,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     e.preventDefault();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
       <div className="bg-white border border-[var(--plana-border)] w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-[var(--plana-border)] bg-slate-50">
@@ -191,14 +194,28 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
         )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/50">
           {mode === 'ocr' && (
             <div 
-              className="flex flex-col items-center justify-center border-2 border-dashed rounded-2xl transition-colors relative mb-6 h-64 border-slate-300 bg-slate-100/50 text-[var(--plana-text-muted)]"
+              onDragOver={handleDragOver}
+              onDrop={handleImageUpload}
+              className="flex flex-col items-center justify-center border-2 border-dashed rounded-2xl transition-colors relative mb-6 h-64 border-[var(--plana-accent)] bg-[var(--plana-primary-light)]/10 text-[var(--plana-text-main)] hover:bg-[var(--plana-primary-light)]/20"
             >
-              <ImageIcon size={48} className="mb-4 text-slate-400" />
-              <p className="font-bold text-lg text-[var(--plana-text-main)]">시스템 점검 중입니다.</p>
-              <p className="text-sm mt-2 text-[var(--plana-text-muted)]">현재 스크린샷 자동 기입(OCR) 기능을 사용할 수 없습니다. 상단의 '수동으로 입력하기' 탭을 이용해주세요.</p>
+              <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+              {ocrProgress.isProcessing ? (
+                <>
+                  <Loader2 size={48} className="mb-4 text-[var(--plana-primary)] animate-spin" />
+                  <p className="font-bold text-lg text-[var(--plana-text-main)]">이미지 분석 중... ({ocrProgress.current}/{ocrProgress.total})</p>
+                  <p className="text-sm mt-2 text-[var(--plana-text-muted)]">이 작업은 약간의 시간이 소요될 수 있습니다.</p>
+                </>
+              ) : (
+                <>
+                  <Upload size={48} className="mb-4 text-[var(--plana-accent)]" />
+                  <p className="font-bold text-lg">클릭하여 이미지 업로드 또는 드래그 앤 드롭</p>
+                  <p className="text-sm mt-2 text-[var(--plana-text-muted)]">블루 아카이브 학생 정보 화면 스크린샷을 여러 장 선택할 수 있습니다.</p>
+                  <p className="text-xs mt-1 text-[var(--plana-primary)] font-bold">1920x1080 해상도 (PC 클라이언트) 권장</p>
+                </>
+              )}
             </div>
           )}
 
@@ -257,7 +274,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                         {form._imageUrl && (
                           <div className="xl:w-1/3 shrink-0 flex flex-col bg-slate-50 rounded-xl border border-slate-200 overflow-hidden relative min-h-[400px]">
                             <div className="bg-slate-100 border-b border-slate-200 text-slate-500 text-xs font-bold p-2 text-center">원본 스크린샷 이미지</div>
-                            <div className="flex-1 p-2 overflow-auto flex items-center justify-center">
+                            <div className="flex-1 p-2 overflow-auto custom-scrollbar flex items-center justify-center">
                               <img src={form._imageUrl} className="max-w-full max-h-full object-contain drop-shadow-md" />
                             </div>
                           </div>
@@ -474,4 +491,6 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
