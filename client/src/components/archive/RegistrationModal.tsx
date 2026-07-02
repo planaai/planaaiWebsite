@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIcon, Loader2 } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
-import { processScreenshot } from '@/lib/ocrParser';
+import { processScreenshot } from '@/lib/localOcrParser';
 import { API_BASE } from '@/lib/api';
 
 interface RegistrationModalProps {
