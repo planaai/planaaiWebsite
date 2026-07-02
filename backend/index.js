@@ -800,36 +800,81 @@ app.post('/api/archive/ocr-error-log', uploadOcrError.single('image'), (req, res
 });
 
 /* ═══════════════════════════════════════════════
-   Vision LLM Parsing API (Synchronous)
+   Vision Python OCR API (Queue)
    ═══════════════════════════════════════════════ */
-const { parseImageWithRetry } = require('./llmParser');
 const visionDir = path.join(__dirname, 'uploads', 'vision-temp');
 if (!fs.existsSync(visionDir)) fs.mkdirSync(visionDir, { recursive: true });
 const uploadVision = multer({ dest: visionDir, limits: { fileSize: FILE_SIZE_LIMIT } });
 
+class AsyncQueue {
+  constructor(concurrency = 1) {
+    this.concurrency = concurrency;
+    this.running = 0;
+    this.queue = [];
+  }
+
+  add(task) {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const res = await task();
+          resolve(res);
+        } catch (e) {
+          reject(e);
+        }
+      });
+      this.processNext();
+    });
+  }
+
+  processNext() {
+    if (this.running >= this.concurrency || this.queue.length === 0) return;
+    this.running++;
+    const task = this.queue.shift();
+    task().finally(() => {
+      this.running--;
+      this.processNext();
+    });
+  }
+}
+
+// 1코어 환경 서버 과부하 방지를 위한 동시성 1 처리 큐
+const ocrQueue = new AsyncQueue(1);
+
 app.post('/api/archive/upload-vision', uploadVision.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const filePath = req.file.path;
+  
   try {
-    const filePath = req.file.path;
-    const ext = path.extname(req.file.originalname).toLowerCase();
-    const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+    const result = await ocrQueue.add(() => new Promise((resolve, reject) => {
+      const scriptPath = path.join(__dirname, 'utils', 'extractor.py');
+      const { execFile } = require('child_process');
+      // Use python, or python3 on linux. Oracle Ubuntu standard uses python3
+      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+      
+      execFile(pythonCmd, [scriptPath, filePath], { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+        if (error) {
+          return reject(new Error(`OCR Process Error: ${stderr || error.message}`));
+        }
+        try {
+          // Parse JSON output from python
+          const parsedData = JSON.parse(stdout);
+          resolve(parsedData);
+        } catch (e) {
+          reject(new Error(`Failed to parse OCR output: ${e.message}\nRaw Output: ${stdout}`));
+        }
+      });
+    }));
+
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     
-    // Read file as Base64
-    // 파일을 base64로 읽은 후 버퍼 참조를 즉시 해제하여 GC가 빨리 수거하도록 함
-    let fileBuffer = fs.readFileSync(filePath);
-    const base64Image = fileBuffer.toString('base64');
-    fileBuffer = null; // GC 대상으로 즉시 해제
-    
-    // Call LLM
-    const parsedData = await parseImageWithRetry(base64Image, mimeType);
-    
-    // Clean up temporary file
-    fs.unlinkSync(filePath);
-    
-    res.json({ status: 'success', data: parsedData });
+    // Match the previous return structure expected by ocrParser.ts
+    // In Python OCR, we return the parsed data directly.
+    res.json({ status: 'success', data: result, rawText: JSON.stringify(result, null, 2) });
   } catch (error) {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     console.error('Vision API Error:', error);
-    res.status(500).json({ error: 'Failed to process image' });
+    res.status(500).json({ error: error.message || 'Failed to process image' });
   }
 });
 
