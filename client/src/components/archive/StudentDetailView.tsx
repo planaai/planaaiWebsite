@@ -143,9 +143,9 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
                 {master.fullIllustUrl ? (
-                  <img src={`https://api.planaai.kro.kr${master.fullIllustUrl}`} className="absolute -bottom-10 w-[130%] max-h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
+                  <img src={`https://api.planaai.kro.kr${master.fullIllustUrl}`} className="absolute -bottom-16 w-[180%] max-w-[180%] h-[130%] object-contain object-bottom scale-110 origin-bottom pointer-events-none" alt={master.name} />
                 ) : master.portraitUrl ? (
-                  <img src={`https://api.planaai.kro.kr${master.portraitUrl}`} className="absolute -bottom-10 w-[110%] max-h-[110%] object-contain pointer-events-none" alt={master.name} />
+                  <img src={`https://api.planaai.kro.kr${master.portraitUrl}`} className="absolute -bottom-10 w-[150%] max-w-[150%] h-[120%] object-contain object-bottom scale-110 origin-bottom pointer-events-none" alt={master.name} />
                 ) : (
                   <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
                     일러스트 없음
