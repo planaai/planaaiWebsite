@@ -213,7 +213,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                   <Upload size={48} className="mb-4 text-[var(--plana-accent)]" />
                   <p className="font-bold text-lg">클릭하여 이미지 업로드 또는 드래그 앤 드롭</p>
                   <p className="text-sm mt-2 text-[var(--plana-text-muted)]">블루 아카이브 학생 정보 화면 스크린샷을 여러 장 선택할 수 있습니다.</p>
-                  <p className="text-xs mt-1 text-[var(--plana-primary)] font-bold">1920x1080 해상도 (PC 클라이언트) 권장</p>
+                  <p className="text-xs mt-1 text-[var(--plana-primary)] font-bold">PC 클라이언트 16:9 해상도 권장 (FHD: 1920x1080, QHD: 2560x1440, 4K: 3840x2160)</p>
                 </>
               )}
             </div>
