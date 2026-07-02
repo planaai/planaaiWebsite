@@ -41,7 +41,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
         setMode('manual');
       } else {
         setForms([{ _localId: 0, _isCollapsed: false }]);
-        setMode('ocr'); // Default to OCR mode for new registrations
+        setMode('manual'); // Default to manual when OCR is disabled
         setNextId(1);
       }
     }
@@ -187,8 +187,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
             <button onClick={() => setMode('manual')} className={`flex-1 py-4 font-bold flex items-center justify-center gap-2 transition-colors ${mode === 'manual' ? 'bg-[var(--plana-primary-light)] text-[var(--plana-primary-dark)] border-b-2 border-[var(--plana-accent)]' : 'text-[var(--plana-text-muted)] hover:bg-slate-50'}`}>
               <Edit3 size={18} /> 수동으로 입력하기
             </button>
-            <button onClick={() => setMode('ocr')} className={`flex-1 py-4 font-bold flex items-center justify-center gap-2 transition-colors ${mode === 'ocr' ? 'bg-[var(--plana-primary-light)] text-[var(--plana-primary-dark)] border-b-2 border-[var(--plana-accent)]' : 'text-[var(--plana-text-muted)] hover:bg-slate-50'}`}>
-              <ImageIcon size={18} /> 스크린샷으로 자동 입력 (OCR)
+            <button disabled className="flex-1 py-4 font-bold flex items-center justify-center gap-2 transition-colors text-slate-400 bg-slate-100 cursor-not-allowed">
+              <ImageIcon size={18} /> 스크린샷 자동 입력 (서버 점검 중)
             </button>
           </div>
         )}
