@@ -94,7 +94,7 @@ export default function GachaPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-slate-50 text-slate-700 font-sans p-6 slide-in-right-anim">
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 text-slate-700 font-sans p-6">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3 tracking-tight">
@@ -128,143 +128,105 @@ export default function GachaPage() {
         )}
 
         {/* Main Gacha Area */}
-        <div className={`relative rounded-3xl shadow-2xl mb-8 overflow-hidden min-h-[500px] flex flex-col transition-colors duration-500 ${showResultScreen ? 'bg-gradient-to-br from-pink-50 via-white to-pink-100 p-0' : 'bg-white border border-slate-200 p-8'}`}>
-          {!showResultScreen ? (
-            <>
-              {/* Background decoration for banner mode */}
-              <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--plana-primary)]/10 blur-[100px] rounded-full pointer-events-none" />
-              <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-pink-600/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="relative bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl mb-8 overflow-hidden min-h-[500px] flex flex-col">
+          {/* Background decoration */}
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[var(--plana-primary)]/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-pink-600/10 blur-[100px] rounded-full pointer-events-none" />
 
-              <div className="relative z-10 flex-1 flex flex-col">
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-black text-slate-800 drop-shadow-sm mb-2">{banner.name}</h2>
-                  <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {banner.pickups.reduce((s, p) => s + p.rate * 100, 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
-                </div>
+          <div className="relative z-10 flex-1 flex flex-col">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-black text-slate-800 drop-shadow-sm mb-2">{banner.name}</h2>
+              <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {banner.pickups.reduce((s, p) => s + p.rate * 100, 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
+            </div>
 
-                {/* Banner Content (Empty state) */}
-                <div className="flex-1 flex items-center justify-center transition-opacity duration-300 opacity-100 scale-100">
-                  <div className="flex flex-col items-center justify-center text-slate-500 h-full min-h-[200px]">
-                    <Sparkles size={48} className="opacity-20 mb-4 text-[var(--plana-primary)]" />
-                    <p className="font-bold">모집 버튼을 눌러주세요</p>
-                  </div>
-                </div>
-
-                {/* Controls */}
-                <div className="flex justify-between items-end mt-12">
-                  <div className="flex items-center">
-                    <button
-                      onClick={handleReset}
-                      className="flex items-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-colors border border-slate-200 shadow-sm"
-                      title="초기화"
-                    >
-                      <RotateCcw size={18} />
-                      초기화
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handlePull('single')}
-                      className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg"
-                    >
-                      1회 모집
-                    </button>
-                    <button
-                      onClick={() => handlePull('ten')}
-                      className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400"
-                    >
-                      10회 모집
-                    </button>
-                  </div>
+            {results.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center transition-opacity duration-300 opacity-100 scale-100">
+                <div className="flex flex-col items-center justify-center text-slate-500 h-full min-h-[200px]">
+                  <Sparkles size={48} className="opacity-20 mb-4 text-[var(--plana-primary)]" />
+                  <p className="font-bold">모집 버튼을 눌러주세요</p>
                 </div>
               </div>
-            </>
-          ) : (
-            /* Result Screen */
-            <div className={`relative w-full h-full min-h-[500px] flex flex-col animate-in fade-in zoom-in-95 duration-300`}>
-              {/* Geometric pattern overlay (optional, subtle) */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-              
-              <div className="flex-1 flex items-center justify-center pt-12 pb-4">
-                <div className="grid grid-cols-5 gap-x-3 gap-y-6 sm:gap-x-5 sm:gap-y-8 w-fit mx-auto">
-                  {results.map((r, idx) => {
-                    const normalizedName = r.name.replace(/\s+/g, '');
-                    const student = masterDataMap[normalizedName];
-                    const isNew = r.isNew;
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`relative w-[64px] h-[78px] sm:w-[90px] sm:h-[110px] md:w-[110px] md:h-[134px] rounded-lg border-[3px] flex flex-col justify-between overflow-visible transition-transform hover:-translate-y-1 -skew-x-[6deg] ${getCardStyle(r.rarity)}`}
-                        style={{ animationDelay: `${idx * 0.05}s` }}
-                      >
-                        {/* New Tag */}
-                        {isNew && (
-                          <div 
-                            className="absolute -top-3 -left-3 md:-top-4 md:-left-4 z-20 text-[#fff200] font-black text-sm md:text-xl italic drop-shadow-[0_0_5px_rgba(255,242,0,0.8)] z-30 skew-x-[6deg]" 
-                            style={{ WebkitTextStroke: '1px #a46b00' }}
-                          >
-                            New
-                          </div>
-                        )}
-
-                        {/* Portrait */}
-                        <div className="absolute inset-0 z-0 bg-slate-200 overflow-hidden rounded-md">
-                          {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
-                            <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top skew-x-[6deg] scale-110" />
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center skew-x-[6deg]">
-                              <User size={32} className="text-slate-400 opacity-50" />
-                              <span className="text-[10px] font-bold text-slate-500 mt-1 truncate w-full text-center px-1">{r.name}</span>
+            ) : (
+              <div className="flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex-1 flex items-center justify-center py-4">
+                  <div className="grid grid-cols-5 gap-x-3 gap-y-6 sm:gap-x-5 sm:gap-y-8 w-fit mx-auto">
+                    {results.map((r, idx) => {
+                      const normalizedName = r.name.replace(/\s+/g, '');
+                      const student = masterDataMap[normalizedName];
+                      const isNew = r.isNew;
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`relative w-[64px] h-[78px] sm:w-[90px] sm:h-[110px] md:w-[110px] md:h-[134px] rounded-lg border-[3px] flex flex-col justify-between overflow-visible transition-transform hover:-translate-y-1 -skew-x-[6deg] ${getCardStyle(r.rarity)}`}
+                          style={{ animationDelay: `${idx * 0.05}s` }}
+                        >
+                          {/* New Tag */}
+                          {isNew && (
+                            <div 
+                              className="absolute -top-3 -left-3 md:-top-4 md:-left-4 z-20 text-[#fff200] font-black text-sm md:text-xl italic drop-shadow-[0_0_5px_rgba(255,242,0,0.8)] z-30 skew-x-[6deg]" 
+                              style={{ WebkitTextStroke: '1px #a46b00' }}
+                            >
+                              New
                             </div>
                           )}
-                        </div>
 
-                        <div className="relative z-10 flex-1"></div>
+                          {/* Portrait */}
+                          <div className="absolute inset-0 z-0 bg-slate-200 overflow-hidden rounded-md">
+                            {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
+                              <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top skew-x-[6deg] scale-110" />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center skew-x-[6deg]">
+                                <User size={32} className="text-slate-400 opacity-50" />
+                                <span className="text-[10px] font-bold text-slate-500 mt-1 truncate w-full text-center px-1">{r.name}</span>
+                              </div>
+                            )}
+                          </div>
 
-                        {/* Stars Bottom Bar */}
-                        <div className="relative z-10 h-[18px] md:h-[22px] bg-[#394251] flex justify-center items-center rounded-b-[4px]">
-                          <div className={`flex items-center gap-[1px] md:gap-0.5 text-[10px] md:text-sm drop-shadow-md skew-x-[6deg] ${getStarColor(r.rarity)}`}>
-                            {'★'.repeat(r.rarity)}
+                          <div className="relative z-10 flex-1"></div>
+
+                          {/* Stars Bottom Bar */}
+                          <div className="relative z-10 h-[18px] md:h-[22px] bg-[#394251] flex justify-center items-center rounded-b-[4px]">
+                            <div className={`flex items-center gap-[1px] md:gap-0.5 text-[10px] md:text-sm drop-shadow-md skew-x-[6deg] ${getStarColor(r.rarity)}`}>
+                              {'★'.repeat(r.rarity)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Bottom Confirm Area */}
-              <div className="relative w-full p-6 mt-4 flex justify-center items-center">
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleConfirm}
-                    className="px-10 py-3 md:py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-lg md:text-xl font-bold rounded-xl shadow-sm transition-colors border border-slate-300"
-                  >
-                    확인
-                  </button>
-                  <button
-                    onClick={() => handlePull(results.length > 1 ? 'ten' : 'single')}
-                    className="px-10 py-3 md:py-4 bg-[var(--plana-primary)] hover:bg-pink-400 text-white text-lg md:text-xl font-black rounded-xl shadow-[0_0_20px_rgba(255,105,180,0.3)] transition-all border border-pink-400"
-                  >
-                    {results.length > 1 ? '10회 더 모집' : '1회 더 모집'}
-                  </button>
-                </div>
-
-                {/* Recruitment Points */}
-                <div className="absolute right-6 bottom-6 flex flex-col items-end hidden md:flex">
-                  <div className="bg-white border border-pink-100 shadow-sm flex items-center divide-x divide-pink-100 rounded-xl overflow-hidden">
-                    <div className="px-3 py-1 bg-pink-50 flex items-center gap-1">
-                      <span className="text-[var(--plana-primary)] font-black italic text-sm">Point</span>
-                      <span className="text-slate-600 text-xs font-bold whitespace-nowrap">모집 포인트</span>
-                    </div>
-                    <div className="px-4 py-1 bg-slate-800 text-white font-bold min-w-[50px] text-center">
-                      {pullHistory.length}
-                    </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Controls */}
+            <div className="flex justify-between items-end mt-12">
+              <div className="flex items-center">
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-colors border border-slate-200 shadow-sm"
+                  title="초기화"
+                >
+                  <RotateCcw size={18} />
+                  초기화
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handlePull('single')}
+                  className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg"
+                >
+                  1회 모집
+                </button>
+                <button
+                  onClick={() => handlePull('ten')}
+                  className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400"
+                >
+                  {results.length > 0 ? '10회 더 모집' : '10회 모집'}
+                </button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Inventory Summary */}
