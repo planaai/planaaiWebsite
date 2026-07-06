@@ -33,9 +33,9 @@ export function PlannerPlanCard({
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <div className="relative shrink-0">
-            {student?.portraitUrl ? (
+            {student?.portraitUrls && student.portraitUrls.length > 0 ? (
               <img 
-                src={getImageUrl(student.portraitUrl)} 
+                src={getImageUrl(student.portraitUrls[0])} 
                 alt="" 
                 className={`w-12 h-12 rounded-full object-cover ring-2 ${isActive ? 'ring-[var(--plana-primary)]' : 'ring-slate-200'}`} 
               />

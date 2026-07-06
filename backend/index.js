@@ -509,15 +509,21 @@ app.put('/api/images/folder/rename', (req, res) => {
   };
 
   studentMasterDB.forEach(master => {
-    master.portraitUrl = updateUrl(master.portraitUrl);
-    master.secondaryPortraitUrl = updateUrl(master.secondaryPortraitUrl);
-    master.fullIllustUrl = updateUrl(master.fullIllustUrl);
+    if (master.portraitUrls && Array.isArray(master.portraitUrls)) {
+      master.portraitUrls = master.portraitUrls.map(updateUrl);
+    }
     master.favoriteItemUrl = updateUrl(master.favoriteItemUrl);
-    if (master.skills) {
-      ['ex', 'normal', 'passive', 'sub'].forEach(k => {
-        if (master.skills[k] && master.skills[k].iconUrl) {
-          master.skills[k].iconUrl = updateUrl(master.skills[k].iconUrl);
-        }
+    if (master.skills && Array.isArray(master.skills)) {
+      master.skills.forEach(skillSet => {
+        ['ex', 'normal', 'passive', 'sub', 'normalPlus', 'passivePlus'].forEach(k => {
+          if (skillSet[k]) {
+             if (Array.isArray(skillSet[k])) {
+                skillSet[k].forEach(s => { if (s && s.iconUrl) s.iconUrl = updateUrl(s.iconUrl); });
+             } else {
+                if (skillSet[k].iconUrl) skillSet[k].iconUrl = updateUrl(skillSet[k].iconUrl);
+             }
+          }
+        });
       });
     }
   });
@@ -579,15 +585,21 @@ app.put('/api/images/folder/rename', (req, res) => {
 
 function updateImageReferences(oldUrl, newUrl) {
   studentMasterDB.forEach(master => {
-    if (master.portraitUrl === oldUrl) master.portraitUrl = newUrl;
-    if (master.secondaryPortraitUrl === oldUrl) master.secondaryPortraitUrl = newUrl;
-    if (master.fullIllustUrl === oldUrl) master.fullIllustUrl = newUrl;
+    if (master.portraitUrls && Array.isArray(master.portraitUrls)) {
+      master.portraitUrls = master.portraitUrls.map(url => url === oldUrl ? newUrl : url);
+    }
     if (master.favoriteItemUrl === oldUrl) master.favoriteItemUrl = newUrl;
-    if (master.skills) {
-      ['ex', 'normal', 'passive', 'sub'].forEach(k => {
-        if (master.skills[k] && master.skills[k].iconUrl === oldUrl) {
-          master.skills[k].iconUrl = newUrl;
-        }
+    if (master.skills && Array.isArray(master.skills)) {
+      master.skills.forEach(skillSet => {
+        ['ex', 'normal', 'passive', 'sub', 'normalPlus', 'passivePlus'].forEach(k => {
+          if (skillSet[k]) {
+             if (Array.isArray(skillSet[k])) {
+                skillSet[k].forEach(s => { if (s && s.iconUrl === oldUrl) s.iconUrl = newUrl; });
+             } else {
+                if (skillSet[k].iconUrl === oldUrl) skillSet[k].iconUrl = newUrl;
+             }
+          }
+        });
       });
     }
   });
@@ -720,8 +732,8 @@ app.get('/api/archive', optionalAuth, async (req, res) => {
 
 app.post('/api/master/students', (req, res) => {
   const newStudent = { ...req.body, id: Date.now() };
-  if (!newStudent.skills) newStudent.skills = { ...emptySkills };
-  if (!newStudent.portraitUrl) newStudent.portraitUrl = '';
+  if (!newStudent.skills) newStudent.skills = [{ ex: {}, normal: {}, passive: {}, sub: {} }];
+  if (!newStudent.portraitUrls) newStudent.portraitUrls = [];
   studentMasterDB.push(newStudent);
   saveMasterDB();
   res.json({ status: 'success', student: newStudent });

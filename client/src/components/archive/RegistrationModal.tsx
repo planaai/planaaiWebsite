@@ -238,8 +238,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                          {selectedMaster?.portraitUrl ? (
-                            <img src={`https://api.planaai.kro.kr${selectedMaster.portraitUrl}`} className="w-full h-full object-cover" />
+                          {selectedMaster?.portraitUrls && selectedMaster.portraitUrls.length > 0 ? (
+                            <img src={`https://api.planaai.kro.kr${selectedMaster.portraitUrls[0]}`} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">?</div>
                           )}

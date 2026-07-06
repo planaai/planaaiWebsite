@@ -63,6 +63,26 @@ export interface Skill {
   descriptionTemplate: string;
   parameters: Record<string, string[]>;
   iconUrl: string;
+  cost?: number[];
+}
+
+export interface SkillSet {
+  modeName?: string;
+  ex: Skill | Skill[];
+  normal: Skill | Skill[];
+  passive: Skill;
+  sub: Skill;
+  normalPlus?: Skill;
+  passivePlus?: Skill;
+}
+
+export interface VehicleData {
+  name: string;
+  skills: {
+    normal?: Skill;
+    ex?: Skill;
+    sub?: Skill;
+  };
 }
 
 export interface StudentMaster {
@@ -84,9 +104,7 @@ export interface StudentMaster {
   equipmentSlot1: string;
   equipmentSlot2: string;
   equipmentSlot3: string;
-  portraitUrl: string;
-  secondaryPortraitUrl?: string;
-  fullIllustUrl?: string;
+  portraitUrls: string[];
   primaryOopart?: string;
   secondaryOopart?: string;
   terrainAffinity?: { urban: string; outdoor: string; indoor: string };
@@ -95,14 +113,8 @@ export interface StudentMaster {
   uniqueWeaponName?: string;
   favoriteItemUrl?: string;
   favoriteItemEffects?: { t1: string; t2: string };
-  skills: {
-    ex: Skill;
-    normal: Skill;
-    passive: Skill;
-    sub: Skill;
-    normalPlus?: Skill;
-    passivePlus?: Skill;
-  };
+  skills: SkillSet[];
+  vehicles?: VehicleData[];
 }
 
 export interface ArchiveRecord {

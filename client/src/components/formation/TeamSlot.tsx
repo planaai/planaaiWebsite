@@ -118,12 +118,12 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         {/* Character Image */}
         {student ? (
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
-            {student.fullIllustUrl ? (
+            {student.portraitUrls && student.portraitUrls.length > 1 ? (
               (() => {
                 const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
                 return (
                   <img
-                    src={getImageUrl(student.fullIllustUrl)}
+                    src={getImageUrl(student.portraitUrls[1])}
                     alt={student.name}
                     className="max-w-none object-cover drop-shadow-xl transition-transform"
                     style={{ 
@@ -134,9 +134,9 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
                   />
                 );
               })()
-            ) : student.portraitUrl ? (
+            ) : student.portraitUrls && student.portraitUrls.length > 0 ? (
               <img
-                src={getImageUrl(student.portraitUrl)}
+                src={getImageUrl(student.portraitUrls[0])}
                 alt={student.name}
                 className="w-[120%] object-contain drop-shadow-xl"
               />
@@ -155,7 +155,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
             )}
             
             {/* Remove Button (only for images, fallback has its own) */}
-            {(student.fullIllustUrl || student.portraitUrl) && (
+            {(student.portraitUrls && student.portraitUrls.length > 0) && (
               <button
                 onClick={handleRemove}
                 className="absolute top-2 right-2 sm:top-6 sm:right-6 bg-red-500 text-white rounded-full p-2.5 sm:p-3 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 z-50 pointer-events-auto shadow-lg hover:scale-110"
@@ -226,8 +226,8 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       {student ? (
         <>
           <div className="aspect-square h-full rounded bg-slate-100 overflow-hidden relative shadow-inner shrink-0">
-             {student.portraitUrl ? (
-               <img src={getImageUrl(student.portraitUrl)} alt={student.name} className="w-full h-full object-cover" />
+             {student.portraitUrls && student.portraitUrls.length > 0 ? (
+               <img src={getImageUrl(student.portraitUrls[0])} alt={student.name} className="w-full h-full object-cover" />
              ) : (
                <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100 group-hover:text-[var(--plana-primary)] transition-colors"><User size={28} strokeWidth={1.5} /></div>
              )}

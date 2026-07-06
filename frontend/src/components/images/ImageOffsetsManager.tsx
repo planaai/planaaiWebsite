@@ -144,9 +144,9 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
               {/* Dummy TeamSlot Container */}
               <div className="relative flex flex-col items-center justify-end shrink-0 w-[160px] h-[350px] bg-slate-100 rounded shadow-md mt-4">
                 <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none overflow-visible">
-                  {selectedStudent.master.fullIllustUrl ? (
+                  {selectedStudent.master.portraitUrls && selectedStudent.master.portraitUrls.length > 1 ? (
                     <img
-                      src={getImageUrl(selectedStudent.master.fullIllustUrl)}
+                      src={getImageUrl(selectedStudent.master.portraitUrls[1])}
                       alt={selectedStudent.master.name}
                       className="max-w-none object-cover drop-shadow-xl transition-all duration-75"
                       style={{ 

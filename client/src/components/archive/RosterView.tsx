@@ -130,8 +130,8 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
                   <span className="absolute top-2 left-2 text-[10px] font-black text-white bg-[var(--plana-primary-dark)]/80 px-2 py-0.5 rounded backdrop-blur-sm z-10 shadow-sm">
                     {isOwned && record?.level ? `Lv.${record.level}` : `No.${master.studentNumber || '-'}`}
                   </span>
-                  {master.portraitUrl ? (
-                    <img src={`https://api.planaai.kro.kr${master.portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
+                  {master.portraitUrls && master.portraitUrls.length > 0 ? (
+                    <img src={`https://api.planaai.kro.kr${master.portraitUrls[0]}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                       <span className="text-xs text-[var(--plana-text-muted)] font-bold">No Image</span>

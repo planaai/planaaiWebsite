@@ -148,26 +148,26 @@ export default function GachaPage() {
                     return (
                     <div 
                       key={idx} 
-                      className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center h-36 backdrop-blur-sm border transition-transform hover:scale-105 ${getRarityStyle(r.rarity, r.isPickup)}`}
+                      className={`relative overflow-hidden p-4 rounded-2xl flex flex-col items-center justify-center text-center h-36 backdrop-blur-sm border transition-transform hover:scale-105 ${getRarityStyle(r.rarity, r.isPickup)}`}
                       style={{ animationDelay: `${idx * 0.05}s` }}
                     >
-                      {student && student.portraitUrl ? (
-                        <div className="w-16 h-16 mb-2 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200">
-                          <img src={getImageUrl(student.portraitUrl)} alt={r.name} className="w-full h-full object-cover" />
+                      {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
+                        <div className="absolute inset-0 overflow-hidden pt-4 opacity-40 group-hover:opacity-60 transition-opacity">
+                          <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover" />
                         </div>
                       ) : (
                         <div className="w-16 h-16 mb-2 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200 flex items-center justify-center">
                           <User size={24} className="text-slate-400 opacity-50" />
                         </div>
                       )}
-                      <div className="font-black tracking-wide text-xs mb-1 leading-normal truncate w-full px-1">
+                      <div className="relative z-10 font-black tracking-wide text-xs mb-1 leading-normal truncate w-full px-1">
                         {r.name}
                       </div>
-                      <div className={`text-sm mb-1 drop-shadow-sm ${getStarColor(r.rarity)}`}>
+                      <div className={`relative z-10 text-sm mb-1 drop-shadow-sm ${getStarColor(r.rarity)}`}>
                         {'★'.repeat(r.rarity)}
                       </div>
                       {r.isPickup && (
-                        <div className="text-[10px] bg-pink-500 text-white px-2 py-0.5 rounded-full mt-auto font-bold shadow-sm border border-pink-400 animate-pulse">
+                        <div className="relative z-10 text-[10px] bg-pink-500 text-white px-2 py-0.5 rounded-full mt-auto font-bold shadow-sm border border-pink-400 animate-pulse">
                           PICK UP!
                         </div>
                       )}
@@ -228,16 +228,16 @@ export default function GachaPage() {
                 return (
                 <div 
                   key={name} 
-                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
+                  className={`relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-xl border ${
                     data.isPickup ? 'bg-pink-100 border-pink-300 text-pink-600' :
                     data.rarity === 3 ? 'bg-pink-50 border-pink-200 text-pink-500' :
                     data.rarity === 2 ? 'bg-white border-yellow-300 text-slate-700' :
                     'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >
-                  {student && student.portraitUrl ? (
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50">
-                      <img src={getImageUrl(student.portraitUrl)} alt={name} className="w-full h-full object-cover" />
+                  {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
+                    <div className="absolute inset-0 overflow-hidden pt-8 md:pt-16 px-4 md:px-8 pointer-events-none opacity-20">
+                      <img src={getImageUrl(student.portraitUrls[0])} alt={name} className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50 flex items-center justify-center">

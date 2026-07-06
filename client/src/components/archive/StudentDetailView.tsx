@@ -77,28 +77,37 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
     const hasT2Fav = (record.equipment?.slot4 as any)?.tier >= 2;
     const has2StarWep = (record.uniqueWeapon?.stars || 0) >= 2;
 
-    if (baseKey === 'normal' && master.skills?.normalPlus?.descriptionTemplate && hasT2Fav) {
+    const activeSkillSet = master.skills && master.skills.length > 0 ? master.skills[0] : null;
+    if (!activeSkillSet) return { key: baseKey, label: baseKey, data: undefined, baseData: undefined };
+
+    const getFirstSkill = (s: any) => Array.isArray(s) ? s[0] : s;
+
+    if (baseKey === 'normal' && activeSkillSet.normalPlus?.descriptionTemplate && hasT2Fav) {
+      const normalSkill = getFirstSkill(activeSkillSet.normal);
+      const normalPlusSkill = getFirstSkill(activeSkillSet.normalPlus);
       return {
         key: 'normal', label: '기본 스킬+',
         data: {
-          ...master.skills.normalPlus,
-          name: (master.skills.normal?.name || '') + '+',
-          parameters: Object.keys(master.skills.normalPlus.parameters || {}).length > 0 ? master.skills.normalPlus.parameters : master.skills.normal?.parameters,
-          iconUrl: master.skills.normalPlus.iconUrl || master.skills.normal?.iconUrl
+          ...normalPlusSkill,
+          name: (normalSkill?.name || '') + '+',
+          parameters: Object.keys(normalPlusSkill.parameters || {}).length > 0 ? normalPlusSkill.parameters : normalSkill?.parameters,
+          iconUrl: normalPlusSkill.iconUrl || normalSkill?.iconUrl
         },
-        baseData: master.skills.normal
+        baseData: normalSkill
       };
     }
-    if (baseKey === 'passive' && master.skills?.passivePlus?.descriptionTemplate && has2StarWep) {
+    if (baseKey === 'passive' && activeSkillSet.passivePlus?.descriptionTemplate && has2StarWep) {
+      const passiveSkill = getFirstSkill(activeSkillSet.passive);
+      const passivePlusSkill = getFirstSkill(activeSkillSet.passivePlus);
       return {
         key: 'passive', label: '강화 스킬+',
         data: {
-          ...master.skills.passivePlus,
-          name: (master.skills.passive?.name || '') + '+',
-          parameters: Object.keys(master.skills.passivePlus.parameters || {}).length > 0 ? master.skills.passivePlus.parameters : master.skills.passive?.parameters,
-          iconUrl: master.skills.passivePlus.iconUrl || master.skills.passive?.iconUrl
+          ...passivePlusSkill,
+          name: (passiveSkill?.name || '') + '+',
+          parameters: Object.keys(passivePlusSkill.parameters || {}).length > 0 ? passivePlusSkill.parameters : passiveSkill?.parameters,
+          iconUrl: passivePlusSkill.iconUrl || passiveSkill?.iconUrl
         },
-        baseData: master.skills.passive
+        baseData: passiveSkill
       };
     }
 
@@ -106,7 +115,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
     return {
       key: baseKey, label: labelMap[baseKey],
-      data: (master.skills as any)?.[baseKey],
+      data: getFirstSkill((activeSkillSet as any)?.[baseKey]),
       baseData: undefined
     };
   };
@@ -142,10 +151,10 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
               
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
-                {master.fullIllustUrl ? (
-                  <img src={`https://api.planaai.kro.kr${master.fullIllustUrl}`} className="absolute -bottom-8 translate-y-10 w-[120%] max-w-[120%] h-[115%] object-contain object-bottom pointer-events-none" alt={master.name} />
-                ) : master.portraitUrl ? (
-                  <img src={`https://api.planaai.kro.kr${master.portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
+                {master.portraitUrls && master.portraitUrls.length > 1 ? (
+                  <img src={`https://api.planaai.kro.kr${master.portraitUrls[1]}`} className="absolute -bottom-8 translate-y-10 w-[120%] max-w-[120%] h-[115%] object-contain object-bottom pointer-events-none" alt={master.name} />
+                ) : master.portraitUrls && master.portraitUrls.length > 0 ? (
+                  <img src={`https://api.planaai.kro.kr${master.portraitUrls[0]}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
                 ) : (
                   <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
                     일러스트 없음

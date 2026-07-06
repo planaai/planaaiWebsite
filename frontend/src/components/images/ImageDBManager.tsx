@@ -46,12 +46,21 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
   const getUsage = (url: string) => {
     const usage: string[] = [];
     data.forEach(({ master }) => {
-      if (master.portraitUrl === url) usage.push(`[초상화] ${master.name}`);
-      if (master.fullIllustUrl === url) usage.push(`[일러스트] ${master.name}`);
-      ['ex', 'normal', 'passive', 'sub'].forEach(k => {
-        const skill = master.skills[k as keyof typeof master.skills];
-        if (typeof skill !== 'string' && skill?.iconUrl === url) usage.push(`[스킬] ${master.name} - ${skill.name || k}`);
-      });
+      if (master.portraitUrls && master.portraitUrls.includes(url)) usage.push(`[초상화] ${master.name}`);
+      if (master.skills && Array.isArray(master.skills)) {
+        master.skills.forEach(skillSet => {
+          ['ex', 'normal', 'passive', 'sub', 'normalPlus', 'passivePlus'].forEach(k => {
+            const skillItem = (skillSet as any)[k];
+            if (skillItem) {
+               if (Array.isArray(skillItem)) {
+                 if (skillItem.some(s => s?.iconUrl === url)) usage.push(`[스킬] ${master.name} - 다중 모드 (${k})`);
+               } else {
+                 if (skillItem?.iconUrl === url) usage.push(`[스킬] ${master.name} - ${skillItem.name || k}`);
+               }
+            }
+          });
+        });
+      }
     });
     schema.ooparts?.forEach(o => {
       o.tiers.forEach((t, i) => {

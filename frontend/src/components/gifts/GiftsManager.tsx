@@ -150,7 +150,7 @@ export function GiftsManager({ schema, data, onRefresh, showToast }: GiftsManage
                     <div key={student.id} className={`flex items-center justify-between p-2 rounded-lg border ${anySelected ? 'border-pink-500/50 bg-pink-500/10' : 'border-slate-700/50 bg-slate-800/30'}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-900 flex-shrink-0 border border-slate-600">
-                          {student.portraitUrl ? <img src={`${API}${student.portraitUrl}`} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-500">No Img</div>}
+                          {student.portraitUrls && student.portraitUrls.length > 0 ? <img src={`${API}${student.portraitUrls[0]}`} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-500">No Img</div>}
                         </div>
                         <span className="text-sm font-bold text-white">{student.name}</span>
                       </div>

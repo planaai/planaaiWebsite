@@ -45,14 +45,13 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
     equipmentSlot1: schema.enums.EquipmentSlot1?.values?.[0]?.key || '',
     equipmentSlot2: schema.enums.EquipmentSlot2?.values?.[0]?.key || '',
     equipmentSlot3: schema.enums.EquipmentSlot3?.values?.[0]?.key || '',
-    portraitUrl: '',
-    fullIllustUrl: '',
+    portraitUrls: [],
     primaryOopart: '',
     secondaryOopart: '',
     terrainAffinity: { urban: 'B', outdoor: 'B', indoor: 'B' },
     uniqueWeaponEffects: { star2: '', star3: '', star4: '' },
     favoriteItemEffects: { t1: '', t2: '' },
-    skills: emptySkills
+    skills: [emptySkills]
   };
 
   const handleSave = async (student: Omit<StudentMaster, 'id'> & { id?: number }, isNew: boolean) => {
@@ -162,8 +161,8 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
                   <td className="px-5 py-4 font-bold text-slate-400 text-center">{master.studentNumber || '-'}</td>
                 <td className="px-5 py-2">
                   <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-600 flex items-center justify-center p-0.5">
-                    {master.portraitUrl ? (
-                      <img src={`${API}${master.portraitUrl}`} className="w-full h-full object-contain drop-shadow-sm" />
+                    {master.portraitUrls && master.portraitUrls.length > 0 ? (
+                      <img src={`${API}${master.portraitUrls[0]}`} className="w-full h-full object-contain drop-shadow-sm" />
                     ) : (
                       <Users size={16} className="text-slate-600" />
                     )}

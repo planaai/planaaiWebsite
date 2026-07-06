@@ -76,9 +76,9 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
                     }`}
                   >
                     <div className="relative mb-2">
-                      {master.portraitUrl ? (
+                      {master.portraitUrls && master.portraitUrls.length > 0 ? (
                         <img 
-                          src={getImageUrl(master.portraitUrl)} 
+                          src={getImageUrl(master.portraitUrls[0])} 
                           alt={master.name} 
                           className={`w-16 h-16 object-cover rounded-full bg-white ring-2 ${hasPlan ? 'ring-slate-200' : 'ring-pink-300'}`} 
                         />

@@ -17,7 +17,14 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
   const [form, setForm] = useState(student);
   
   const updateSkill = (key: 'ex' | 'normal' | 'passive' | 'sub' | 'normalPlus' | 'passivePlus', newSkill: Skill) => 
-    setForm(prev => ({ ...prev, skills: { ...prev.skills, [key]: newSkill } }));
+    setForm(prev => {
+      const skills = [...(prev.skills || [])];
+      if (skills.length === 0) {
+        skills.push({ ex: {} as Skill, normal: {} as Skill, passive: {} as Skill, sub: {} as Skill });
+      }
+      skills[0] = { ...skills[0], [key]: newSkill };
+      return { ...prev, skills };
+    });
 
   const isEtc = ['기타', 'etc', 'ETC'].includes(form.school);
 
@@ -37,15 +44,11 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 <div className="col-span-12 sm:col-span-3 flex flex-col items-center sm:items-start gap-4 border-r border-slate-700/50 pr-4">
                   <div className="w-full flex flex-col gap-1.5 items-center sm:items-start">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">메인 초상화</label>
-                    <PortraitUpload url={form.portraitUrl || ''} onChange={url => setForm({ ...form, portraitUrl: url })} showToast={showToast} />
-                  </div>
-                  <div className="w-full flex flex-col gap-1.5 items-center sm:items-start">
-                    <label className="text-xs font-semibold text-blue-400 uppercase tracking-wider">서브 초상화 (선택)</label>
-                    <PortraitUpload url={form.secondaryPortraitUrl || ''} onChange={url => setForm({ ...form, secondaryPortraitUrl: url })} showToast={showToast} />
+                    <PortraitUpload url={(form.portraitUrls && form.portraitUrls[0]) || ''} onChange={url => setForm({ ...form, portraitUrls: [url, (form.portraitUrls && form.portraitUrls[1]) || ''] })} showToast={showToast} />
                   </div>
                   <div className="w-full flex flex-col gap-1.5 items-center sm:items-start mt-2">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">전신 일러스트</label>
-                    <IllustUpload url={form.fullIllustUrl || ''} onChange={url => setForm({ ...form, fullIllustUrl: url })} showToast={showToast} />
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">전신 일러스트 / 보조</label>
+                    <IllustUpload url={(form.portraitUrls && form.portraitUrls[1]) || ''} onChange={url => setForm({ ...form, portraitUrls: [(form.portraitUrls && form.portraitUrls[0]) || '', url] })} showToast={showToast} />
                   </div>
                 </div>
                 <div className="col-span-12 sm:col-span-9 grid grid-cols-2 gap-4">
@@ -110,14 +113,14 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
             <div>
               <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">고유 스킬 정보</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SkillInput typeLabel="EX 스킬" skill={form.skills.ex} onChange={s => updateSkill('ex', s)} showToast={showToast} />
-                <SkillInput typeLabel="기본 스킬" skill={form.skills.normal} onChange={s => updateSkill('normal', s)} showToast={showToast} />
-                <SkillInput typeLabel="강화 스킬" skill={form.skills.passive} onChange={s => updateSkill('passive', s)} showToast={showToast} />
-                <SkillInput typeLabel="서브 스킬" skill={form.skills.sub} onChange={s => updateSkill('sub', s)} showToast={showToast} />
+                <SkillInput typeLabel="EX 스킬" skill={(form.skills?.[0]?.ex as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('ex', s)} showToast={showToast} />
+                <SkillInput typeLabel="기본 스킬" skill={(form.skills?.[0]?.normal as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('normal', s)} showToast={showToast} />
+                <SkillInput typeLabel="강화 스킬" skill={(form.skills?.[0]?.passive as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('passive', s)} showToast={showToast} />
+                <SkillInput typeLabel="서브 스킬" skill={(form.skills?.[0]?.sub as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('sub', s)} showToast={showToast} />
                 {form.hasFavoriteItem && (
-                  <SkillInput typeLabel="기본 스킬+" skill={form.skills.normalPlus as Skill || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('normalPlus', s)} showToast={showToast} hideName={true} />
+                  <SkillInput typeLabel="기본 스킬+" skill={(form.skills?.[0]?.normalPlus as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('normalPlus', s)} showToast={showToast} hideName={true} />
                 )}
-                <SkillInput typeLabel="강화 스킬+" skill={form.skills.passivePlus as Skill || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('passivePlus', s)} showToast={showToast} hideName={true} />
+                <SkillInput typeLabel="강화 스킬+" skill={(form.skills?.[0]?.passivePlus as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => updateSkill('passivePlus', s)} showToast={showToast} hideName={true} />
               </div>
             </div>
 

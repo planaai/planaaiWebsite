@@ -199,9 +199,9 @@ export function RosterPanel({ masterData, schema }: Props) {
                 onClick={() => handleStudentClick(master.id, master.fieldType)}
                 className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group bg-slate-100`}
               >
-                {master.portraitUrl ? (
+                {master.portraitUrls && master.portraitUrls.length > 0 ? (
                   <img 
-                    src={getImageUrl(master.portraitUrl)} 
+                    src={getImageUrl(master.portraitUrls[0])} 
                     alt={master.name} 
                     className="w-full h-full object-cover"
                   />
