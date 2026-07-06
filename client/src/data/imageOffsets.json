@@ -2,61 +2,61 @@
   "default": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "아리스(메이드)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 15
+    "offsetY": 12
   },
   "아리스(무장)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 25
+    "offsetY": 12
   },
   "이부키": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "이오리": {
     "scale": 200,
     "offsetX": -5,
-    "offsetY": 20
+    "offsetY": 12
   },
   "이즈미": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "이즈나(수영복)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "이오리(수영복)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 25
+    "offsetY": 12
   },
   "이로하": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 10
+    "offsetY": 12
   },
   "이즈미(새해)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "키리노(수영복)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   },
   "카린(교복)": {
     "scale": 200,
     "offsetX": 0,
-    "offsetY": 20
+    "offsetY": 12
   }
 }
