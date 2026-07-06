@@ -4,6 +4,7 @@ import { useFormationStore } from '@/store/formationStore';
 import { useAlert } from '@/contexts/AlertContext';
 import { X, Plus, User } from 'lucide-react';
 import { getImageUrl } from '@/components/planner/utils';
+import imageOffsets from '@/data/imageOffsets.json';
 
 interface Props {
   type: 'striker' | 'special';
@@ -84,6 +85,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       case 'Pierce': return 'bg-[#E09F36]';
       case 'Mystic': return 'bg-[#315B9A]';
       case 'Vibration': return 'bg-[#8B5FBF]';
+      case 'Decomposition': return 'bg-[#1ABC9C]'; // 청록색
       default: return 'bg-slate-500';
     }
   };
@@ -95,6 +97,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       case 'MysticArmor':
       case 'Unarmed': return 'bg-[#315B9A]'; // Special armor
       case 'ElasticArmor': return 'bg-[#8B5FBF]';
+      case 'CompositeArmor': return 'bg-[#1ABC9C]'; // 청록색
       default: return 'bg-slate-500';
     }
   };
@@ -117,12 +120,21 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         {student ? (
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
             {student.fullIllustUrl ? (
-              <img
-                src={getImageUrl(student.fullIllustUrl)}
-                alt={student.name}
-                className="w-[200%] max-w-none object-cover drop-shadow-xl"
-                style={{ objectPosition: 'center 20%' }}
-              />
+              (() => {
+                const config = (imageOffsets as any)[student.name] || (imageOffsets as any).default;
+                return (
+                  <img
+                    src={getImageUrl(student.fullIllustUrl)}
+                    alt={student.name}
+                    className="max-w-none object-cover drop-shadow-xl transition-transform"
+                    style={{ 
+                      width: `${config.scale}%`,
+                      transform: `translate(${config.offsetX}%, ${config.offsetY}%)`,
+                      objectPosition: 'center 20%' 
+                    }}
+                  />
+                );
+              })()
             ) : student.portraitUrl ? (
               <img
                 src={getImageUrl(student.portraitUrl)}

@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // 마스터 DB 수정 전용 라우트에 대한 일괄 관리자 인증 적용
 app.use((req, res, next) => {
-  const protectedPaths = ['/api/schema', '/api/images', '/api/master', '/api/upload'];
+  const protectedPaths = ['/api/schema', '/api/images', '/api/master', '/api/upload', '/api/image-offsets'];
   const isProtectedPath = protectedPaths.some(p => req.path.startsWith(p));
   if (isProtectedPath && ['POST', 'PUT', 'DELETE'].includes(req.method)) {
     return requireAdmin(req, res, next);
@@ -29,11 +29,13 @@ const collectionRouter = require('./routes/collection');
 const plannerRouter = require('./routes/planner');
 const importRouter = require('./routes/importRoute'); // NEW
 const studentsRouter = require('./routes/students');
+const imageOffsetsRouter = require('./routes/imageOffsets');
 app.use('/api/auth', authRouter);
 app.use('/api/collection', collectionRouter);
 app.use('/api/planner', plannerRouter);
 app.use('/api/import', importRouter); // NEW
 app.use('/api/students', studentsRouter);
+app.use('/api/image-offsets', imageOffsetsRouter);
 
 /* ═══════════════════════════════════════════════
    정적 파일 & Multer 업로드 설정 (스킬 아이콘 & 초상화)

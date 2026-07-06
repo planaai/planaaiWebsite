@@ -10,11 +10,12 @@ import { OopartsManager } from './components/ooparts/OopartsManager';
 import { EquipmentManager } from './components/equipments/EquipmentManager';
 import { GiftsManager } from './components/gifts/GiftsManager';
 import { ImageDBManager } from './components/images/ImageDBManager';
+import { ImageOffsetsManager } from './components/images/ImageOffsetsManager';
 import { GachaAdminManager } from './components/gacha/GachaAdminManager';
 import { AdminLogin } from './components/auth/AdminLogin';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'gifts' | 'gacha'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -180,6 +181,7 @@ export default function App() {
              { id: 'equipments', icon: Database, label: '장비 관리', count: schema.equipments?.length || 0, color: 'emerald' },
              { id: 'gifts', icon: Database, label: '선물 DB', count: schema.gifts?.length || 0, color: 'pink' },
              { id: 'images', icon: ImageIcon, label: '이미지 풀', color: 'purple' },
+             { id: 'imageOffsets', icon: ImageIcon, label: '이미지 비율 조절', color: 'cyan' },
              { id: 'gacha', icon: RefreshCw, label: '가챠 유지보수', color: 'indigo' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -203,6 +205,7 @@ export default function App() {
           {activeTab === 'equipments' && <EquipmentManager schema={schema} onRefresh={fetchData} showToast={showToast} />}
           {activeTab === 'gifts' && <GiftsManager schema={schema} data={data} onRefresh={fetchData} showToast={showToast} />}
           {activeTab === 'images' && <ImageDBManager data={data} schema={schema} onRefresh={fetchData} showToast={showToast} />}
+          {activeTab === 'imageOffsets' && <ImageOffsetsManager data={data} showToast={showToast} />}
           {activeTab === 'gacha' && <GachaAdminManager showToast={showToast} />}
         </div>
       </main>
