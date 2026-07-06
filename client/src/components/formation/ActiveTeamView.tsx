@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
 import { TeamSlot } from './TeamSlot';
@@ -9,7 +9,11 @@ interface Props {
 }
 
 export function ActiveTeamView({ masterData, schema }: Props) {
-  const { teams, activeTeamId, mode } = useFormationStore();
+  const { teams, activeTeamId, mode, fetchImageOffsets } = useFormationStore();
+
+  useEffect(() => {
+    fetchImageOffsets();
+  }, [fetchImageOffsets]);
 
   const activeTeam = useMemo(() => {
     return teams.find(t => t.id === activeTeamId) || teams[0];

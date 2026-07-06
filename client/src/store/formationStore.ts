@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { api } from '@/lib/api';
 
 export type FormationMode = 'normal' | 'raid' | 'elimination';
 export type RosterType = 'collection' | 'all';
@@ -18,6 +19,7 @@ export interface FormationState {
   activeTeamId: string;
   selectedSlot: { teamId: string; type: 'striker' | 'special'; index: number } | null;
   savedFormations: Record<string, { teams: Team[], activeTeamId: string }>;
+  imageOffsets: Record<string, { scale: number; offsetX: number; offsetY: number }>;
 
   setMode: (mode: FormationMode) => void;
   setRosterType: (type: RosterType) => void;
@@ -32,6 +34,7 @@ export interface FormationState {
   assignStudent: (teamId: string, type: 'striker' | 'special', index: number, studentId: number) => void;
   removeStudent: (teamId: string, type: 'striker' | 'special', index: number) => void;
   swapStudents: (teamId1: string, type1: 'striker' | 'special', index1: number, teamId2: string, type2: 'striker' | 'special', index2: number) => void;
+  fetchImageOffsets: () => Promise<void>;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -56,6 +59,7 @@ export const useFormationStore = create<FormationState>()(
       activeTeamId: '',
       selectedSlot: null,
       savedFormations: {},
+      imageOffsets: {},
 
       setMode: (newMode) =>
         set((state) => {
@@ -230,6 +234,15 @@ export const useFormationStore = create<FormationState>()(
 
           return { teams: newTeams };
         }),
+
+      fetchImageOffsets: async () => {
+        try {
+          const res = await api.get('/image-offsets');
+          set({ imageOffsets: res.data || {} });
+        } catch (err) {
+          console.error('Failed to fetch image offsets:', err);
+        }
+      },
     }),
     {
       name: 'formation-storage',

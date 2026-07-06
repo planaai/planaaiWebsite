@@ -4,7 +4,6 @@ import { useFormationStore } from '@/store/formationStore';
 import { useAlert } from '@/contexts/AlertContext';
 import { X, Plus, User } from 'lucide-react';
 import { getImageUrl } from '@/components/planner/utils';
-import imageOffsets from '@/data/imageOffsets.json';
 
 interface Props {
   type: 'striker' | 'special';
@@ -15,7 +14,7 @@ interface Props {
 }
 
 export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
-  const { mode, teams, removeStudent, assignStudent, swapStudents } = useFormationStore();
+  const { mode, teams, removeStudent, assignStudent, swapStudents, imageOffsets } = useFormationStore();
   const { showConfirm } = useAlert();
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -121,7 +120,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
             {student.fullIllustUrl ? (
               (() => {
-                const config = (imageOffsets as any)[student.name] || (imageOffsets as any).default;
+                const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
                 return (
                   <img
                     src={getImageUrl(student.fullIllustUrl)}
