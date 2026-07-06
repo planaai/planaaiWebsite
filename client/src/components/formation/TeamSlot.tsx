@@ -127,7 +127,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
                     alt={student.name}
                     className="max-w-none object-cover drop-shadow-xl transition-transform"
                     style={{ 
-                      width: `${config.scale}%`,
+                      width: `200%`,
                       transform: `translate(${config.offsetX}%, ${config.offsetY}%)`,
                       objectPosition: 'center 20%' 
                     }}

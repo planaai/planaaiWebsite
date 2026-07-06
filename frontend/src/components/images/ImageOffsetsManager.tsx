@@ -150,7 +150,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                       alt={selectedStudent.master.name}
                       className="max-w-none object-cover drop-shadow-xl transition-all duration-75"
                       style={{ 
-                        width: `${activeConfig.scale}%`,
+                        width: `200%`,
                         transform: `translate(${activeConfig.offsetX}%, ${activeConfig.offsetY}%)`,
                         objectPosition: 'center 20%' 
                       }}
@@ -177,24 +177,6 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
               </div>
 
               <div className="space-y-6 bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                {/* Scale Slider */}
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <label className="text-sm font-bold text-slate-300">크기 배율 (Scale)</label>
-                    <span className="text-blue-400 font-mono font-bold bg-blue-900/30 px-2 rounded">{activeConfig.scale}%</span>
-                  </div>
-                  <input 
-                    type="range" 
-                    min="50" max="400" step="1"
-                    value={activeConfig.scale}
-                    onChange={(e) => updateConfig(selectedStudent.master.name, 'scale', parseInt(e.target.value))}
-                    className="w-full accent-blue-500"
-                  />
-                  <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                    <span>50%</span><span>400%</span>
-                  </div>
-                </div>
-
                 {/* OffsetX Slider */}
                 <div>
                   <div className="flex justify-between mb-2">
@@ -236,7 +218,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                 <button 
                   onClick={() => {
                     if (confirm('기본값으로 초기화하시겠습니까? (저장 전까지는 반영되지 않습니다)')) {
-                       updateConfig(selectedStudent.master.name, 'scale', DEFAULT_CONFIG.scale);
+                       updateConfig(selectedStudent.master.name, 'scale', 200);
                        updateConfig(selectedStudent.master.name, 'offsetX', DEFAULT_CONFIG.offsetX);
                        updateConfig(selectedStudent.master.name, 'offsetY', DEFAULT_CONFIG.offsetY);
                     }
