@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Save, Star } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, Skill } from '../../types';
-import { PortraitUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
+import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
 
 interface MasterModalProps {
@@ -45,26 +45,36 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
     if (activeSkillIndex >= index && activeSkillIndex > 0) setActiveSkillIndex(activeSkillIndex - 1);
   };
 
-  const updatePortraitUrl = (index: number, url: string) => {
+  const updatePortrait = (url: string) => {
     setForm(prev => {
-      const portraitUrls = [...(prev.portraitUrls || [])];
-      portraitUrls[index] = url;
-      return { ...prev, portraitUrls };
+      const urls = [...(prev.portraitUrls || [])];
+      urls[0] = url;
+      return { ...prev, portraitUrls: urls };
     });
   };
 
-  const addPortraitUrl = () => {
-    setForm(prev => ({
-      ...prev,
-      portraitUrls: [...(prev.portraitUrls || []), '']
-    }));
+  const updateIllustUrl = (index: number, url: string) => {
+    setForm(prev => {
+      const urls = [...(prev.portraitUrls || [])];
+      urls[index + 1] = url;
+      return { ...prev, portraitUrls: urls };
+    });
   };
 
-  const removePortraitUrl = (index: number) => {
+  const addIllustUrl = () => {
     setForm(prev => {
-      const portraitUrls = [...(prev.portraitUrls || [])];
-      portraitUrls.splice(index, 1);
-      return { ...prev, portraitUrls };
+      const urls = [...(prev.portraitUrls || [])];
+      if (urls.length === 0) urls.push(''); // Ensure portrait slot exists
+      urls.push('');
+      return { ...prev, portraitUrls: urls };
+    });
+  };
+
+  const removeIllustUrl = (index: number) => {
+    setForm(prev => {
+      const urls = [...(prev.portraitUrls || [])];
+      urls.splice(index + 1, 1);
+      return { ...prev, portraitUrls: urls };
     });
   };
 
@@ -84,25 +94,38 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
               <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">기본 정보</h3>
               <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-12 sm:col-span-3 flex flex-col items-center sm:items-start gap-4 border-r border-slate-700/50 pr-4">
-                  <div className="w-full flex flex-col gap-3 items-center sm:items-start">
-                    <div className="flex items-center justify-between w-full">
-                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">초상화 / 일러스트 목록</label>
-                      <button onClick={addPortraitUrl} className="text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded">추가</button>
+                  <div className="w-full flex flex-col gap-4 items-center sm:items-start">
+                    <div className="w-full">
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">초상화</label>
+                      <div className="border border-slate-700/50 p-2 rounded-lg flex justify-center bg-slate-800/30">
+                        <PortraitUpload url={form.portraitUrls?.[0] || ''} onChange={updatePortrait} showToast={showToast} />
+                      </div>
                     </div>
-                    {(form.portraitUrls || []).map((url, idx) => (
-                      <div key={idx} className="w-full flex flex-col gap-1 border border-slate-700/50 p-2 rounded-lg relative">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-[10px] text-slate-500">이미지 {idx + 1}</span>
-                          <button onClick={() => removePortraitUrl(idx)} className="text-red-400 hover:text-red-300 text-xs"><X size={12} /></button>
-                        </div>
-                        <PortraitUpload url={url} onChange={newUrl => updatePortraitUrl(idx, newUrl)} showToast={showToast} />
+
+                    <div className="w-full">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">전신 일러스트</label>
+                        <button onClick={addIllustUrl} className="text-[10px] font-bold bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 px-2 py-1 rounded border border-blue-500/20 transition-colors">+ 추가</button>
                       </div>
-                    ))}
-                    {(!form.portraitUrls || form.portraitUrls.length === 0) && (
-                      <div className="text-xs text-slate-500 text-center w-full py-4 border border-dashed border-slate-700 rounded-lg">
-                        이미지가 없습니다.
+                      <div className="flex flex-col gap-2">
+                        {(form.portraitUrls?.slice(1) || []).map((url, idx) => (
+                          <div key={idx} className="w-full flex flex-col border border-slate-700/50 p-2 rounded-lg relative bg-slate-800/30">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-[10px] text-slate-500 font-bold">일러스트 {idx + 1}</span>
+                              <button onClick={() => removeIllustUrl(idx)} className="text-slate-500 hover:text-red-400 transition-colors p-0.5 rounded hover:bg-slate-700"><X size={12} /></button>
+                            </div>
+                            <div className="flex justify-center w-full">
+                              <IllustUpload url={url} onChange={newUrl => updateIllustUrl(idx, newUrl)} showToast={showToast} />
+                            </div>
+                          </div>
+                        ))}
+                        {(!form.portraitUrls || form.portraitUrls.length <= 1) && (
+                          <div className="text-[10px] text-slate-500 text-center w-full py-4 border border-dashed border-slate-700 rounded-lg bg-slate-800/10">
+                            일러스트가 없습니다.
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
                 <div className="col-span-12 sm:col-span-9 grid grid-cols-2 gap-4">
