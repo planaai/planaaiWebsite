@@ -19,16 +19,8 @@ export default function GachaPage() {
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [results, setResults] = useState<GachaResult[]>([]);
   const [pullHistory, setPullHistory] = useState<GachaResult[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [masterDataMap, setMasterDataMap] = useState<Record<string, StudentMaster>>({});
-  const animTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (animTimerRef.current) clearTimeout(animTimerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,22 +41,18 @@ export default function GachaPage() {
   const banner = gachaData.banners[activeBannerIndex] || gachaData.banners[0];
 
   const handlePull = (type: 'single' | 'ten') => {
-    setIsAnimating(true);
-    animTimerRef.current = setTimeout(() => {
-      const pullResults = type === 'single' ? performSinglePull(activeBannerIndex) : performTenPull(activeBannerIndex);
-      
-      setPullHistory(prev => {
-        const historyNames = new Set(prev.map(p => p.name));
-        const finalResults = pullResults.map(r => ({
-            ...r,
-            isNew: !historyNames.has(r.name)
-        }));
-        setResults(finalResults);
-        return [...prev, ...finalResults];
-      });
-      setShowResultScreen(true);
-      setIsAnimating(false);
-    }, 400); // simulate animation delay
+    const pullResults = type === 'single' ? performSinglePull(activeBannerIndex) : performTenPull(activeBannerIndex);
+    
+    setPullHistory(prev => {
+      const historyNames = new Set(prev.map(p => p.name));
+      const finalResults = pullResults.map(r => ({
+          ...r,
+          isNew: !historyNames.has(r.name)
+      }));
+      setResults(finalResults);
+      return [...prev, ...finalResults];
+    });
+    setShowResultScreen(true);
   };
 
   const handleReset = () => {
@@ -140,7 +128,7 @@ export default function GachaPage() {
         )}
 
         {/* Main Gacha Area */}
-        <div className={`relative rounded-3xl shadow-2xl mb-8 overflow-hidden min-h-[500px] flex flex-col transition-colors duration-500 ${showResultScreen ? 'bg-gradient-to-br from-[#e0f2fe] via-[#f0f9ff] to-[#bae6fd] p-0' : 'bg-white border border-slate-200 p-8'}`}>
+        <div className={`relative rounded-3xl shadow-2xl mb-8 overflow-hidden min-h-[500px] flex flex-col transition-colors duration-500 ${showResultScreen ? 'bg-gradient-to-br from-pink-50 via-white to-pink-100 p-0' : 'bg-white border border-slate-200 p-8'}`}>
           {!showResultScreen ? (
             <>
               {/* Background decoration for banner mode */}
@@ -154,7 +142,7 @@ export default function GachaPage() {
                 </div>
 
                 {/* Banner Content (Empty state) */}
-                <div className={`flex-1 flex items-center justify-center transition-opacity duration-300 ${isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}>
+                <div className="flex-1 flex items-center justify-center transition-opacity duration-300 opacity-100 scale-100">
                   <div className="flex flex-col items-center justify-center text-slate-500 h-full min-h-[200px]">
                     <Sparkles size={48} className="opacity-20 mb-4 text-[var(--plana-primary)]" />
                     <p className="font-bold">모집 버튼을 눌러주세요</p>
@@ -177,15 +165,13 @@ export default function GachaPage() {
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handlePull('single')}
-                      disabled={isAnimating}
-                      className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg disabled:opacity-50"
+                      className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg"
                     >
                       1회 모집
                     </button>
                     <button
                       onClick={() => handlePull('ten')}
-                      disabled={isAnimating}
-                      className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400 disabled:opacity-50"
+                      className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400"
                     >
                       10회 모집
                     </button>
@@ -208,13 +194,13 @@ export default function GachaPage() {
                     return (
                       <div 
                         key={idx} 
-                        className={`relative w-[64px] h-[78px] sm:w-[90px] sm:h-[110px] md:w-[110px] md:h-[134px] rounded-sm border-[3px] flex flex-col justify-between overflow-visible transition-transform hover:scale-105 ${getCardStyle(r.rarity)}`}
+                        className={`relative w-[64px] h-[78px] sm:w-[90px] sm:h-[110px] md:w-[110px] md:h-[134px] rounded-lg border-[3px] flex flex-col justify-between overflow-visible transition-transform hover:-translate-y-1 -skew-x-[6deg] ${getCardStyle(r.rarity)}`}
                         style={{ animationDelay: `${idx * 0.05}s` }}
                       >
                         {/* New Tag */}
                         {isNew && (
                           <div 
-                            className="absolute -top-3 -left-3 md:-top-4 md:-left-4 z-20 text-[#fff200] font-black text-sm md:text-xl italic drop-shadow-[0_0_5px_rgba(255,242,0,0.8)] z-30" 
+                            className="absolute -top-3 -left-3 md:-top-4 md:-left-4 z-20 text-[#fff200] font-black text-sm md:text-xl italic drop-shadow-[0_0_5px_rgba(255,242,0,0.8)] z-30 skew-x-[6deg]" 
                             style={{ WebkitTextStroke: '1px #a46b00' }}
                           >
                             New
@@ -222,11 +208,11 @@ export default function GachaPage() {
                         )}
 
                         {/* Portrait */}
-                        <div className="absolute inset-0 z-0 bg-slate-200 overflow-hidden">
+                        <div className="absolute inset-0 z-0 bg-slate-200 overflow-hidden rounded-md">
                           {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
-                            <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top" />
+                            <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top skew-x-[6deg] scale-110" />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center">
+                            <div className="w-full h-full flex flex-col items-center justify-center skew-x-[6deg]">
                               <User size={32} className="text-slate-400 opacity-50" />
                               <span className="text-[10px] font-bold text-slate-500 mt-1 truncate w-full text-center px-1">{r.name}</span>
                             </div>
@@ -236,8 +222,8 @@ export default function GachaPage() {
                         <div className="relative z-10 flex-1"></div>
 
                         {/* Stars Bottom Bar */}
-                        <div className="relative z-10 h-[18px] md:h-[22px] bg-[#394251] flex justify-center items-center">
-                          <div className={`flex items-center gap-[1px] md:gap-0.5 text-[10px] md:text-sm drop-shadow-md ${getStarColor(r.rarity)}`}>
+                        <div className="relative z-10 h-[18px] md:h-[22px] bg-[#394251] flex justify-center items-center rounded-b-[4px]">
+                          <div className={`flex items-center gap-[1px] md:gap-0.5 text-[10px] md:text-sm drop-shadow-md skew-x-[6deg] ${getStarColor(r.rarity)}`}>
                             {'★'.repeat(r.rarity)}
                           </div>
                         </div>
@@ -249,21 +235,29 @@ export default function GachaPage() {
 
               {/* Bottom Confirm Area */}
               <div className="relative w-full p-6 mt-4 flex justify-center items-center">
-                <button
-                  onClick={handleConfirm}
-                  className="px-16 py-3 md:py-4 bg-[#70c6fb] hover:bg-[#5bb8f0] text-white text-lg md:text-xl font-bold rounded shadow-md transition-colors"
-                >
-                  확인
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleConfirm}
+                    className="px-10 py-3 md:py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 text-lg md:text-xl font-bold rounded-xl shadow-sm transition-colors border border-slate-300"
+                  >
+                    확인
+                  </button>
+                  <button
+                    onClick={() => handlePull(results.length > 1 ? 'ten' : 'single')}
+                    className="px-10 py-3 md:py-4 bg-[var(--plana-primary)] hover:bg-pink-400 text-white text-lg md:text-xl font-black rounded-xl shadow-[0_0_20px_rgba(255,105,180,0.3)] transition-all border border-pink-400"
+                  >
+                    {results.length > 1 ? '10회 더 모집' : '1회 더 모집'}
+                  </button>
+                </div>
 
                 {/* Recruitment Points */}
                 <div className="absolute right-6 bottom-6 flex flex-col items-end hidden md:flex">
-                  <div className="bg-white border border-slate-200 shadow-sm flex items-center divide-x divide-slate-200 rounded-sm overflow-hidden">
-                    <div className="px-3 py-1 bg-slate-50 flex items-center gap-1">
-                      <span className="text-[#3db4f9] font-black italic text-sm">Point</span>
+                  <div className="bg-white border border-pink-100 shadow-sm flex items-center divide-x divide-pink-100 rounded-xl overflow-hidden">
+                    <div className="px-3 py-1 bg-pink-50 flex items-center gap-1">
+                      <span className="text-[var(--plana-primary)] font-black italic text-sm">Point</span>
                       <span className="text-slate-600 text-xs font-bold whitespace-nowrap">모집 포인트</span>
                     </div>
-                    <div className="px-4 py-1 bg-[#284a73] text-white font-bold min-w-[50px] text-center">
+                    <div className="px-4 py-1 bg-slate-800 text-white font-bold min-w-[50px] text-center">
                       {pullHistory.length}
                     </div>
                   </div>
@@ -286,22 +280,20 @@ export default function GachaPage() {
                 return (
                 <div 
                   key={name} 
-                  className={`relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-xl border ${
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-xl border ${
                     data.isPickup ? 'bg-pink-100 border-pink-300 text-pink-600' :
                     data.rarity === 3 ? 'bg-pink-50 border-pink-200 text-pink-500' :
                     data.rarity === 2 ? 'bg-white border-yellow-300 text-slate-700' :
                     'bg-slate-50 border-slate-200 text-slate-600'
                   }`}
                 >
-                  {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
-                    <div className="absolute inset-0 overflow-hidden pt-8 md:pt-16 px-4 md:px-8 pointer-events-none opacity-20">
-                      <img src={getImageUrl(student.portraitUrls[0])} alt={name} className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/80 flex items-center justify-center">
+                    {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
+                      <img src={getImageUrl(student.portraitUrls[0])} alt={name} className="w-full h-full object-cover object-top" />
+                    ) : (
                       <User size={16} className="text-slate-400 opacity-50" />
-                    </div>
-                  )}
+                    )}
+                  </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] opacity-70 mb-0.5">{data.isPickup ? 'PICKUP' : '★'.repeat(data.rarity)}</span>
                     <span className="font-bold text-sm leading-normal whitespace-nowrap">{name}</span>
