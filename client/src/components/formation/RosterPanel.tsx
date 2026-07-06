@@ -197,7 +197,7 @@ export function RosterPanel({ masterData, schema }: Props) {
                 draggable
                 onDragStart={(e) => handleDragStart(e, master.id, master.fieldType)}
                 onClick={() => handleStudentClick(master.id, master.fieldType)}
-                className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group`}
+                className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group bg-slate-100`}
               >
                 {master.portraitUrl ? (
                   <img 

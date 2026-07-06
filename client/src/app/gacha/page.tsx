@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { performTenPull, performSinglePull } from '@/lib/gachaLogic';
 import gachaData from '@/data/gacha.json';
-import { Sparkles, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw, User } from 'lucide-react';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { getImageUrl } from '@/components/planner/utils';
@@ -148,12 +148,16 @@ export default function GachaPage() {
                     return (
                     <div 
                       key={idx} 
-                      className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center h-32 backdrop-blur-sm border transition-transform hover:scale-105 ${getRarityStyle(r.rarity, r.isPickup)}`}
+                      className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center h-36 backdrop-blur-sm border transition-transform hover:scale-105 ${getRarityStyle(r.rarity, r.isPickup)}`}
                       style={{ animationDelay: `${idx * 0.05}s` }}
                     >
-                      {student && student.portraitUrl && (
-                        <div className="w-10 h-10 mb-1 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200">
+                      {student && student.portraitUrl ? (
+                        <div className="w-16 h-16 mb-2 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200">
                           <img src={getImageUrl(student.portraitUrl)} alt={r.name} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 mb-2 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200 flex items-center justify-center">
+                          <User size={24} className="text-slate-400 opacity-50" />
                         </div>
                       )}
                       <div className="font-black tracking-wide text-xs mb-1 leading-tight line-clamp-1 w-full">
@@ -232,10 +236,14 @@ export default function GachaPage() {
                   }`}
                 >
                   {student && student.portraitUrl ? (
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50">
                       <img src={getImageUrl(student.portraitUrl)} alt={name} className="w-full h-full object-cover" />
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50 flex items-center justify-center">
+                      <User size={16} className="text-slate-400 opacity-50" />
+                    </div>
+                  )}
                   <div className="flex flex-col">
                     <span className="text-[10px] opacity-70 mb-0.5">{data.isPickup ? 'PICKUP' : '★'.repeat(data.rarity)}</span>
                     <span className="font-bold text-sm leading-none whitespace-nowrap">{name}</span>

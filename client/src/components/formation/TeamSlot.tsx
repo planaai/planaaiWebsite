@@ -118,14 +118,14 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
             {student.fullIllustUrl ? (
               <img
-                src={student.fullIllustUrl}
+                src={getImageUrl(student.fullIllustUrl)}
                 alt={student.name}
                 className="w-[200%] max-w-none object-cover drop-shadow-xl"
                 style={{ objectPosition: 'center 20%' }}
               />
             ) : student.portraitUrl ? (
               <img
-                src={student.portraitUrl}
+                src={getImageUrl(student.portraitUrl)}
                 alt={student.name}
                 className="w-[120%] object-contain drop-shadow-xl"
               />
