@@ -32,7 +32,7 @@ export function ActiveTeamView({ masterData, schema }: Props) {
           
 
 
-          <div className="flex justify-center items-end gap-4 sm:gap-6 md:gap-8 lg:gap-12 max-w-full w-full h-full relative z-10 pl-24 md:pl-32 pr-2 sm:pr-4 overflow-x-auto custom-scrollbar">
+          <div className="flex justify-center items-end gap-2 sm:gap-4 md:gap-6 lg:gap-8 max-w-full w-full h-full relative z-10 pl-24 md:pl-32 pr-2 sm:pr-4 overflow-visible">
             {activeTeam.strikers.map((studentId, index) => (
               <TeamSlot
                 key={`striker-${index}`}
@@ -51,7 +51,7 @@ export function ActiveTeamView({ masterData, schema }: Props) {
           
 
 
-          <div className="flex justify-center items-center gap-1 sm:gap-2 md:gap-4 max-w-full w-full pl-24 md:pl-32 pr-2 sm:pr-4 relative mt-4 overflow-x-auto custom-scrollbar">
+          <div className="flex justify-center items-center gap-1 sm:gap-2 md:gap-4 max-w-full w-full pl-24 md:pl-32 pr-4 sm:pr-6 relative mt-4 overflow-visible pt-4">
             {activeTeam.specials.map((studentId, index) => (
               <TeamSlot
                 key={`special-${index}`}

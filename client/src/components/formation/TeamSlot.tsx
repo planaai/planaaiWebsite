@@ -111,7 +111,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className={`relative flex flex-col items-center justify-end group shrink-0 cursor-pointer ${sizeClasses}`}
+        className={`relative flex flex-col items-center justify-end group shrink cursor-pointer min-w-0 ${sizeClasses}`}
       >
         {/* Character Image */}
         {student ? (
@@ -147,9 +147,9 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
             {(student.fullIllustUrl || student.portraitUrl) && (
               <button
                 onClick={handleRemove}
-                className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-50 pointer-events-auto shadow-md"
+                className="absolute top-2 right-2 sm:top-6 sm:right-6 bg-red-500 text-white rounded-full p-2.5 sm:p-3 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 z-50 pointer-events-auto shadow-lg hover:scale-110"
               >
-                <X size={16} />
+                <X size={20} strokeWidth={2.5} />
               </button>
             )}
           </div>
@@ -210,7 +210,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={`relative bg-white rounded-lg shadow-md flex items-center p-1 group shrink-0 cursor-pointer border-b-4 ${specialSizeClasses} ${student ? 'border-[#315B9A]' : 'border-slate-300 bg-white/50 backdrop-blur-sm'}`}
+      className={`relative bg-white rounded-lg shadow-md flex items-center p-1 group shrink cursor-pointer border-b-4 min-w-[120px] ${specialSizeClasses} ${student ? 'border-[#315B9A]' : 'border-slate-300 bg-white/50 backdrop-blur-sm'}`}
     >
       {student ? (
         <>
@@ -236,9 +236,9 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
           {/* Remove Button */}
           <button
             onClick={handleRemove}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-md z-10"
+            className="absolute -top-2.5 -right-2.5 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 shadow-lg z-10 hover:scale-110"
           >
-            <X size={14} />
+            <X size={16} strokeWidth={2.5} />
           </button>
         </>
       ) : (

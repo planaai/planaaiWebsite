@@ -160,7 +160,7 @@ export default function GachaPage() {
                           <User size={24} className="text-slate-400 opacity-50" />
                         </div>
                       )}
-                      <div className="font-black tracking-wide text-xs mb-1 leading-tight line-clamp-1 w-full">
+                      <div className="font-black tracking-wide text-xs mb-1 leading-normal truncate w-full px-1">
                         {r.name}
                       </div>
                       <div className={`text-sm mb-1 drop-shadow-sm ${getStarColor(r.rarity)}`}>
@@ -246,7 +246,7 @@ export default function GachaPage() {
                   )}
                   <div className="flex flex-col">
                     <span className="text-[10px] opacity-70 mb-0.5">{data.isPickup ? 'PICKUP' : '★'.repeat(data.rarity)}</span>
-                    <span className="font-bold text-sm leading-none whitespace-nowrap">{name}</span>
+                    <span className="font-bold text-sm leading-normal whitespace-nowrap">{name}</span>
                   </div>
                   <div className="h-6 w-px bg-current opacity-20" />
                   <span className="font-black text-lg">x{data.count}</span>
