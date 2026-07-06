@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Save, Star } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, Skill } from '../../types';
-import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
+import { PortraitUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
 
 interface MasterModalProps {
