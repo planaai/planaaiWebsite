@@ -6,6 +6,7 @@ import gachaData from '@/data/gacha.json';
 import { Sparkles, RotateCcw } from 'lucide-react';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
+import { getImageUrl } from '@/components/planner/utils';
 
 interface GachaResult {
   name: string;
@@ -152,7 +153,7 @@ export default function GachaPage() {
                     >
                       {student && student.portraitUrl && (
                         <div className="w-10 h-10 mb-1 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0 bg-slate-200">
-                          <img src={student.portraitUrl} alt={r.name} className="w-full h-full object-cover" />
+                          <img src={getImageUrl(student.portraitUrl)} alt={r.name} className="w-full h-full object-cover" />
                         </div>
                       )}
                       <div className="font-black tracking-wide text-xs mb-1 leading-tight line-clamp-1 w-full">
@@ -232,7 +233,7 @@ export default function GachaPage() {
                 >
                   {student && student.portraitUrl ? (
                     <div className="w-8 h-8 rounded-full overflow-hidden border border-current shadow-sm flex-shrink-0 bg-white/50">
-                      <img src={student.portraitUrl} alt={name} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(student.portraitUrl)} alt={name} className="w-full h-full object-cover" />
                     </div>
                   ) : null}
                   <div className="flex flex-col">

@@ -3,6 +3,7 @@ import type { StudentMaster } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
 import { useAlert } from '@/contexts/AlertContext';
 import { X, Plus, User } from 'lucide-react';
+import { getImageUrl } from '@/components/planner/utils';
 
 interface Props {
   type: 'striker' | 'special';
@@ -215,7 +216,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         <>
           <div className="aspect-square h-full rounded bg-slate-100 overflow-hidden relative shadow-inner shrink-0">
              {student.portraitUrl ? (
-               <img src={student.portraitUrl} alt={student.name} className="w-full h-full object-cover" />
+               <img src={getImageUrl(student.portraitUrl)} alt={student.name} className="w-full h-full object-cover" />
              ) : (
                <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100 group-hover:text-[var(--plana-primary)] transition-colors"><User size={28} strokeWidth={1.5} /></div>
              )}

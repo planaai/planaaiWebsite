@@ -4,6 +4,7 @@ import type { StudentMaster, SchemaConfig } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { useFormationStore } from '@/store/formationStore';
 import { useAlert } from '@/contexts/AlertContext';
+import { getImageUrl } from '@/components/planner/utils';
 
 interface Props {
   masterData: StudentMaster[];
@@ -200,7 +201,7 @@ export function RosterPanel({ masterData, schema }: Props) {
               >
                 {master.portraitUrl ? (
                   <img 
-                    src={master.portraitUrl} 
+                    src={getImageUrl(master.portraitUrl)} 
                     alt={master.name} 
                     className="w-full h-full object-cover"
                   />
