@@ -196,11 +196,13 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
     }
   };
 
+  const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
+  const effectiveUwEffects = activeSkillSet?.uniqueWeaponEffects || master.uniqueWeaponEffects;
+
   const getEffectiveSkill = (baseKey: string) => {
     const hasT2Fav = favTier >= 2;
     const has2StarWep = weaponStars >= 2;
 
-    const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
     if (!activeSkillSet) return { key: baseKey, label: baseKey, data: undefined, baseData: undefined };
 
     const getFirstSkill = (s: any) => Array.isArray(s) ? s[0] : s;
@@ -344,7 +346,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   <div className="flex gap-3">
                     {(() => {
                       const wepStars = weaponStars;
-                      const terrainUpgrade = parseTerrainUpgrade(master.uniqueWeaponEffects?.star3);
+                      const terrainUpgrade = parseTerrainUpgrade(effectiveUwEffects?.star3);
                       return [
                         { label: '시가전', val: (wepStars >= 3 && terrainUpgrade?.terrain === 'urban') ? terrainUpgrade.rank : (master.terrainAffinity?.urban || 'B') },
                         { label: '야전', val: (wepStars >= 3 && terrainUpgrade?.terrain === 'outdoor') ? terrainUpgrade.rank : (master.terrainAffinity?.outdoor || 'B') },
@@ -505,22 +507,22 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                     </div>
                     
                     <div className="flex flex-col gap-1.5 text-xs text-slate-600 items-end mt-3">
-                      {weaponStars >= 2 && master.uniqueWeaponEffects?.star2 && (
+                      {weaponStars >= 2 && effectiveUwEffects?.star2 && (
                         <div className="flex gap-2 items-center">
                           <span className="text-[var(--plana-primary)] font-black tracking-widest">★2</span>
-                          <span className="font-medium text-right">{master.uniqueWeaponEffects.star2}</span>
+                          <span className="font-medium text-right">{effectiveUwEffects.star2}</span>
                         </div>
                       )}
-                      {weaponStars >= 3 && master.uniqueWeaponEffects?.star3 && (
+                      {weaponStars >= 3 && effectiveUwEffects?.star3 && (
                         <div className="flex gap-2 items-center">
                           <span className="text-[var(--plana-primary)] font-black tracking-widest">★3</span>
-                          <span className="font-medium text-right">{master.uniqueWeaponEffects.star3}</span>
+                          <span className="font-medium text-right">{effectiveUwEffects.star3}</span>
                         </div>
                       )}
-                      {weaponStars >= 4 && master.uniqueWeaponEffects?.star4 && (
+                      {weaponStars >= 4 && effectiveUwEffects?.star4 && (
                         <div className="flex gap-2 items-center">
                           <span className="text-[var(--plana-primary)] font-black tracking-widest">★4</span>
-                          <span className="font-medium text-right">{master.uniqueWeaponEffects.star4}</span>
+                          <span className="font-medium text-right">{effectiveUwEffects.star4}</span>
                         </div>
                       )}
                     </div>

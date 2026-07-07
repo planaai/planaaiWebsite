@@ -243,7 +243,18 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                     { key: 'star4', label: '★4 효과', desc: '유효 보너스', color: 'border-amber-500/30' }].map(item => (
                     <div key={item.key} className={`flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border ${item.color}`}>
                       <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">{item.label}</span>
-                      <input value={(form.uniqueWeaponEffects as any)?.[item.key] || ''} onChange={e => setForm({ ...form, uniqueWeaponEffects: { ...(form.uniqueWeaponEffects || { star2: '', star3: '', star4: '' }), [item.key]: e.target.value } })}
+                      <input value={((form.skills?.[activeSkillIndex]?.uniqueWeaponEffects as any)?.[item.key]) || (form.uniqueWeaponEffects as any)?.[item.key] || ''} onChange={e => {
+                        const newSkills = [...(form.skills || [])];
+                        if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
+                        newSkills[activeSkillIndex] = {
+                          ...newSkills[activeSkillIndex],
+                          uniqueWeaponEffects: {
+                            ...(newSkills[activeSkillIndex].uniqueWeaponEffects || form.uniqueWeaponEffects || { star2: '', star3: '', star4: '' }),
+                            [item.key]: e.target.value
+                          }
+                        };
+                        setForm({ ...form, skills: newSkills });
+                      }}
                         placeholder={item.desc} className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors flex-1" />
                     </div>
                   ))}
