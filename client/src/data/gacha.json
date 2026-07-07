@@ -1,7 +1,6 @@
 {
   "urls": [
-    "https://m.nexon.com/probability/7661?client_id=MjcwOA&language=ko",
-    "https://m.nexon.com/probability/7660?client_id=MjcwOA&language=ko"
+    "https://m.nexon.com/probability/7661?client_id=MjcwOA&language=ko"
   ],
   "rates": {
     "normal": {
@@ -17,6 +16,7 @@
   },
   "pools": {
     "3_star": [
+      "에이미(무장)",
       "유즈(무장)",
       "미모리",
       "우이",
@@ -166,18 +166,7 @@
         {
           "name": "에이미(무장)",
           "rarity": 3,
-          "rate": 0.006999999999999999
-        }
-      ]
-    },
-    {
-      "id": "pickup_1",
-      "name": "유즈(무장) 픽업 모집",
-      "pickups": [
-        {
-          "name": "유즈(무장)",
-          "rarity": 3,
-          "rate": 0.006999999999999999
+          "rate": 0.007
         }
       ]
     }
