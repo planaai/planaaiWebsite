@@ -91,12 +91,12 @@ export function SkillInput({ typeLabel, skill, onChange, showToast, hideName }: 
             <div key={v} className="flex items-center gap-2">
               <span className="text-blue-400 font-bold text-xs bg-blue-900/30 px-2 py-1 rounded border border-blue-500/30">{`{${v}}`}</span>
               <TextInput
-                value={(skill.parameters[v] || []).join(', ')}
+                value={((skill.parameters || {})[v] || []).join(', ')}
                 onChange={val =>
                   onChange({
                     ...skill,
                     parameters: {
-                      ...skill.parameters,
+                      ...(skill.parameters || {}),
                       [v]: val.split(',').map(s => s.trim())
                     }
                   })
