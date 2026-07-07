@@ -116,12 +116,22 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
     if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
       return student.skills[currentMode].portraitUrl;
     }
-    if (student.portraitUrls && student.portraitUrls.length > currentMode) {
-      return student.portraitUrls[currentMode];
+    
+    if (type === 'striker') {
+      // Striker uses full illustration (index 1 for mode 0, index 2 for mode 1)
+      if (student.portraitUrls && student.portraitUrls.length > currentMode + 1 && student.portraitUrls[currentMode + 1]) {
+        return student.portraitUrls[currentMode + 1];
+      }
+      if (student.portraitUrls && student.portraitUrls.length > 1 && student.portraitUrls[1]) {
+        return student.portraitUrls[1];
+      }
     }
-    if (student.portraitUrls && student.portraitUrls.length > 0) {
+
+    // Special (or fallback for striker) uses small portrait icon (index 0)
+    if (student.portraitUrls && student.portraitUrls.length > 0 && student.portraitUrls[0]) {
       return student.portraitUrls[0];
     }
+    
     return null;
   };
 
