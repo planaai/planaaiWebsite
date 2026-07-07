@@ -1,0 +1,12 @@
+Developer: Plana.AI
+Contact: planaai1228@gmail.com
+GitHub: https://github.com/planaai
+
+Thanks to
+NEXON Games Co., Ltd. (IO DIVISION / MX STUDIO)
+All Senseis who use Plana.AI
+
+Last update: 2026/07/07
+Language: ko, en
+Doctype: HTML5
+IDE: VSCode, Antigravity
