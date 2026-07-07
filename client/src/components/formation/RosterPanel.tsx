@@ -22,8 +22,6 @@ export function RosterPanel({ masterData, schema }: Props) {
   const records = useArchiveStore(state => state.records);
   const { rosterType, mode, teams, activeTeamId, assignStudent, removeStudent } = useFormationStore();
   const { showConfirm } = useAlert();
-  const [studentModes, setStudentModes] = useState<Record<number, number>>({});
-
   const [sortingTeamsSnapshot, setSortingTeamsSnapshot] = useState(teams);
 
   // Update sorting snapshot only when filters or active team changes, not when assigning
@@ -192,10 +190,7 @@ export function RosterPanel({ masterData, schema }: Props) {
             const isAssigned = mode === 'raid' ? assignedTeams.length > 0 : isAssignedToActive;
             const normalizedType = master.fieldType.toLowerCase();
 
-            const currentMode = studentModes[master.id] || 0;
-            const portraitUrl = (master.skills && master.skills.length > currentMode && master.skills[currentMode].portraitUrl)
-              ? master.skills[currentMode].portraitUrl
-              : (master.portraitUrls && master.portraitUrls.length > currentMode ? master.portraitUrls[currentMode] : master.portraitUrls?.[0]);
+            const portraitUrl = master.portraitUrls?.[0] || '';
 
             return (
               <div 
@@ -215,22 +210,6 @@ export function RosterPanel({ masterData, schema }: Props) {
                   <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-[var(--plana-primary)] transition-colors">
                     <User size={32} strokeWidth={1.5} />
                   </div>
-                )}
-                
-                {master.skills && master.skills.length > 1 && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setStudentModes(prev => ({
-                        ...prev,
-                        [master.id]: ((prev[master.id] || 0) + 1) % master.skills.length
-                      }));
-                    }}
-                    className="absolute top-1 right-1 z-20 bg-white/80 hover:bg-white text-[var(--plana-primary)] shadow-sm rounded px-1 py-0.5 text-[8px] font-bold backdrop-blur-md transition-colors leading-none"
-                  >
-                    {master.skills[currentMode].modeName || `모드 ${currentMode + 1}`}
-                  </button>
                 )}
                 
                 {/* Field Type Indicator */}

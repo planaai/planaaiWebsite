@@ -280,9 +280,9 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   </div>
                 )}
                 {(() => {
-                  const portraitUrl = (master.skills && master.skills.length > selectedMode && master.skills[selectedMode].portraitUrl)
-                    ? master.skills[selectedMode].portraitUrl
-                    : (master.portraitUrls && master.portraitUrls.length > selectedMode ? master.portraitUrls[selectedMode] : master.portraitUrls?.[0]);
+                  const portraitUrl = (master.skills && master.skills.length > selectedMode && master.skills[selectedMode].fullIllustUrl)
+                    ? master.skills[selectedMode].fullIllustUrl
+                    : (master.portraitUrls && master.portraitUrls.length > selectedMode + 1 ? master.portraitUrls[selectedMode + 1] : master.portraitUrls?.[1]);
                   
                   if (portraitUrl) {
                     return <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;

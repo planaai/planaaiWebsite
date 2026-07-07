@@ -20,7 +20,6 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
   const [filterFieldType, setFilterFieldType] = useState('');
   const [filterOwned, setFilterOwned] = useState<'owned' | 'unowned'>('owned');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [studentModes, setStudentModes] = useState<Record<number, number>>({});
   
   const records = useArchiveStore(state => state.records);
 
@@ -123,11 +122,7 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
           const isOwned = !!records[master.id];
           const record = records[master.id];
           const schoolLabel = schema.enums.School?.values?.find(v => v.key === master.school)?.label || master.school;
-          
-          const currentMode = studentModes[master.id] || 0;
-          const portraitUrl = (master.skills && master.skills.length > currentMode && master.skills[currentMode].portraitUrl)
-            ? master.skills[currentMode].portraitUrl
-            : (master.portraitUrls && master.portraitUrls.length > currentMode ? master.portraitUrls[currentMode] : master.portraitUrls?.[0]);
+          const portraitUrl = master.portraitUrls?.[0] || '';
 
           return (
             <Link key={master.id} href={mode === 'collection' ? `/student/${master.id}` : `/archive/student/${master.id}`} prefetch={false} className="block group">
@@ -137,22 +132,6 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
                     {isOwned && record?.level ? `Lv.${record.level}` : `No.${master.studentNumber || '-'}`}
                   </span>
                   
-                  {master.skills && master.skills.length > 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setStudentModes(prev => ({
-                          ...prev,
-                          [master.id]: ((prev[master.id] || 0) + 1) % master.skills.length
-                        }));
-                      }}
-                      className="absolute top-2 right-2 z-20 bg-white/80 hover:bg-white text-[var(--plana-primary)] border border-slate-200 shadow-sm rounded-md px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-md transition-colors"
-                    >
-                      {master.skills[currentMode].modeName || `모드 ${currentMode + 1}`}
-                    </button>
-                  )}
-
                   {portraitUrl ? (
                     <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
                   ) : (
