@@ -235,7 +235,15 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border border-purple-500/30">
                     <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">무기 이름</span>
-                    <input value={form.uniqueWeaponName || ''} onChange={e => setForm({ ...form, uniqueWeaponName: e.target.value })}
+                    <input value={(form.skills?.[activeSkillIndex]?.uniqueWeaponName) || (activeSkillIndex === 0 ? (form.uniqueWeaponName || '') : '')} onChange={e => {
+                      const newSkills = [...(form.skills || [])];
+                      if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
+                      newSkills[activeSkillIndex] = {
+                        ...newSkills[activeSkillIndex],
+                        uniqueWeaponName: e.target.value
+                      };
+                      setForm({ ...form, skills: newSkills });
+                    }}
                       placeholder="예: 아이언 호루스" className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors flex-1" />
                   </div>
                   {[{ key: 'star2', label: '★2 효과', desc: '강화 스킬+ 잠금 해제', color: 'border-blue-500/30' }, 

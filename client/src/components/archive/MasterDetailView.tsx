@@ -198,6 +198,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
   const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
   const effectiveUwEffects = activeSkillSet?.uniqueWeaponEffects || master.uniqueWeaponEffects;
+  const effectiveUwName = activeSkillSet?.uniqueWeaponName || master.uniqueWeaponName;
 
   const getEffectiveSkill = (baseKey: string) => {
     const hasT2Fav = favTier >= 2;
@@ -489,7 +490,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                     <div className="flex justify-between items-end border-b border-slate-100 pb-3">
                       <div>
                         <div className="text-[var(--plana-primary)] text-[11px] font-bold mb-1 uppercase tracking-widest">{getLabel('WeaponType', master.weaponType)}</div>
-                        <div className="text-xl font-black text-slate-800">{master.uniqueWeaponName || '전용무기'}</div>
+                        <div className="text-xl font-black text-slate-800">{effectiveUwName || '전용무기'}</div>
                       </div>
                       <div className="flex items-center gap-4">
                         <button onClick={() => setWeaponStars(0)} className={`px-4 py-1.5 border rounded-md text-xs font-bold transition-colors ${weaponStars === 0 ? 'bg-slate-700 text-white border-slate-700' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>미착용</button>
