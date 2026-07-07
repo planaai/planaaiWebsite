@@ -18,6 +18,7 @@ export function SkillInput({ typeLabel, skill, onChange, showToast, hideName }: 
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const matches = Array.from(skill.descriptionTemplate?.matchAll(/\{(\d+)\}/g) || []).map(m => m[1]);
   const uniqueVars = Array.from(new Set(matches)).sort((a, b) => parseInt(a) - parseInt(b));
@@ -108,6 +109,93 @@ export function SkillInput({ typeLabel, skill, onChange, showToast, hideName }: 
           ))}
         </div>
       )}
+      <div className="border-t border-slate-700/50 pt-2 mt-1">
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="text-[10px] text-slate-400 font-bold uppercase hover:text-white transition-colors flex items-center gap-1"
+        >
+          {showAdvanced ? '▼ 고급 설정 숨기기' : '▶ 고급 설정 (T.S/특수 기믹)'}
+        </button>
+        {showAdvanced && (
+          <div className="mt-3 grid grid-cols-2 gap-3 bg-slate-900/30 p-3 rounded-lg border border-slate-700/50">
+            <div className="flex flex-col gap-1.5 col-span-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase">발동 주체 (Caster)</label>
+              <select
+                className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                value={skill.caster || ''}
+                onChange={e => onChange({ ...skill, caster: e.target.value as any || undefined })}
+              >
+                <option value="">본체 (기본)</option>
+                <option value="Self">Self (명시적)</option>
+                <option value="Summon">Summon (소환수)</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5 col-span-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase">발동 주기 (초)</label>
+              <input
+                type="number"
+                className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                value={skill.activationCycle || ''}
+                onChange={e => onChange({ ...skill, activationCycle: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="예: 8"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 col-span-1">
+              <label className="text-[10px] text-slate-400 font-bold uppercase">조건 (Condition)</label>
+              <TextInput
+                value={skill.condition || ''}
+                onChange={v => onChange({ ...skill, condition: v || undefined })}
+                placeholder="예: WhileSummonActive"
+                className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 w-full"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 col-span-1 justify-end pb-1.5">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={skill.auraEffect || false}
+                  onChange={e => onChange({ ...skill, auraEffect: e.target.checked })}
+                  className="w-3.5 h-3.5 text-blue-600 bg-slate-700 border-slate-500 rounded focus:ring-blue-500"
+                />
+                <span className="text-[10px] text-slate-400 font-bold uppercase">오라(Aura) 효과</span>
+              </label>
+            </div>
+            <div className="col-span-2 border-t border-slate-700/50 mt-1 pt-2 flex flex-col gap-2">
+              <span className="text-[10px] text-slate-400 font-bold uppercase">트리거 & 이펙트</span>
+              <div className="grid grid-cols-2 gap-2">
+                <TextInput
+                  value={skill.trigger?.event || ''}
+                  onChange={v => onChange({ ...skill, trigger: { ...(skill.trigger || {}), event: v } })}
+                  placeholder="트리거 이벤트 (예: OnSkillActivated)"
+                  className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="number"
+                  value={skill.trigger?.requiredCount || ''}
+                  onChange={e => onChange({ ...skill, trigger: { ...(skill.trigger || {}), requiredCount: e.target.value ? Number(e.target.value) : undefined } })}
+                  placeholder="요구 스택 수 (예: 5)"
+                  className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <TextInput
+                  value={skill.effect?.type || ''}
+                  onChange={v => onChange({ ...skill, effect: { ...(skill.effect || {}), type: v } })}
+                  placeholder="이펙트 종류 (예: CostReduction)"
+                  className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="number"
+                  value={skill.effect?.amount || ''}
+                  onChange={e => onChange({ ...skill, effect: { ...(skill.effect || {}), amount: e.target.value ? Number(e.target.value) : undefined } })}
+                  placeholder="적용 수치 (예: 3)"
+                  className="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-[11px] text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       {showPicker && <ImagePickerModal onSelect={val => onChange({ ...skill, iconUrl: val })} onClose={() => setShowPicker(false)} />}
     </div>
   );
