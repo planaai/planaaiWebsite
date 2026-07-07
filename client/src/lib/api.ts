@@ -90,3 +90,7 @@ export const deleteCollectionFromServer = async () => {
   return res.data;
 };
 
+export const fetchGachaStatus = async () => {
+  const res = await api.get('/master/gacha/status');
+  return res.data;
+};

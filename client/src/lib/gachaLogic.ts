@@ -1,12 +1,14 @@
-import gachaData from '../data/gacha.json';
-
 interface GachaResult {
   name: string;
   rarity: 1 | 2 | 3;
   isPickup: boolean;
 }
 
-export function performSinglePull(bannerIndex: number = 0): GachaResult[] {
+export function performSinglePull(
+  gachaData: any,
+  bannerIndex: number = 0,
+  encoreTarget?: string
+): GachaResult[] {
   const results: GachaResult[] = [];
   const banner = gachaData.banners[bannerIndex] || gachaData.banners[0];
   const rates = gachaData.rates.normal;
@@ -27,12 +29,19 @@ export function performSinglePull(bannerIndex: number = 0): GachaResult[] {
 
   if (selectedRarity === 3) {
     const pickupRoll = Math.random();
-    const totalPickupRate = banner.pickups.reduce((sum, p) => sum + p.rate, 0);
+    
+    // Encore Pickup logic override
+    let pickups = banner.pickups;
+    if (banner.name.includes("앙코르 모집") && encoreTarget) {
+      pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
+    }
+
+    const totalPickupRate = pickups.reduce((sum: number, p: any) => sum + p.rate, 0);
     const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
-    if (pickupRoll < normalizedPickupChance && banner.pickups.length > 0) {
+    if (pickupRoll < normalizedPickupChance && pickups.length > 0) {
       isPickup = true;
-      selectedName = banner.pickups[0].name;
+      selectedName = pickups[0].name;
     } else {
       const pool = gachaData.pools["3_star"];
       selectedName = pool[Math.floor(Math.random() * pool.length)];
@@ -54,7 +63,11 @@ export function performSinglePull(bannerIndex: number = 0): GachaResult[] {
   return results;
 }
 
-export function performTenPull(bannerIndex: number = 0): GachaResult[] {
+export function performTenPull(
+  gachaData: any,
+  bannerIndex: number = 0,
+  encoreTarget?: string
+): GachaResult[] {
   const results: GachaResult[] = [];
   const banner = gachaData.banners[bannerIndex] || gachaData.banners[0]; // Currently active banner
 
@@ -77,17 +90,20 @@ export function performTenPull(bannerIndex: number = 0): GachaResult[] {
     let selectedName = "";
 
     if (selectedRarity === 3) {
-      // Check if it's a pickup
       const pickupRoll = Math.random();
-      const totalPickupRate = banner.pickups.reduce((sum, p) => sum + p.rate, 0);
+      
+      // Encore Pickup logic override
+      let pickups = banner.pickups;
+      if (banner.name.includes("앙코르 모집") && encoreTarget) {
+        pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
+      }
 
-      // We normalize the pickup roll against the total 3-star rate
+      const totalPickupRate = pickups.reduce((sum: number, p: any) => sum + p.rate, 0);
       const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
-      if (pickupRoll < normalizedPickupChance && banner.pickups.length > 0) {
+      if (pickupRoll < normalizedPickupChance && pickups.length > 0) {
         isPickup = true;
-        // Simple selection if multiple pickups exist (usually just 1)
-        selectedName = banner.pickups[0].name;
+        selectedName = pickups[0].name;
       } else {
         const pool = gachaData.pools["3_star"];
         selectedName = pool[Math.floor(Math.random() * pool.length)];

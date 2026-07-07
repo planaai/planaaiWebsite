@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { performTenPull, performSinglePull } from '@/lib/gachaLogic';
-import gachaData from '@/data/gacha.json';
-import { Sparkles, RotateCcw, User } from 'lucide-react';
+import { fetchGachaStatus } from '@/lib/api';
+import { Sparkles, RotateCcw, User, AlertCircle } from 'lucide-react';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { getImageUrl } from '@/components/planner/utils';
@@ -15,33 +15,59 @@ interface GachaResult {
   isNew?: boolean;
 }
 
+const ENCORE_STUDENTS = [
+  "아즈사(수영복)", "마시로(수영복)", "히나(수영복)", "이오리(수영복)", 
+  "네루(바니걸)", "카린(바니걸)", "아루(새해)", "무츠키(새해)", 
+  "이즈나(수영복)", "치세(수영복)"
+];
+
 export default function GachaPage() {
+  const [gachaData, setGachaData] = useState<any>(null);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [results, setResults] = useState<GachaResult[]>([]);
   const [pullHistory, setPullHistory] = useState<GachaResult[]>([]);
   const [showResultScreen, setShowResultScreen] = useState(false);
   const [masterDataMap, setMasterDataMap] = useState<Record<string, StudentMaster>>({});
+  const [encoreTarget, setEncoreTarget] = useState<string>('');
 
   useEffect(() => {
     let cancelled = false;
-    async function loadMasterData() {
-      const { masterData } = await getCachedServerData();
+    async function loadData() {
+      const [{ masterData }, gachaStatus] = await Promise.all([
+        getCachedServerData(),
+        fetchGachaStatus().catch(() => null)
+      ]);
+      
       if (cancelled) return;
+
       const map: Record<string, StudentMaster> = {};
       masterData.forEach(student => {
         const normalizedName = student.name.replace(/\s+/g, '');
         map[normalizedName] = student;
       });
       setMasterDataMap(map);
+
+      if (gachaStatus) {
+        setGachaData(gachaStatus);
+      }
     }
-    loadMasterData();
+    loadData();
     return () => { cancelled = true; };
   }, []);
 
-  const banner = gachaData.banners[activeBannerIndex] || gachaData.banners[0];
+  const banner = gachaData?.banners?.[activeBannerIndex] || gachaData?.banners?.[0];
+  const isEncore = banner?.name.includes('앙코르 모집');
 
   const handlePull = (type: 'single' | 'ten') => {
-    const pullResults = type === 'single' ? performSinglePull(activeBannerIndex) : performTenPull(activeBannerIndex);
+    if (!gachaData || !banner) return;
+    if (isEncore && !encoreTarget) {
+      alert('앙코르 모집의 픽업 대상을 선택해주세요.');
+      return;
+    }
+
+    const pullResults = type === 'single' 
+      ? performSinglePull(gachaData, activeBannerIndex, encoreTarget) 
+      : performTenPull(gachaData, activeBannerIndex, encoreTarget);
     
     setPullHistory(prev => {
       const historyNames = new Set(prev.map(p => p.name));
@@ -58,10 +84,6 @@ export default function GachaPage() {
   const handleReset = () => {
     setResults([]);
     setPullHistory([]);
-    setShowResultScreen(false);
-  };
-
-  const handleConfirm = () => {
     setShowResultScreen(false);
   };
 
@@ -93,6 +115,17 @@ export default function GachaPage() {
     return 'text-[#fadb5b]'; // All stars are yellow in the result screen
   };
 
+  if (!gachaData) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center justify-center text-slate-500">
+          <Sparkles className="animate-pulse mb-4 text-[var(--plana-primary)]" size={48} />
+          <p className="font-bold">데이터를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-[calc(100vh-80px)] bg-slate-50 text-slate-700 font-sans p-6">
       <div className="max-w-[1200px] mx-auto">
@@ -108,12 +141,13 @@ export default function GachaPage() {
         {/* Banner Tabs */}
         {gachaData.banners && gachaData.banners.length > 1 && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700">
-            {gachaData.banners.map((b, idx) => (
+            {gachaData.banners.map((b: any, idx: number) => (
               <button
                 key={b.id}
                 onClick={() => {
                   setActiveBannerIndex(idx);
                   setResults([]); // Clear results when switching banners to avoid confusion
+                  setEncoreTarget('');
                 }}
                 className={`px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all duration-300 ${
                   activeBannerIndex === idx 
@@ -135,15 +169,53 @@ export default function GachaPage() {
 
           <div className="relative z-10 flex-1 flex flex-col">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-black text-slate-800 drop-shadow-sm mb-2">{banner.name}</h2>
-              <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {banner.pickups.reduce((s, p) => s + p.rate * 100, 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
+              <h2 className="text-2xl font-black text-slate-800 drop-shadow-sm mb-2">{banner?.name}</h2>
+              {isEncore ? (
+                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (선택 픽업 0.7%) | 2★: 18.5% | 1★: 78.5%</p>
+              ) : (
+                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {(banner?.pickups?.reduce((s: number, p: any) => s + p.rate * 100, 0) || 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
+              )}
             </div>
 
             {results.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center transition-opacity duration-300 opacity-100 scale-100">
-                <div className="flex flex-col items-center justify-center text-slate-500 h-full min-h-[200px]">
-                  <Sparkles size={48} className="opacity-20 mb-4 text-[var(--plana-primary)]" />
-                  <p className="font-bold">모집 버튼을 눌러주세요</p>
+              <div className="flex-1 flex flex-col items-center justify-center transition-opacity duration-300 opacity-100 scale-100">
+                
+                {isEncore && (
+                  <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner max-w-2xl w-full">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-center gap-2">
+                      <Sparkles className="text-pink-500" size={20} />
+                      앙코르 픽업 대상을 선택하세요
+                    </h3>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {ENCORE_STUDENTS.map(studentName => (
+                        <button
+                          key={studentName}
+                          onClick={() => setEncoreTarget(studentName)}
+                          className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${
+                            encoreTarget === studentName
+                            ? 'bg-pink-100 border-pink-400 text-pink-600 shadow-sm'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-pink-300 hover:bg-pink-50'
+                          }`}
+                        >
+                          {studentName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col items-center justify-center text-slate-500 min-h-[100px]">
+                  {(!isEncore || encoreTarget) ? (
+                    <>
+                      <Sparkles size={48} className="opacity-20 mb-4 text-[var(--plana-primary)]" />
+                      <p className="font-bold">모집 버튼을 눌러주세요</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle size={48} className="opacity-20 mb-4 text-orange-400" />
+                      <p className="font-bold text-orange-500">모집을 시작하려면 픽업 대상을 선택해야 합니다.</p>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
@@ -214,13 +286,15 @@ export default function GachaPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handlePull('single')}
-                  className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg"
+                  disabled={isEncore && !encoreTarget}
+                  className="px-8 py-3 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-xl transition-colors border border-slate-400 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   1회 모집
                 </button>
                 <button
                   onClick={() => handlePull('ten')}
-                  className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400"
+                  disabled={isEncore && !encoreTarget}
+                  className="px-8 py-3 bg-[var(--plana-primary)] hover:bg-pink-400 text-white font-black rounded-xl transition-all shadow-[0_0_20px_rgba(255,105,180,0.3)] hover:shadow-[0_0_25px_rgba(255,105,180,0.5)] border border-pink-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {results.length > 0 ? '10회 더 모집' : '10회 모집'}
                 </button>
