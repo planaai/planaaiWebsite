@@ -1,6 +1,6 @@
 {
   "urls": [
-    "https://m.nexon.com/probability/7661?client_id=MjcwOA&language=ko"
+    "https://m.nexon.com/probability/7662?client_id=MjoxOA&language=ko"
   ],
   "rates": {
     "normal": {
@@ -16,6 +16,7 @@
   },
   "pools": {
     "3_star": [
+      "모모이(메이드)",
       "에이미(무장)",
       "유즈(무장)",
       "미모리",
@@ -161,10 +162,10 @@
   "banners": [
     {
       "id": "pickup_0",
-      "name": "에이미(무장) 픽업 모집",
+      "name": "모모이(메이드) 픽업 모집",
       "pickups": [
         {
-          "name": "에이미(무장)",
+          "name": "모모이(메이드)",
           "rarity": 3,
           "rate": 0.007
         }
