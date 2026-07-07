@@ -62,6 +62,24 @@ export interface Skill {
   descriptionTemplate: string;
   parameters: Record<string, string[]>;
   iconUrl: string;
+  caster?: 'Summon' | 'Self';
+  condition?: string;
+  auraEffect?: boolean;
+  activationCycle?: number;
+  type?: string;
+  trigger?: {
+    event?: string;
+    targetSkill?: string;
+    skillType?: string;
+    requiredCount?: number;
+  };
+  effect?: {
+    type?: string;
+    targetSkill?: string;
+    target?: string;
+    amount?: number;
+    limit?: string;
+  };
 }
 
 export interface SkillSet {
@@ -116,6 +134,15 @@ export interface StudentMaster {
   position2?: string;
   starNum: number;
   hasFavoriteItem: boolean;
+  summon?: {
+    entityName: string;
+    duration: number;
+    statInheritance: {
+      maxHP?: string;
+      atk?: string;
+      healingPower?: string;
+    };
+  };
   equipmentSlot1: string;
   equipmentSlot2: string;
   equipmentSlot3: string;
