@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const cheerio = require(path.join(__dirname, '../backend/node_modules/cheerio'));
 
 const args = process.argv.slice(2);
@@ -19,17 +20,31 @@ try {
     process.exit(1);
 }
 
+function fetchUrl(url) {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+                return reject(new Error(`Status Code: ${res.statusCode}`));
+            }
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => resolve(data));
+        }).on('error', err => reject(err));
+    });
+}
+
 async function updateGacha() {
     try {
         const banners = [];
         for (let i = 0; i < urls.length; i++) {
             const url = urls[i];
-            const res = await fetch(url);
-            if (!res.ok) {
-                console.error(`Failed to fetch url: ${url}, status: ${res.status}`);
+            let html;
+            try {
+                html = await fetchUrl(url);
+            } catch (err) {
+                console.error(`Failed to fetch url: ${url}`, err);
                 continue;
             }
-            const html = await res.text();
             const $ = cheerio.load(html);
             
             const title = $('.navbar-brand.brand.bolt-ellipsis span').text().trim();
