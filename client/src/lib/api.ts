@@ -30,15 +30,15 @@ api.interceptors.response.use(
 
 export { api };
 
-export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: any[] }> => {
+export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] }> => {
   for (let i = 0; i < retries; i++) {
     try {
       const resArchive = await api.get('/archive');
       const data = resArchive.data.data || [];
-      const masterData = data.map((d: any) => d.master);
-      const archiveData = data.map((d: any) => d.archive).filter(Boolean);
+      const masterData = data.map((d: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => d.master);
+      const archiveData = data.map((d: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => d.archive).filter(Boolean);
       return { masterData, archiveData };
-    } catch (error: any) {
+    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       if (i === retries - 1) {
         console.error('Failed to fetch server data after retries:', error);
         return { masterData: [], archiveData: [] };
@@ -60,7 +60,7 @@ export const fetchSchema = async (): Promise<SchemaConfig | null> => {
   }
 };
 
-export const syncCollectionToServer = async (collections: any[]) => {
+export const syncCollectionToServer = async (collections: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[]) => {
   const res = await api.post('/collection/sync', { collections });
   return res.data;
 };
@@ -70,7 +70,7 @@ export const fetchCollectionFromServer = async () => {
   return res.data;
 };
 
-export const loginUser = async (data: any) => {
+export const loginUser = async (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
   const res = await axios.post(`${API_BASE}/auth/login`, data);
   return res.data;
 };

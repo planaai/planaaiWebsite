@@ -58,3 +58,6 @@ Thumbs.db
 
 # Scratch scripts
 scratch/
+
+# Excel temp files
+~$*.xlsx

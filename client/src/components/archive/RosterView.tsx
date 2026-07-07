@@ -28,14 +28,14 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
   const setFilterSchool = (val: string) => setFilter(mode, 'filterSchool', val);
   const setFilterRole = (val: string) => setFilter(mode, 'filterRole', val);
   const setFilterFieldType = (val: string) => setFilter(mode, 'filterFieldType', val);
-  const setFilterOwned = (val: any) => setFilter(mode, 'filterOwned', val);
+  const setFilterOwned = (val: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => setFilter(mode, 'filterOwned', val);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const records = useArchiveStore(state => state.records);
 
   const filteredData = useMemo(() => {
-    let list = initialMasterData.filter(master => {
+    const list = initialMasterData.filter(master => {
       const isOwned = !!records[master.id];
       if (mode === 'collection') {
         if (filterOwned === 'owned' && !isOwned) return false;

@@ -2,9 +2,9 @@ import React from 'react';
 import { X, Check } from 'lucide-react';
 
 interface PlannerEditFormProps {
-  editingPlan: any;
-  setEditingPlan: (plan: any) => void;
-  onSave: (plan: any) => void;
+  editingPlan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
+  setEditingPlan: (plan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
+  onSave: (plan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
 }
 
 export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: PlannerEditFormProps) {

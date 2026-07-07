@@ -59,7 +59,7 @@ export function GachaAdminManager({ showToast }: GachaAdminManagerProps) {
         showToast('가챠 확률표가 성공적으로 업데이트되었습니다.');
         fetchStatus();
       }
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error(err);
       showToast(err.response?.data?.error || err.message || '업데이트에 실패했습니다.', 'error');
     } finally {

@@ -89,7 +89,7 @@ export function calculateApSchedule(
   let barAp = startHoardTime > now ? targetNaturalAp : Math.min(maxAp, currentAp + Math.floor(differenceInMinutes(mailboxTime, now) / 6));
   let mailboxAp = 0;
   let hoardedAp = 0; 
-  let mailboxDetails: { name: string; amount: number }[] = [];
+  const mailboxDetails: { name: string; amount: number }[] = [];
 
   const addToMailbox = (name: string, amount: number) => {
     if (amount <= 0) return;
@@ -111,8 +111,8 @@ export function calculateApSchedule(
   let timeOffset = 1;
 
   if (useApPackage) {
-    let toBar = Math.min(150, Math.max(0, 999 - barAp));
-    let toMailbox = 150 - toBar;
+    const toBar = Math.min(150, Math.max(0, 999 - barAp));
+    const toMailbox = 150 - toBar;
     barAp += toBar;
     hoardedAp += toMailbox; 
     addToMailbox('2주 AP 패키지', toMailbox);
@@ -133,7 +133,7 @@ export function calculateApSchedule(
     let addedPyroToMailbox = 0;
 
     while (remainingPvp > 0 && barAp < 999) {
-      let toBar = Math.min(90, 999 - barAp);
+      const toBar = Math.min(90, 999 - barAp);
       barAp += toBar;
       mailboxAp += (90 - toBar);
       addedPvpToMailbox += (90 - toBar);
@@ -142,7 +142,7 @@ export function calculateApSchedule(
     }
 
     while (remainingPyro > 0 && barAp < 999) {
-      let toBar = Math.min(120, 999 - barAp);
+      const toBar = Math.min(120, 999 - barAp);
       barAp += toBar;
       mailboxAp += (120 - toBar);
       addedPyroToMailbox += (120 - toBar);
@@ -168,7 +168,7 @@ export function calculateApSchedule(
   }
 
   if (cafeAp > 0) {
-    let toBar = Math.min(cafeAp, Math.max(0, 999 - barAp));
+    const toBar = Math.min(cafeAp, Math.max(0, 999 - barAp));
     barAp += toBar;
     mailboxAp += (cafeAp - toBar);
     addToMailbox('카페 AP', cafeAp - toBar);
@@ -181,7 +181,7 @@ export function calculateApSchedule(
   }
 
   if (useDailyQuest) {
-    let toBar = Math.min(150, Math.max(0, 999 - barAp));
+    const toBar = Math.min(150, Math.max(0, 999 - barAp));
     barAp += toBar;
     mailboxAp += (150 - toBar);
     addToMailbox('일일 미션', 150 - toBar);
@@ -194,7 +194,7 @@ export function calculateApSchedule(
   }
 
   if (todayAttendance > 0) {
-    let toBar = Math.min(150, Math.max(0, 999 - barAp));
+    const toBar = Math.min(150, Math.max(0, 999 - barAp));
     barAp += toBar;
     hoardedAp += (150 - toBar);
     addToMailbox(`출석부 ${todayAttendance}일차`, 150 - toBar);
@@ -286,7 +286,7 @@ export function calculateApSchedule(
   }
 
   if (pvpRefreshes > 0) {
-    let dDayPvp = pvpRefreshes * 90;
+    const dDayPvp = pvpRefreshes * 90;
     dDayTotal += dDayPvp;
     dDayDesc += `당일 대항전 구매 -> ${dDayPvp} AP\n`;
     timeline.push({

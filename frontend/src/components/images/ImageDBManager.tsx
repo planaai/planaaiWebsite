@@ -111,7 +111,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       await axios.post(`${API}/api/images/folder`, { folderName });
       showToast('폴더가 생성되었습니다.');
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '폴더 생성 실패', 'error');
     }
   };
@@ -122,7 +122,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       await axios.delete(`${API}/api/images/folder?path=${encodeURIComponent(folderPath)}`);
       showToast('폴더가 삭제되었습니다.');
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '폴더 삭제 실패', 'error');
     }
   };
@@ -137,7 +137,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       showToast('폴더 이름이 변경되었습니다.');
       onRefresh();
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '폴더 이름 변경 실패', 'error');
     }
   };
@@ -169,7 +169,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       showToast('파일명이 변경되었습니다.');
       onRefresh();
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '파일명 변경 실패', 'error');
     }
   };
@@ -185,7 +185,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       showToast(`파일이 이동되었습니다.`);
       onRefresh();
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '파일 이동 실패', 'error');
     }
   };
@@ -313,7 +313,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
       setClipboard(new Set());
       onRefresh();
       fetchImages();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '파일 이동 실패', 'error');
     }
   };

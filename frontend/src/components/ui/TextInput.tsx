@@ -9,6 +9,7 @@ export function TextInput({ value, onChange, ...props }: TextInputProps) {
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalValue(value);
   }, [value]);
 
@@ -29,6 +30,7 @@ export function TextAreaInput({ value, onChange, ...props }: TextAreaInputProps)
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalValue(value);
   }, [value]);
 

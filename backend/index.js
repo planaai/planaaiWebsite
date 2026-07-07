@@ -147,7 +147,7 @@ let schemaConfig = {
   }
 };
 
-const schemaFile = path.join(__dirname, 'schemaConfig.json');
+const schemaFile = path.join(__dirname, 'data', 'schemaConfig.json');
 try {
   if (fs.existsSync(schemaFile)) {
     const loadedSchema = JSON.parse(fs.readFileSync(schemaFile, 'utf8'));
@@ -161,7 +161,7 @@ const saveSchemaConfig = () => {
   try { fs.writeFileSync(schemaFile, JSON.stringify(schemaConfig, null, 2), 'utf8'); } catch(e) {}
 };
 
-const masterFile = path.join(__dirname, 'plana_mapped.json');
+const masterFile = path.join(__dirname, 'data', 'plana_mapped.json');
 const saveMasterDB = () => {
   try { fs.writeFileSync(masterFile, JSON.stringify(studentMasterDB, null, 2), 'utf8'); } catch(e) {}
 };
@@ -680,7 +680,7 @@ const emptyTerrainAffinity = { urban: 'B', outdoor: 'B', indoor: 'B' };
 
 let studentMasterDB = [];
 try {
-  studentMasterDB = JSON.parse(fs.readFileSync(__dirname + '/plana_mapped.json', 'utf8'));
+  studentMasterDB = JSON.parse(fs.readFileSync(__dirname + '/data/plana_mapped.json', 'utf8'));
 } catch (e) {
   console.log('Failed to load plana_mapped.json, using empty array.', e.message);
 }

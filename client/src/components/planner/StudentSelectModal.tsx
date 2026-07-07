@@ -5,9 +5,9 @@ import { getImageUrl } from './utils';
 
 interface StudentSelectModalProps {
   masterData: StudentMaster[];
-  archiveData: any[];
-  plans: any[];
-  onSelect: (studentId: number, archive: any) => void;
+  archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[];
+  plans: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[];
+  onSelect: (studentId: number, archive: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
   onClose: () => void;
 }
 

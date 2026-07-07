@@ -5,7 +5,7 @@ interface GachaResult {
 }
 
 export function performSinglePull(
-  gachaData: any,
+  gachaData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
   bannerIndex: number = 0,
   encoreTarget?: string
 ): GachaResult[] {
@@ -36,7 +36,7 @@ export function performSinglePull(
       pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
     }
 
-    const totalPickupRate = pickups.reduce((sum: number, p: any) => sum + p.rate, 0);
+    const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + p.rate, 0);
     const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
     if (pickupRoll < normalizedPickupChance && pickups.length > 0) {
@@ -64,7 +64,7 @@ export function performSinglePull(
 }
 
 export function performTenPull(
-  gachaData: any,
+  gachaData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
   bannerIndex: number = 0,
   encoreTarget?: string
 ): GachaResult[] {
@@ -98,7 +98,7 @@ export function performTenPull(
         pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
       }
 
-      const totalPickupRate = pickups.reduce((sum: number, p: any) => sum + p.rate, 0);
+      const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + p.rate, 0);
       const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
       if (pickupRoll < normalizedPickupChance && pickups.length > 0) {

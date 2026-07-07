@@ -107,7 +107,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
         beforeText = beforeText.replace(/\{\{?[^{}]+\}\}?/g, ''); 
         beforeText = beforeText.replace(/[%()]/g, '');
         
-        let textForMatch = beforeText.replace(/(의|은|는|이|가|을|를|강화율)$/, '').trim();
+        const textForMatch = beforeText.replace(/(의|은|는|이|가|을|를|강화율)$/, '').trim();
         const normalize = (s: string) => s.replace(/\s+/g, '').replace(/데미지/g, '대미지');
         const normalizedMatch = normalize(textForMatch);
 
@@ -208,7 +208,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
     if (!activeSkillSet) return { key: baseKey, label: baseKey, data: undefined, baseData: undefined };
 
-    const getFirstSkill = (s: any) => Array.isArray(s) ? s[0] : s;
+    const getFirstSkill = (s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => Array.isArray(s) ? s[0] : s;
 
     if (baseKey === 'normal' && activeSkillSet.normalPlus?.descriptionTemplate && hasT2Fav) {
       const normalSkill = getFirstSkill(activeSkillSet.normal);

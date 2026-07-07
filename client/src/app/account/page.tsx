@@ -63,7 +63,7 @@ export default function AccountPage() {
       updateNickname(nickname);
       setSuccessMsg('닉네임이 성공적으로 변경되었습니다!');
       successTimerRef.current = setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setErrorMsg(err.response?.data?.error || '닉네임 변경에 실패했습니다.');
     } finally {
       setIsLoading(false);

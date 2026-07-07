@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const masterFile = path.join(__dirname, 'plana_mapped.json');
+const masterFile = path.join(__dirname, 'data', 'plana_mapped.json');
 try {
   let data = JSON.parse(fs.readFileSync(masterFile, 'utf8'));
 

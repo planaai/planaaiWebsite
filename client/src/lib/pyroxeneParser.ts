@@ -69,7 +69,7 @@ export function getPyroxeneData(): PyroxeneData {
   const weeklyQuests = dailySheet.find(row => row['수급 방법'] === '주간 퀘스트')?.['청휘석 량'] || 120;
 
   // 2. Packages
-  const parsePackage = (row: any): PackageOption => ({
+  const parsePackage = (row: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): PackageOption => ({
     name: row['패키지명'],
     limit: row['구매 가능 횟수'] || 1,
     amount: row['수급량'] || 0,
@@ -83,7 +83,7 @@ export function getPyroxeneData(): PyroxeneData {
   const weeklyPackages = weeklyPkgSheet.filter(row => row['패키지명']).map(parsePackage);
 
   // 3. Assault Tiers
-  const parseTier = (row: any): TierOption => ({
+  const parseTier = (row: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): TierOption => ({
     name: row['항목'],
     amount: row['수급량'] || 0
   });

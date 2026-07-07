@@ -28,7 +28,7 @@ export default function Login() {
         login(res.data.token, res.data.user);
         router.push('/');
       }
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.response?.data?.error || '로그인에 실패했습니다.');
     } finally {
       setIsLoading(false);

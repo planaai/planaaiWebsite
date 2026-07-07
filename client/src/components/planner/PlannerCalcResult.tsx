@@ -4,7 +4,7 @@ import { SchemaConfig } from '@/types';
 import { getImageUrl } from './utils';
 
 interface PlannerCalcResultProps {
-  data: any;
+  data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
   title: string;
   isCombined?: boolean;
   schema: SchemaConfig | null;
@@ -14,7 +14,7 @@ interface PlannerCalcResultProps {
 export function PlannerCalcResult({ data, title, isCombined = false, schema, onClose }: PlannerCalcResultProps) {
   if (!data) return null;
 
-  const renderItem = (item: any) => (
+  const renderItem = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
     <div key={item.name} className="bg-white p-2.5 rounded-lg border border-slate-200 text-xs flex items-center justify-between hover:border-[var(--plana-primary)] transition-colors shadow-sm">
       <div className="flex items-center gap-2.5 overflow-hidden flex-1">
         {item.iconUrl ? (
@@ -54,7 +54,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
           </div>
         </div>
         
-        {data.expReports && Object.values(data.expReports).some((item: any) => item.amount > 0) && (
+        {data.expReports && Object.values(data.expReports).some((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0) && (
             <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
               <div className="skew-x-[5deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -62,7 +62,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <h4 className="text-sm font-bold text-slate-800">경험치 보고서</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.values(data.expReports).map((item: any) => item.amount > 0 && renderItem(item))}
+                  {Object.values(data.expReports).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>
             </div>
@@ -76,7 +76,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <h4 className="text-sm font-bold text-slate-800">장비 설계도</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                  {Object.values(data.blueprints).map((item: any) => item.amount > 0 && renderItem(item))}
+                  {Object.values(data.blueprints).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>
             </div>
@@ -91,7 +91,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {data.elephs > 0 && renderItem({ name: isCombined ? '엘레프' : `${title.replace(' 필요 재화', '')}의 엘레프`, amount: data.elephs, iconUrl: schema?.resourceIcons?.Eleph || '' })}
-                  {data.weaponItems && Object.values(data.weaponItems).map((item: any) => item.amount > 0 && renderItem(item))}
+                  {data.weaponItems && Object.values(data.weaponItems).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>
             </div>
@@ -105,8 +105,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <h4 className="text-sm font-bold text-slate-800">스킬 성장</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.bds && Object.values(data.bds).map((item: any) => item.amount > 0 && renderItem(item))}
-                  {data.techNotes && Object.values(data.techNotes).map((item: any) => item.amount > 0 && renderItem(item))}
+                  {data.bds && Object.values(data.bds).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
+                  {data.techNotes && Object.values(data.techNotes).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                   {data.secret > 0 && renderItem({ name: '비의서', amount: data.secret, iconUrl: schema?.resourceIcons?.SecretTechSheet || '' })}
                 </div>
               </div>
@@ -121,8 +121,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <h4 className="text-sm font-bold text-slate-800">오파츠 & WB</h4>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.ooparts && Object.values(data.ooparts).map((item: any) => item.amount > 0 && renderItem(item))}
-                  {data.wbs && Object.values(data.wbs).map((item: any) => item.amount > 0 && renderItem(item))}
+                  {data.ooparts && Object.values(data.ooparts).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
+                  {data.wbs && Object.values(data.wbs).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>
             </div>

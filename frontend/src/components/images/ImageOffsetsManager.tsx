@@ -26,9 +26,6 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
   // Default values to use when a student doesn't have an offset config yet
   const DEFAULT_CONFIG: OffsetConfig = { scale: 200, offsetX: 0, offsetY: 20 };
 
-  useEffect(() => {
-    fetchOffsets();
-  }, []);
 
   const fetchOffsets = async () => {
     setLoading(true);
@@ -42,6 +39,11 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOffsets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);

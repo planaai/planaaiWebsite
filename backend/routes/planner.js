@@ -159,7 +159,7 @@ router.get('/calculate/:id', requireAuth, async (req, res) => {
             }
         }
 
-        const schemaPath = require('path').join(__dirname, '../schemaConfig.json');
+        const schemaPath = require('path').join(__dirname, '../data/schemaConfig.json');
         let schemaConfig = { equipments: [] };
         try {
             if (require('fs').existsSync(schemaPath)) {
@@ -342,7 +342,7 @@ router.post('/calculate/dynamic', async (req, res) => {
             }
         }
 
-        const schemaPath = require('path').join(__dirname, '../schemaConfig.json');
+        const schemaPath = require('path').join(__dirname, '../data/schemaConfig.json');
         let schemaConfig = { equipments: [] };
         try {
             if (require('fs').existsSync(schemaPath)) {

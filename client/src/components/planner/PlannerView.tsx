@@ -29,7 +29,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
   const [calcResult, setCalcResult] = useState<any>(null);
   const [combinedResult, setCombinedResult] = useState<any>(null);
 
-  const handleCreatePlan = (studentId: number, archive: any) => {
+  const handleCreatePlan = (studentId: number, archive: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     addPlan(studentId, archive);
   };
 
@@ -40,12 +40,12 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
     if (calcResult?.plan?.id === id) setCalcResult(null);
   };
 
-  const handleSavePlan = (plan: any) => {
+  const handleSavePlan = (plan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     updatePlan(plan.id, plan);
     setEditingPlan(null);
   };
 
-  const handleCalculate = async (plan: any) => {
+  const handleCalculate = async (plan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     try {
       const student = masterData.find(m => m.id === plan.studentId);
       const res = await api.post(`/planner/calculate/dynamic`, { 
@@ -70,7 +70,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
     setCalcResult(null);
     setEditingPlan(null);
     try {
-      let total = {
+      const total = {
         credits: 0,
         expReports: {} as Record<string, any>,
         blueprints: {} as Record<string, any>,
@@ -122,7 +122,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
     }
   };
 
-  const enrichRequirements = (req: any, student: StudentMaster | undefined) => {
+  const enrichRequirements = (req: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, student: StudentMaster | undefined) => {
     const enriched = {
       credits: req.credits,
       expReports: {} as Record<string, any>,

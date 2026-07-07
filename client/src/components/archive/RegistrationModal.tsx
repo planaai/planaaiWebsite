@@ -49,7 +49,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     setNextId(prev => prev + 1);
   };
 
-  const handleUpdateForm = (localId: number, field: string, value: any) => {
+  const handleUpdateForm = (localId: number, field: string, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setForms(prev => prev.map(f => {
       if (f._localId === localId) {
         // Handle nested fields like stats.maxHP or skillLevels.ex

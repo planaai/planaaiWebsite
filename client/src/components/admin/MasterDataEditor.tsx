@@ -53,7 +53,7 @@ export function MasterDataEditor({ student, onSave }: Props) {
     }
   };
 
-  const updateSkillSet = (index: number, field: string, value: any) => {
+  const updateSkillSet = (index: number, field: string, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setFormData(prev => {
       const newSkills = [...prev.skills];
       newSkills[index] = { ...newSkills[index], [field]: value };
@@ -61,7 +61,7 @@ export function MasterDataEditor({ student, onSave }: Props) {
     });
   };
 
-  const updateSkill = (setIndex: number, skillType: 'ex' | 'normal' | 'passive' | 'sub', field: keyof Skill, value: any) => {
+  const updateSkill = (setIndex: number, skillType: 'ex' | 'normal' | 'passive' | 'sub', field: keyof Skill, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setFormData(prev => {
       const newSkills = [...prev.skills];
       const skillObj = newSkills[setIndex][skillType];

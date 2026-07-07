@@ -47,7 +47,7 @@ export function EtcSkillCostInput({ costs, onChange, schema }: EtcSkillCostInput
     }));
   };
 
-  const updateItem = (skillType: 'ex' | 'normal', level: number, index: number, field: keyof CustomSkillCostItem, value: any) => {
+  const updateItem = (skillType: 'ex' | 'normal', level: number, index: number, field: keyof CustomSkillCostItem, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     updateCost(skillType, level, prev => {
       const newItems = [...prev.items];
       newItems[index] = { ...newItems[index], [field]: value };

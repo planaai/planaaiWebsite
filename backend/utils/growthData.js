@@ -4,7 +4,7 @@ const path = require('path');
 const levelDataPath = path.join(__dirname, '../../data/level_system.txt');
 const equipmentDataPath = path.join(__dirname, '../../data/장비_강화_아이템.txt');
 const bonusDataPath = path.join(__dirname, '../../data/bonus_system.txt');
-const parsedHtmlPath = path.join(__dirname, '../parsed_html_data.json');
+const parsedHtmlPath = path.join(__dirname, '../data/parsed_html_data.json');
 
 let parsedHtmlData = null;
 

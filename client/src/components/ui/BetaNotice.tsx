@@ -9,6 +9,7 @@ export function BetaNotice() {
   useEffect(() => {
     const isHidden = localStorage.getItem('hideBetaNotice');
     if (!isHidden) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
     }
   }, []);

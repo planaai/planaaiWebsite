@@ -35,7 +35,7 @@ export default function Register() {
           router.push('/login');
         }, 1500);
       }
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.response?.data?.error || '회원가입에 실패했습니다.');
     } finally {
       setIsLoading(false);

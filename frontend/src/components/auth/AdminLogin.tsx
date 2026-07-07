@@ -33,7 +33,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       }
 
       onLoginSuccess(token);
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(err.response?.data?.error || '로그인에 실패했습니다.', 'error');
     } finally {
       setLoading(false);

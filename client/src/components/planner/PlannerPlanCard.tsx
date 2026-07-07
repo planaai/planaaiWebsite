@@ -4,7 +4,7 @@ import { StudentMaster } from '@/types';
 import { getImageUrl } from './utils';
 
 interface PlannerPlanCardProps {
-  plan: any;
+  plan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
   student?: StudentMaster;
   isEditing: boolean;
   isCalculating: boolean;

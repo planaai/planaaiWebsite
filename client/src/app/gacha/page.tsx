@@ -147,7 +147,7 @@ export default function GachaPage() {
         {/* Banner Tabs */}
         {gachaData.banners && gachaData.banners.length > 1 && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700">
-            {gachaData.banners.map((b: any, idx: number) => (
+            {gachaData.banners.map((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
               <button
                 key={b.id}
                 onClick={() => {
@@ -179,7 +179,7 @@ export default function GachaPage() {
               {isEncore ? (
                 <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (선택 픽업 0.7%) | 2★: 18.5% | 1★: 78.5%</p>
               ) : (
-                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {(banner?.pickups?.reduce((s: number, p: any) => s + p.rate * 100, 0) || 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
+                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {(banner?.pickups?.reduce((s: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => s + p.rate * 100, 0) || 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
               )}
             </div>
 

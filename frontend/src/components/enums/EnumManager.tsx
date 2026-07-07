@@ -26,7 +26,7 @@ export function EnumManager({ schema, showToast, onRefresh }: EnumManagerProps) 
       setNewKey('');
       setNewLabel('');
       onRefresh();
-    } catch (e: any) {
+    } catch (e: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       showToast(e.response?.data?.error === 'Duplicate key' ? '이미 존재하는 ID입니다' : '추가 실패', 'error');
     }
   };

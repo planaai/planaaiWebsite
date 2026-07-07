@@ -13,10 +13,6 @@ export default function AdminPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   async function loadData() {
     setLoading(true);
     try {
@@ -29,13 +25,17 @@ export default function AdminPage() {
     }
   }
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleSaveStudent = async (updatedStudent: StudentMaster) => {
     try {
       const res = await api.put(`/master/students/${updatedStudent.id}`, updatedStudent);
       
       // Update local state
       setMasterData(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
-    } catch (error: any) {
+    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       throw new Error(`서버 응답 오류: ${error.response?.status || error.message}`);
     }
   };

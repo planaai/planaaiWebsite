@@ -284,7 +284,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
       const getWeight = (name: string, index: number) => {
         const match = name.match(/주간 장비 패키지 (I|II|III|IV|V|VI|VII|VIII|IX|X)$/);
         if (!match) return index;
-        const map: any = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10 };
+        const map: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6, 'VII': 7, 'VIII': 8, 'IX': 9, 'X': 10 };
         return 100 + map[match[1]];
       };
 

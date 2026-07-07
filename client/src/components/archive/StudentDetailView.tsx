@@ -81,7 +81,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
     const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
     if (!activeSkillSet) return { key: baseKey, label: baseKey, data: undefined, baseData: undefined };
 
-    const getFirstSkill = (s: any) => Array.isArray(s) ? s[0] : s;
+    const getFirstSkill = (s: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => Array.isArray(s) ? s[0] : s;
 
     if (baseKey === 'normal' && activeSkillSet.normalPlus?.descriptionTemplate && hasT2Fav) {
       const normalSkill = getFirstSkill(activeSkillSet.normal);

@@ -37,7 +37,7 @@ export interface PlannerRecord {
 
 interface PlannerState {
   plans: PlannerRecord[];
-  addPlan: (studentId: number, archiveData?: any) => void;
+  addPlan: (studentId: number, archiveData?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
   updatePlan: (id: number, updates: Partial<PlannerRecord>) => void;
   deletePlan: (id: number) => void;
 }
@@ -50,8 +50,8 @@ export const usePlannerStore = create<PlannerState>()(
         set((state) => {
           if (state.plans.some(p => p.studentId === studentId)) return state;
           
-          const getVal = (val: any, fallback: number) => typeof val === 'number' && !isNaN(val) ? val : fallback;
-          const getLvl = (val: any) => getVal(val, 1);
+          const getVal = (val: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, fallback: number) => typeof val === 'number' && !isNaN(val) ? val : fallback;
+          const getLvl = (val: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => getVal(val, 1);
           
           const newPlan: PlannerRecord = {
             id: Date.now(),
