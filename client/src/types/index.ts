@@ -64,24 +64,6 @@ export interface Skill {
   parameters: Record<string, string[]>;
   iconUrl: string;
   cost?: number[];
-  caster?: 'Summon' | 'Self';
-  condition?: string;
-  auraEffect?: boolean;
-  activationCycle?: number;
-  type?: string;
-  trigger?: {
-    event?: string;
-    targetSkill?: string;
-    skillType?: string;
-    requiredCount?: number;
-  };
-  effect?: {
-    type?: string;
-    targetSkill?: string;
-    target?: string;
-    amount?: number;
-    limit?: string;
-  };
 }
 
 export interface SkillSet {
@@ -126,12 +108,6 @@ export interface StudentMaster {
   hasFavoriteItem: boolean;
   summon?: {
     entityName: string;
-    duration: number;
-    statInheritance: {
-      maxHP?: string;
-      atk?: string;
-      healingPower?: string;
-    };
     skills?: {
       normal?: Skill;
       passive?: Skill;

@@ -202,7 +202,7 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                         const { summon, ...rest } = form;
                         setForm(rest);
                       } else if (!form.summon) {
-                        setForm({ ...form, summon: { entityName: '', duration: 0, statInheritance: {} } });
+                        setForm({ ...form, summon: { entityName: '' } });
                       }
                     }}
                     className="w-4 h-4 text-teal-500 bg-slate-700 border-slate-500 rounded focus:ring-teal-500"
@@ -210,54 +210,15 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 </label>
               </div>
               {showSummon && (
-                <div className="bg-slate-900/50 p-4 rounded-xl border border-teal-500/30 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-teal-500/30">
+                  <div className="flex flex-col gap-1.5 max-w-sm mb-4">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">소환수 이름</label>
                     <TextInput
                       value={form.summon?.entityName || ''}
-                      onChange={v => setForm({ ...form, summon: { ...(form.summon || { entityName: '', duration: 0, statInheritance: {} }), entityName: v } })}
+                      onChange={v => setForm({ ...form, summon: { ...(form.summon || { entityName: '' }), entityName: v } })}
                       placeholder="예: 테르밋 핑크"
                       className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
                     />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">유지 시간 (초)</label>
-                    <input
-                      type="number"
-                      value={form.summon?.duration || ''}
-                      onChange={e => setForm({ ...form, summon: { ...(form.summon || { entityName: '', duration: 0, statInheritance: {} }), duration: Number(e.target.value) } })}
-                      placeholder="예: 50 (무한은 -1)"
-                      className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500"
-                    />
-                  </div>
-                  <div className="col-span-1 sm:col-span-2 grid grid-cols-3 gap-4 border-t border-slate-700/50 pt-3 mt-1">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">체력 계승</label>
-                      <TextInput
-                        value={form.summon?.statInheritance?.maxHP || ''}
-                        onChange={v => setForm({ ...form, summon: { ...(form.summon || { entityName: '', duration: 0, statInheritance: {} }), statInheritance: { ...(form.summon?.statInheritance || {}), maxHP: v } } })}
-                        placeholder="예: 119.5%"
-                        className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">공격력 계승</label>
-                      <TextInput
-                        value={form.summon?.statInheritance?.atk || ''}
-                        onChange={v => setForm({ ...form, summon: { ...(form.summon || { entityName: '', duration: 0, statInheritance: {} }), statInheritance: { ...(form.summon?.statInheritance || {}), atk: v } } })}
-                        placeholder="예: 42.6%"
-                        className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">치유력 계승</label>
-                      <TextInput
-                        value={form.summon?.statInheritance?.healingPower || ''}
-                        onChange={v => setForm({ ...form, summon: { ...(form.summon || { entityName: '', duration: 0, statInheritance: {} }), statInheritance: { ...(form.summon?.statInheritance || {}), healingPower: v } } })}
-                        placeholder="예: 100%"
-                        className="bg-slate-800 border border-slate-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500"
-                      />
-                    </div>
                   </div>
                   <div className="col-span-1 sm:col-span-2 mt-2 pt-4 border-t border-teal-500/30">
                     <h4 className="text-xs font-bold text-teal-400 uppercase tracking-wider mb-3">소환수 전용 스킬</h4>

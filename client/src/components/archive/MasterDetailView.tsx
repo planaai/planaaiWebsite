@@ -473,6 +473,81 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                 </div>
               </div>
 
+
+              {/* 2.5 소환수 스킬 */}
+              {master.summon && master.summon.skills && (
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
+                    <h3 className="font-bold text-slate-800 text-base">{master.summon.entityName || '소환수'} 스킬</h3>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {['normal', 'passive', 'sub'].map((baseKey, i) => {
+                      const sData = (master.summon!.skills as any)?.[baseKey];
+                      if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
+                      
+                      const key = baseKey;
+                      const isExpanded = showSkillMultipliers[`summon_${key}` as any];
+                      const hasParams = sData.parameters && Object.keys(sData.parameters).length > 0;
+                      const label = baseKey === 'normal' ? '기본 스킬' : baseKey === 'passive' ? '강화 스킬' : '서브 스킬';
+                      const isExFormat = true; // 소환수 스킬은 EX 레벨 (1~5) 형식을 따름
+
+                      return (
+                        <div key={i} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300">
+                          {/* Skill Header */}
+                          <button
+                            onClick={() => setShowSkillMultipliers(prev => ({...prev, [`summon_${key}`]: !prev[`summon_${key}` as any]} as any))}
+                            className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50/50 transition-colors"
+                          >
+                            <div className="w-14 h-14 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                              {sData.iconUrl ? (
+                                <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-[10px] font-black text-slate-400">IMG</span>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[11px] font-black px-2 py-0.5 rounded bg-[#FF8888] text-white shrink-0">
+                                  MAX
+                                </span>
+                                <span className="font-black text-slate-800 text-sm truncate">{sData.name || label}</span>
+                              </div>
+                              {!isExpanded && (
+                                <div
+                                  className="text-xs text-slate-500 leading-snug line-clamp-1"
+                                  dangerouslySetInnerHTML={{ __html: parseDescription(sData.descriptionTemplate, sData.parameters, isExFormat, sData.descriptionTemplate, sData.parameters) }}
+                                />
+                              )}
+                            </div>
+
+                            <div className={`text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            </div>
+                          </button>
+
+                          {isExpanded && (
+                            <div className="px-4 pb-4 border-t border-slate-100 animate-fade-in">
+                              <div
+                                className="text-xs text-slate-600 leading-relaxed mt-3 bg-slate-50 rounded-lg p-3"
+                                dangerouslySetInnerHTML={{ __html: parseDescription(sData.descriptionTemplate, sData.parameters, isExFormat, sData.descriptionTemplate, sData.parameters) }}
+                              />
+                              
+                              {hasParams && (
+                                <div className="mt-3">
+                                  {renderMultipliers(sData.parameters, isExFormat, sData.descriptionTemplate)}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* 3. 전용 무기 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">

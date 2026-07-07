@@ -353,6 +353,57 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                 </div>
               </div>
 
+              {/* 2.5 소환수 스킬 */}
+              {master.summon && master.summon.skills && (
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
+                    <h3 className="font-bold text-slate-800 text-base">{master.summon.entityName || '소환수'} 스킬</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {['normal', 'passive', 'sub'].map((baseKey, i) => {
+                      const sData = (master.summon!.skills as any)?.[baseKey];
+                      if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
+                      
+                      // 소환수 스킬 레벨은 EX 스킬 레벨을 따라감
+                      const lvl = (record.skillLevels as any)?.ex || 1;
+                      const isMax = lvl === 5; // EX 스킬 최대 레벨은 5
+                      
+                      const label = baseKey === 'normal' ? '기본 스킬' : baseKey === 'passive' ? '강화 스킬' : '서브 스킬';
+
+                      return (
+                        <div key={i} className="bg-white p-4 shadow-sm -skew-x-[10deg] rounded-lg flex items-center gap-4 min-h-[100px]">
+                          <div className="skew-x-[10deg] flex w-full gap-4 items-center">
+                            {/* Icon placeholder */}
+                            <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
+                              {sData.iconUrl ? (
+                                <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover rounded-full" />
+                              ) : (
+                                <span className="text-[10px] font-black text-slate-400">IMG</span>
+                              )}
+                            </div>
+                            
+                            {/* Skill Info */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-[11px] font-black px-2 py-0.5 rounded ${isMax ? 'bg-[#FF8888] text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                  {isMax ? 'MAX' : `Lv.${lvl}`}
+                                </span>
+                                <span className="font-black text-slate-800 text-sm truncate">{sData.name || label}</span>
+                              </div>
+                              <div
+                                className="text-xs text-slate-600 leading-snug line-clamp-2"
+                                dangerouslySetInnerHTML={{ __html: parseDescription(sData.descriptionTemplate, sData.parameters, lvl, sData.descriptionTemplate, sData.parameters) }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* 3. 전용 무기 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
