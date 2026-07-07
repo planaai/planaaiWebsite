@@ -35,6 +35,8 @@ export interface FormationState {
   removeStudent: (teamId: string, type: 'striker' | 'special', index: number) => void;
   swapStudents: (teamId1: string, type1: 'striker' | 'special', index1: number, teamId2: string, type2: 'striker' | 'special', index2: number) => void;
   fetchImageOffsets: () => Promise<void>;
+  studentModes: Record<number, number>;
+  setStudentMode: (studentId: number, modeIndex: number) => void;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -60,6 +62,12 @@ export const useFormationStore = create<FormationState>()(
       selectedSlot: null,
       savedFormations: {},
       imageOffsets: {},
+      studentModes: {},
+
+      setStudentMode: (studentId, modeIndex) => 
+        set((state) => ({
+          studentModes: { ...state.studentModes, [studentId]: modeIndex }
+        })),
 
       setMode: (newMode) =>
         set((state) => {

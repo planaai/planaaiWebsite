@@ -18,6 +18,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   const [showSkillMultipliers, setShowSkillMultipliers] = useState<Record<string, boolean>>({});
   const [weaponStars, setWeaponStars] = useState<number>(0);
   const [favTier, setFavTier] = useState<number>(0);
+  const [selectedMode, setSelectedMode] = useState(0);
 
   const getLabel = (enumKey: string, valKey: string | undefined) => {
     if (!valKey) return '-';
@@ -199,7 +200,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
     const hasT2Fav = favTier >= 2;
     const has2StarWep = weaponStars >= 2;
 
-    const activeSkillSet = master.skills && master.skills.length > 0 ? master.skills[0] : null;
+    const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
     if (!activeSkillSet) return { key: baseKey, label: baseKey, data: undefined, baseData: undefined };
 
     const getFirstSkill = (s: any) => Array.isArray(s) ? s[0] : s;
@@ -264,15 +265,35 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
               
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
-                {master.portraitUrls && master.portraitUrls.length > 1 ? (
-                  <img src={`https://api.planaai.kro.kr${master.portraitUrls[1]}`} className="absolute -bottom-8 translate-y-10 w-[120%] max-w-[120%] h-[115%] object-contain object-bottom pointer-events-none" alt={master.name} />
-                ) : master.portraitUrls && master.portraitUrls.length > 0 ? (
-                  <img src={`https://api.planaai.kro.kr${master.portraitUrls[0]}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />
-                ) : (
-                  <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
-                    일러스트 없음
+
+                {master.skills && master.skills.length > 1 && (
+                  <div className="absolute top-8 right-8 z-50 flex flex-col gap-2">
+                    {master.skills.map((skillSet, idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => setSelectedMode(idx)}
+                        className={`px-4 py-2 rounded-full font-bold shadow-sm transition-colors text-sm ${selectedMode === idx ? 'bg-[var(--plana-primary)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                      >
+                        {skillSet.modeName || `모드 ${idx + 1}`}
+                      </button>
+                    ))}
                   </div>
                 )}
+                {(() => {
+                  const portraitUrl = (master.skills && master.skills.length > selectedMode && master.skills[selectedMode].portraitUrl)
+                    ? master.skills[selectedMode].portraitUrl
+                    : (master.portraitUrls && master.portraitUrls.length > selectedMode ? master.portraitUrls[selectedMode] : master.portraitUrls?.[0]);
+                  
+                  if (portraitUrl) {
+                    return <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;
+                  } else {
+                    return (
+                      <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
+                        일러스트 없음
+                      </div>
+                    );
+                  }
+                })()}
               </div>
 
               {/* Student Info Bar (Bottom) */}

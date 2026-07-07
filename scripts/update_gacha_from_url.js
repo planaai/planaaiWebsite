@@ -72,6 +72,7 @@ async function updateGacha() {
         gachaData.banners = banners;
         
         banners.forEach(banner => {
+            if (banner.name.includes('앙코르 모집')) return;
             banner.pickups.forEach(p => {
                 if (p.rarity === 3 && !gachaData.pools["3_star"].includes(p.name)) {
                     gachaData.pools["3_star"].unshift(p.name);

@@ -68,6 +68,8 @@ export interface Skill {
 
 export interface SkillSet {
   modeName?: string;
+  portraitUrl?: string;
+  fullIllustUrl?: string;
   ex: Skill | Skill[];
   normal: Skill | Skill[];
   passive: Skill;

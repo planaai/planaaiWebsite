@@ -48,6 +48,12 @@ export default function GachaPage() {
       setMasterDataMap(map);
 
       if (gachaStatus) {
+        // 백엔드 캐시 오류 대응: 3성 풀에서 '앙코르 모집!' 등의 잘못된 이름 제거
+        if (gachaStatus.pools && gachaStatus.pools["3_star"]) {
+          gachaStatus.pools["3_star"] = gachaStatus.pools["3_star"].filter(
+            (name: string) => !name.includes('앙코르 모집')
+          );
+        }
         setGachaData(gachaStatus);
       }
     }

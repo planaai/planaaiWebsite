@@ -14,8 +14,17 @@ interface Props {
 }
 
 export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
-  const { mode, teams, removeStudent, assignStudent, swapStudents, imageOffsets } = useFormationStore();
+  const { mode, teams, removeStudent, assignStudent, swapStudents, imageOffsets, studentModes, setStudentMode } = useFormationStore();
   const { showConfirm } = useAlert();
+
+  const currentMode = student ? (studentModes[student.id] || 0) : 0;
+  
+  const handleModeToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (student && student.skills && student.skills.length > 1) {
+      setStudentMode(student.id, currentMode === 0 ? 1 : 0);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent) => {
     if (student) {
@@ -101,6 +110,23 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
     }
   };
 
+  // Helper for portrait URL
+  const getSlotPortraitUrl = () => {
+    if (!student) return null;
+    if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
+      return student.skills[currentMode].portraitUrl;
+    }
+    if (student.portraitUrls && student.portraitUrls.length > currentMode) {
+      return student.portraitUrls[currentMode];
+    }
+    if (student.portraitUrls && student.portraitUrls.length > 0) {
+      return student.portraitUrls[0];
+    }
+    return null;
+  };
+
+  const portraitUrl = getSlotPortraitUrl();
+
   // Striker Rendering
   if (type === 'striker') {
     const sizeClasses = isCompact 
@@ -118,12 +144,12 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
         {/* Character Image */}
         {student ? (
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
-            {student.portraitUrls && student.portraitUrls.length > 1 ? (
+            {portraitUrl ? (
               (() => {
                 const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
                 return (
                   <img
-                    src={getImageUrl(student.portraitUrls[1])}
+                    src={getImageUrl(portraitUrl)}
                     alt={student.name}
                     className="max-w-none object-cover drop-shadow-xl transition-transform"
                     style={{ 
@@ -134,12 +160,6 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
                   />
                 );
               })()
-            ) : student.portraitUrls && student.portraitUrls.length > 0 ? (
-              <img
-                src={getImageUrl(student.portraitUrls[0])}
-                alt={student.name}
-                className="w-[120%] object-contain drop-shadow-xl"
-              />
             ) : (
               <div className="relative mb-8 pointer-events-auto">
                 <div className={`${isCompact ? 'w-[65px] h-[65px]' : 'w-[100px] h-[100px]'} bg-slate-100/80 rounded-full flex items-center justify-center text-slate-400 shadow-lg group-hover:text-[var(--plana-primary)] transition-colors`}>
@@ -161,6 +181,16 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
                 className="absolute top-2 right-2 sm:top-6 sm:right-6 bg-red-500 text-white rounded-full p-2.5 sm:p-3 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-600 z-50 pointer-events-auto shadow-lg hover:scale-110"
               >
                 <X size={20} strokeWidth={2.5} />
+              </button>
+            )}
+
+            {/* Mode Toggle Button */}
+            {student.skills && student.skills.length > 1 && (
+              <button
+                onClick={handleModeToggle}
+                className="absolute top-2 left-2 sm:top-6 sm:left-6 bg-[var(--plana-primary)] text-white text-xs font-bold rounded-full px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 z-50 pointer-events-auto shadow-lg hover:scale-105"
+              >
+                {student.skills[currentMode].modeName || '모드 변경'}
               </button>
             )}
           </div>
@@ -225,11 +255,18 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
     >
       {student ? (
         <>
-          <div className="aspect-square h-full rounded bg-slate-100 overflow-hidden relative shadow-inner shrink-0">
-             {student.portraitUrls && student.portraitUrls.length > 0 ? (
-               <img src={getImageUrl(student.portraitUrls[0])} alt={student.name} className="w-full h-full object-cover" />
+          <div className="aspect-square h-full rounded bg-slate-100 overflow-hidden relative shadow-inner shrink-0 cursor-pointer" onClick={handleModeToggle}>
+             {portraitUrl ? (
+               <img src={getImageUrl(portraitUrl)} alt={student.name} className="w-full h-full object-cover" />
              ) : (
                <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100 group-hover:text-[var(--plana-primary)] transition-colors"><User size={28} strokeWidth={1.5} /></div>
+             )}
+             
+             {/* Mode Toggle Indicator for special */}
+             {student.skills && student.skills.length > 1 && (
+               <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[8px] text-center font-bold pb-0.5">
+                 {student.skills[currentMode].modeName}
+               </div>
              )}
           </div>
           
