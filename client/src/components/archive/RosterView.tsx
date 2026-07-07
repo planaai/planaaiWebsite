@@ -20,6 +20,7 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
   const [filterFieldType, setFilterFieldType] = useState('');
   const [filterOwned, setFilterOwned] = useState<'owned' | 'unowned'>('owned');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [studentModes, setStudentModes] = useState<Record<number, number>>({});
   
   const records = useArchiveStore(state => state.records);
 
@@ -123,6 +124,11 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
           const record = records[master.id];
           const schoolLabel = schema.enums.School?.values?.find(v => v.key === master.school)?.label || master.school;
           
+          const currentMode = studentModes[master.id] || 0;
+          const portraitUrl = (master.skills && master.skills.length > currentMode && master.skills[currentMode].portraitUrl)
+            ? master.skills[currentMode].portraitUrl
+            : (master.portraitUrls && master.portraitUrls.length > currentMode ? master.portraitUrls[currentMode] : master.portraitUrls?.[0]);
+
           return (
             <Link key={master.id} href={mode === 'collection' ? `/student/${master.id}` : `/archive/student/${master.id}`} prefetch={false} className="block group">
               <div className={`relative bg-white rounded-xl overflow-hidden border transition-all duration-300 clip-diagonal shadow-[0_4px_10px_rgba(188,163,240,0.1)] ${(mode === 'archive' || isOwned) ? 'border-[var(--plana-primary-light)] hover:border-[var(--plana-accent)] hover:shadow-[0_8px_20px_rgba(255,166,201,0.3)] hover:-translate-y-1' : 'border-slate-200 opacity-60 hover:opacity-100 grayscale hover:grayscale-0'}`}>
@@ -130,16 +136,33 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
                   <span className="absolute top-2 left-2 text-[10px] font-black text-white bg-[var(--plana-primary-dark)]/80 px-2 py-0.5 rounded backdrop-blur-sm z-10 shadow-sm">
                     {isOwned && record?.level ? `Lv.${record.level}` : `No.${master.studentNumber || '-'}`}
                   </span>
-                  {master.portraitUrls && master.portraitUrls.length > 0 ? (
-                    <img src={`https://api.planaai.kro.kr${master.portraitUrls[0]}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
+                  
+                  {master.skills && master.skills.length > 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setStudentModes(prev => ({
+                          ...prev,
+                          [master.id]: ((prev[master.id] || 0) + 1) % master.skills.length
+                        }));
+                      }}
+                      className="absolute top-2 right-2 z-20 bg-white/80 hover:bg-white text-[var(--plana-primary)] border border-slate-200 shadow-sm rounded-md px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-md transition-colors"
+                    >
+                      {master.skills[currentMode].modeName || `모드 ${currentMode + 1}`}
+                    </button>
+                  )}
+
+                  {portraitUrl ? (
+                    <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                       <span className="text-xs text-[var(--plana-text-muted)] font-bold">No Image</span>
                     </div>
                   )}
                   {(mode === 'archive' || isOwned) && (
-                    <div className="absolute bottom-2 right-2 flex gap-0.5 z-10 bg-white/50 backdrop-blur-md px-1.5 py-0.5 rounded-full shadow-sm">
-                      {Array.from({ length: mode === 'collection' ? (record.currentStars || master.starNum) : master.starNum }).map((_, i) => (
+                    <div className="absolute bottom-2 right-2 flex gap-0.5 z-10 bg-white/50 backdrop-blur-md px-1.5 py-0.5 rounded-full shadow-sm pointer-events-none">
+                      {Array.from({ length: mode === 'collection' ? (record?.currentStars || master.starNum) : master.starNum }).map((_, i) => (
                         <Star key={i} size={10} className="fill-yellow-400 text-yellow-400 drop-shadow-sm" />
                       ))}
                     </div>
