@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
+import { getCachedServerData, getCachedSchema, getSyncServerDataCache, getSyncSchemaCache } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { RosterView } from '@/components/archive/RosterView';
 import { useArchiveStore } from '@/store/archiveStore';
@@ -9,19 +9,18 @@ import { useAuthStore } from '@/store/authStore';
 import SyncPanel from '@/components/SyncPanel';
 
 export default function Home() {
-  const [masterData, setMasterData] = useState<StudentMaster[]>([]);
-  const [schema, setSchema] = useState<SchemaConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [masterData, setMasterData] = useState<StudentMaster[]>(() => getSyncServerDataCache()?.masterData || []);
+  const [schema, setSchema] = useState<SchemaConfig | null>(() => getSyncSchemaCache());
+  const [loading, setLoading] = useState(() => !getSyncServerDataCache());
 
   useEffect(() => {
+    if (!loading) return; // 이미 동기 캐시로 로드된 경우
     let cancelled = false;
     async function loadData() {
       const [{ masterData, archiveData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
       if (cancelled) return;
       setMasterData(masterData);
       setSchema(s);
-      
-
       
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, Filter, Star, CheckCircle, Circle } from 'lucide-react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
+import { useRosterFilterStore } from '@/store/rosterFilterStore';
 import { RegistrationModal } from './RegistrationModal';
 
 interface RosterViewProps {
@@ -14,11 +15,21 @@ interface RosterViewProps {
 }
 
 export function RosterView({ initialMasterData, schema, mode = 'collection' }: RosterViewProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterSchool, setFilterSchool] = useState('');
-  const [filterRole, setFilterRole] = useState('');
-  const [filterFieldType, setFilterFieldType] = useState('');
-  const [filterOwned, setFilterOwned] = useState<'owned' | 'unowned'>('owned');
+  const { collection, archive, setFilter } = useRosterFilterStore();
+  const filters = mode === 'collection' ? collection : archive;
+
+  const searchQuery = filters.searchQuery;
+  const filterSchool = filters.filterSchool;
+  const filterRole = filters.filterRole;
+  const filterFieldType = filters.filterFieldType;
+  const filterOwned = filters.filterOwned;
+
+  const setSearchQuery = (val: string) => setFilter(mode, 'searchQuery', val);
+  const setFilterSchool = (val: string) => setFilter(mode, 'filterSchool', val);
+  const setFilterRole = (val: string) => setFilter(mode, 'filterRole', val);
+  const setFilterFieldType = (val: string) => setFilter(mode, 'filterFieldType', val);
+  const setFilterOwned = (val: any) => setFilter(mode, 'filterOwned', val);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const records = useArchiveStore(state => state.records);

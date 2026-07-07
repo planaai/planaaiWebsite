@@ -5,8 +5,6 @@ import { createPortal } from 'react-dom';
 import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIcon, Loader2 } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
-import { processScreenshot } from '@/lib/ocrParser';
-import { API_BASE } from '@/lib/api';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -19,18 +17,13 @@ interface RegistrationModalProps {
 type RegistrationForm = Partial<ArchiveRecord> & { 
   _localId: number; 
   _isCollapsed: boolean;
-  _imageUrl?: string;
-  _needsReview?: boolean;
-  _rawText?: string;
 };
 
 export function RegistrationModal({ isOpen, onClose, masterData, schema, initialEditRecord }: RegistrationModalProps) {
   const [mounted, setMounted] = useState(false);
-  const [mode, setMode] = useState<'manual' | 'ocr'>('manual');
   const [forms, setForms] = useState<RegistrationForm[]>([]);
   const [nextId, setNextId] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
-  const [ocrProgress, setOcrProgress] = useState<{ current: number; total: number; isProcessing: boolean }>({ current: 0, total: 0, isProcessing: false });
 
   // Initialize forms when modal opens
   React.useEffect(() => {
@@ -38,10 +31,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     if (isOpen) {
       if (initialEditRecord) {
         setForms([{ ...initialEditRecord, _localId: 0, _isCollapsed: false }]);
-        setMode('manual');
       } else {
         setForms([{ _localId: 0, _isCollapsed: false }]);
-        setMode('manual'); // Default to manual when OCR is disabled
         setNextId(1);
       }
     }
@@ -75,15 +66,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
   const toggleCollapse = (localId: number) => {
     setForms(prev => prev.map(f => f._localId === localId ? { ...f, _isCollapsed: !f._isCollapsed } : f));
   };
-
   const removeForm = (localId: number) => {
-    setForms(prev => {
-      const formToRemove = prev.find(f => f._localId === localId);
-      if (formToRemove?._imageUrl) {
-        URL.revokeObjectURL(formToRemove._imageUrl);
-      }
-      return prev.filter(f => f._localId !== localId);
-    });
+    setForms(prev => prev.filter(f => f._localId !== localId));
   };
 
   const handleSaveAll = async () => {
@@ -93,7 +77,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
       if (validForms.length === 0) return;
 
       const payloads = validForms.map(f => {
-        const { _localId, _isCollapsed, _imageUrl, _needsReview, ...rest } = f;
+        const { _localId, _isCollapsed, ...rest } = f;
         return {
           ...rest,
           level: rest.level || 1,
@@ -112,7 +96,6 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
         store.syncToServer().catch(console.error);
       }
 
-      forms.forEach(f => { if (f._imageUrl) URL.revokeObjectURL(f._imageUrl); });
       onClose();
     } catch (err) {
       console.error(err);
@@ -122,51 +105,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement> | React.DragEvent) => {
-    let files: File[] = [];
-    if ('dataTransfer' in e) {
-      e.preventDefault();
-      files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    } else if (e.target && 'files' in e.target && e.target.files) {
-      files = Array.from(e.target.files);
-    }
-    
-    if (files.length === 0) return;
 
-    setOcrProgress({ current: 0, total: files.length, isProcessing: true });
-    
-    const newForms: RegistrationForm[] = [];
-    let idCounter = nextId;
-
-    for (let i = 0; i < files.length; i++) {
-      setOcrProgress({ current: i + 1, total: files.length, isProcessing: true });
-      const { parsedData, error, rawText } = await processScreenshot(files[i], masterData);
-      
-      // Always log to server for debugging
-      const formData = new FormData();
-      formData.append('image', files[i]);
-      formData.append('rawText', rawText || '');
-      formData.append('error', error || 'Debug OCR Log');
-      fetch(`${API_BASE}/archive/ocr-error-log`, { method: 'POST', body: formData }).catch(console.warn);
-
-      newForms.push({
-        ...parsedData,
-        _localId: idCounter++,
-        _isCollapsed: !parsedData._needsReview,
-        _imageUrl: URL.createObjectURL(files[i]),
-        _needsReview: parsedData._needsReview,
-        _rawText: rawText
-      });
-    }
-
-    setNextId(idCounter);
-    setForms(prev => [...prev.map(f => ({ ...f, _isCollapsed: true })), ...newForms]);
-    setOcrProgress({ current: 0, total: 0, isProcessing: false });
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
 
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
@@ -181,51 +120,14 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
           </button>
         </div>
 
-        {/* Tabs */}
-        {!initialEditRecord && (
-          <div className="flex border-b border-[var(--plana-border)]">
-            <button onClick={() => setMode('manual')} className={`flex-1 py-4 font-bold flex items-center justify-center gap-2 transition-colors ${mode === 'manual' ? 'bg-[var(--plana-primary-light)] text-[var(--plana-primary-dark)] border-b-2 border-[var(--plana-accent)]' : 'text-[var(--plana-text-muted)] hover:bg-slate-50'}`}>
-              <Edit3 size={18} /> 수동으로 입력하기
-            </button>
-            <button disabled className="flex-1 py-4 font-bold flex items-center justify-center gap-2 transition-colors text-slate-400 bg-slate-100 cursor-not-allowed">
-              <ImageIcon size={18} /> 스크린샷 자동 입력 (서버 점검 중)
-            </button>
-          </div>
-        )}
+
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/50">
-          {mode === 'ocr' && (
-            <div 
-              onDragOver={handleDragOver}
-              onDrop={handleImageUpload}
-              className="flex flex-col items-center justify-center border-2 border-dashed rounded-2xl transition-colors relative mb-6 h-64 border-[var(--plana-accent)] bg-[var(--plana-primary-light)]/10 text-[var(--plana-text-main)] hover:bg-[var(--plana-primary-light)]/20"
-            >
-              <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              {ocrProgress.isProcessing ? (
-                <>
-                  <Loader2 size={48} className="mb-4 text-[var(--plana-primary)] animate-spin" />
-                  <p className="font-bold text-lg text-[var(--plana-text-main)]">이미지 분석 중... ({ocrProgress.current}/{ocrProgress.total})</p>
-                  <p className="text-sm mt-2 text-[var(--plana-text-muted)]">이 작업은 약간의 시간이 소요될 수 있습니다.</p>
-                </>
-              ) : (
-                <>
-                  <Upload size={48} className="mb-4 text-[var(--plana-accent)]" />
-                  <p className="font-bold text-lg">클릭하여 이미지 업로드 또는 드래그 앤 드롭</p>
-                  <p className="text-sm mt-2 text-[var(--plana-text-muted)]">블루 아카이브 학생 정보 화면 스크린샷을 여러 장 선택할 수 있습니다.</p>
-                  <p className="text-xs mt-1 text-[var(--plana-primary)] font-bold">PC 클라이언트 16:9 해상도 권장 (FHD: 1920x1080, QHD: 2560x1440, 4K: 3840x2160)</p>
-                </>
-              )}
-            </div>
-          )}
-
-          {(mode === 'manual' || forms.length > 0) && (
+          {forms.length > 0 && (
             <div className="space-y-4">
               {forms.map((form, index) => {
-                // In OCR mode, hide empty manual forms
-                if (mode === 'ocr' && !form._imageUrl && !form.studentId && !form.level) {
-                  return null;
-                }
+
 
                 const selectedMaster = masterData.find(m => m.id === form.studentId);
                 
@@ -249,12 +151,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                         </span>
                       </div>
                       <div className="flex items-center gap-4">
-                        {form._imageUrl && (!form.studentId || !form.level) && (
-                          <div className="px-2 py-0.5 rounded text-[10px] font-black bg-orange-100 text-orange-600 border border-orange-200">검수 필요</div>
-                        )}
-                        {form._imageUrl && form.studentId && form.level && (
-                          <div className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-600 border border-emerald-200">인식 완료</div>
-                        )}
+
                         {!initialEditRecord && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); removeForm(form._localId); }}
@@ -270,18 +167,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                     {/* Accordion Body */}
                     {!form._isCollapsed && (
                       <div className="p-5 flex flex-col xl:flex-row gap-6">
-                        {/* Split View Left: Image Preview */}
-                        {form._imageUrl && (
-                          <div className="xl:w-1/3 shrink-0 flex flex-col bg-slate-50 rounded-xl border border-slate-200 overflow-hidden relative min-h-[400px]">
-                            <div className="bg-slate-100 border-b border-slate-200 text-slate-500 text-xs font-bold p-2 text-center">원본 스크린샷 이미지</div>
-                            <div className="flex-1 p-2 overflow-auto custom-scrollbar flex items-center justify-center">
-                              <img src={form._imageUrl} className="max-w-full max-h-full object-contain drop-shadow-md" />
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Split View Right: Form Elements */}
-                        <div className={`space-y-6 ${form._imageUrl ? 'xl:w-2/3' : 'w-full'}`}>
+                        <div className="w-full space-y-6">
                           {/* 1. Student Selection */}
                         <div>
                           <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">학생 선택</label>
@@ -480,8 +366,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
             onClick={handleSaveAll}
             disabled={
               isSaving || 
-              forms.filter(f => f._imageUrl || f.studentId || f.level).length === 0 || 
-              forms.filter(f => f._imageUrl || f.studentId || f.level).some(f => !f.studentId || !f.level)
+              forms.filter(f => f.studentId || f.level).length === 0 || 
+              forms.filter(f => f.studentId || f.level).some(f => !f.studentId || !f.level)
             }
             className="px-8 py-2.5 bg-[var(--plana-primary)] hover:bg-[var(--plana-accent)] text-white font-black rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_10px_rgba(188,163,240,0.3)]"
           >

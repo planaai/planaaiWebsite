@@ -91,3 +91,19 @@ export function invalidateCache() {
   schemaCache = null;
   schemaCacheTime = 0;
 }
+
+export function getSyncServerDataCache() {
+  const now = Date.now();
+  if (serverDataCache && (now - serverDataCacheTime < CACHE_TTL)) {
+    return serverDataCache;
+  }
+  return null;
+}
+
+export function getSyncSchemaCache() {
+  const now = Date.now();
+  if (schemaCache && (now - schemaCacheTime < CACHE_TTL)) {
+    return schemaCache;
+  }
+  return null;
+}
