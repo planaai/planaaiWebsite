@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Sword, Shield } from 'lucide-react';
+import { ArrowLeft, Sword, Shield, Crosshair } from 'lucide-react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { computeDiff } from '@/lib/diffUtils';
 import { parseTerrainUpgrade } from '@/lib/terrainUtils';
@@ -272,9 +272,10 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <button 
                         key={idx}
                         onClick={() => setSelectedMode(idx)}
-                        className={`px-4 py-2 rounded-full font-bold shadow-sm transition-colors text-sm ${selectedMode === idx ? 'bg-[var(--plana-primary)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                        className={`p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${selectedMode === idx ? 'bg-[var(--plana-primary)] text-white' : 'bg-white text-slate-400 hover:bg-slate-50'}`}
+                        title={skillSet.modeName || (idx === 0 ? '방어형' : '공격형')}
                       >
-                        {skillSet.modeName || `모드 ${idx + 1}`}
+                        {idx === 0 ? <Shield size={24} /> : idx === 1 ? <Crosshair size={24} /> : <span className="px-2 font-bold text-sm">{skillSet.modeName || `모드 ${idx + 1}`}</span>}
                       </button>
                     ))}
                   </div>
