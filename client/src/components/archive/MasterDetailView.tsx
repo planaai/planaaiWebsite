@@ -199,6 +199,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
   const effectiveUwEffects = activeSkillSet?.uniqueWeaponEffects || master.uniqueWeaponEffects;
   const effectiveUwName = activeSkillSet?.uniqueWeaponName || master.uniqueWeaponName;
+  const effectiveRole = activeSkillSet?.Role || master.Role;
 
   const getEffectiveSkill = (baseKey: string) => {
     const hasT2Fav = favTier >= 2;
@@ -328,7 +329,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   <div className="flex gap-2 text-[13px] font-bold -skew-x-[15deg] -translate-x-2">
                     <div className="flex flex-col gap-1.5 w-24">
                       <div className="px-2 py-1 bg-slate-200 text-slate-600 shadow-sm whitespace-nowrap flex items-center justify-center w-full">
-                        <div className="skew-x-[15deg]">{getLabel('Role', master.Role)}</div>
+                        <div className="skew-x-[15deg]">{getLabel('Role', effectiveRole)}</div>
                       </div>
                       <div className="px-2 py-1 bg-white border border-slate-200 text-slate-600 shadow-sm whitespace-nowrap flex items-center justify-center w-full flex-1">
                         <div className="skew-x-[15deg]">{getLabel('Position', master.position) || master.position}</div>

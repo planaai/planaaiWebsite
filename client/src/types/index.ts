@@ -77,6 +77,7 @@ export interface SkillSet {
   normalPlus?: Skill;
   passivePlus?: Skill;
   uniqueWeaponName?: string;
+  Role?: string;
   uniqueWeaponEffects?: { star2?: string; star3?: string; star4?: string };
 }
 

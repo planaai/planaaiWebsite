@@ -159,7 +159,12 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                   </div>
                   <Select label="포지션" value={form.position} onChange={v => setForm({ ...form, position: v })} options={schema.enums.Position?.values || []} />
                   <Select label="보조 포지션 (선택)" value={form.position2 || ''} onChange={v => setForm({ ...form, position2: v })} options={schema.enums.Position?.values || []} />
-                  <Select label="역할" value={form.Role} onChange={v => setForm({ ...form, Role: v })} options={schema.enums.Role?.values || []} />
+                  <Select label="역할" value={((form.skills?.[activeSkillIndex]?.Role) || (activeSkillIndex === 0 ? form.Role : ''))} onChange={v => {
+                    const newSkills = [...(form.skills || [])];
+                    if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
+                    newSkills[activeSkillIndex] = { ...newSkills[activeSkillIndex], Role: v };
+                    setForm({ ...form, Role: activeSkillIndex === 0 ? v : form.Role, skills: newSkills });
+                  }} options={schema.enums.Role?.values || []} />
                   <Select label="보조 역할 (선택)" value={form.Role2 || ''} onChange={v => setForm({ ...form, Role2: v })} options={schema.enums.Role?.values || []} />
                   <Select label="무기 종류" value={form.weaponType} onChange={v => setForm({ ...form, weaponType: v })} options={schema.enums.WeaponType?.values || []} />
                   <Select label="공격 속성" value={form.attackType} onChange={v => setForm({ ...form, attackType: v })} options={schema.enums.AttackType?.values || []} />
