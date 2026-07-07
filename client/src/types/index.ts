@@ -132,6 +132,11 @@ export interface StudentMaster {
       atk?: string;
       healingPower?: string;
     };
+    skills?: {
+      normal?: Skill;
+      passive?: Skill;
+      sub?: Skill;
+    };
   };
   equipmentSlot1: string;
   equipmentSlot2: string;

@@ -259,6 +259,14 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                       />
                     </div>
                   </div>
+                  <div className="col-span-1 sm:col-span-2 mt-2 pt-4 border-t border-teal-500/30">
+                    <h4 className="text-xs font-bold text-teal-400 uppercase tracking-wider mb-3">소환수 전용 스킬</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <SkillInput typeLabel="기본 스킬 (소환수)" skill={(form.summon?.skills?.normal as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => setForm({ ...form, summon: { ...form.summon!, skills: { ...(form.summon?.skills || {}), normal: s } } })} showToast={showToast} />
+                      <SkillInput typeLabel="강화 스킬 (소환수)" skill={(form.summon?.skills?.passive as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => setForm({ ...form, summon: { ...form.summon!, skills: { ...(form.summon?.skills || {}), passive: s } } })} showToast={showToast} />
+                      <SkillInput typeLabel="서브 스킬 (소환수)" skill={(form.summon?.skills?.sub as Skill) || { name: '', descriptionTemplate: '', parameters: {}, iconUrl: '' }} onChange={s => setForm({ ...form, summon: { ...form.summon!, skills: { ...(form.summon?.skills || {}), sub: s } } })} showToast={showToast} />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

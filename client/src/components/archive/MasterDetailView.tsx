@@ -407,7 +407,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   {['ex', 'normal', 'passive', 'sub'].map((baseKey, i) => {
                     const skillInfo = getEffectiveSkill(baseKey);
                     const { key, label, data: sData } = skillInfo;
-                    if (!sData) return null;
+                    if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
                     const isExpanded = showSkillMultipliers[key];
                     const hasParams = sData.parameters && Object.keys(sData.parameters).length > 0;
 

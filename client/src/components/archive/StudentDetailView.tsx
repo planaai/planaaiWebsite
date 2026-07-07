@@ -317,7 +317,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   {['ex', 'normal', 'passive', 'sub'].map((baseKey, i) => {
                     const skillInfo = getEffectiveSkill(baseKey);
                     const { key, label, data: sData } = skillInfo;
-                    if (!sData) return null;
+                    if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
                     const lvl = (record.skillLevels as any)?.[key] || 1;
                     const isMax = (key === 'ex' && lvl === 5) || (key !== 'ex' && lvl === 10);
 
