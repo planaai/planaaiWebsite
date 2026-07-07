@@ -2,7 +2,7 @@ import React from 'react';
 import type { StudentMaster } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
 import { useAlert } from '@/contexts/AlertContext';
-import { X, Plus, User } from 'lucide-react';
+import { X, Plus, User, Shield, Crosshair } from 'lucide-react';
 import { getImageUrl } from '@/components/planner/utils';
 
 interface Props {
@@ -188,9 +188,14 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
             {student.skills && student.skills.length > 1 && (
               <button
                 onClick={handleModeToggle}
-                className="absolute top-2 left-2 sm:top-6 sm:left-6 bg-[var(--plana-primary)] text-white text-xs font-bold rounded-full px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600 z-50 pointer-events-auto shadow-lg hover:scale-105"
+                className="absolute bottom-[90px] right-2 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-50 pointer-events-auto shadow-lg hover:scale-110 border-2 shadow-black/50"
+                style={{
+                  backgroundColor: currentMode === 0 ? '#315B9A' : '#D33F4A',
+                  borderColor: 'rgba(255,255,255,0.9)'
+                }}
+                title={student.skills[currentMode].modeName || '모드 변경'}
               >
-                {student.skills[currentMode].modeName || '모드 변경'}
+                {currentMode === 0 ? <Shield size={16} color="white" /> : <Crosshair size={16} color="white" />}
               </button>
             )}
           </div>
