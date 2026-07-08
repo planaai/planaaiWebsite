@@ -31,6 +31,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
       
       const dataUrl = await toPng(singleExportRef.current, {
         cacheBust: true,
+        pixelRatio: 2,
         filter: (node) => true
       });
       
@@ -59,6 +60,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
       
       const dataUrl = await toPng(allExportRef.current, {
         cacheBust: true,
+        pixelRatio: 2,
         filter: (node) => true
       });
       

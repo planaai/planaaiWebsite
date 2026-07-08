@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
+import { useAuthStore } from '@/store/authStore';
 import { getImageUrl } from '@/components/planner/utils';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ masterData, schema }, ref) => {
   const { teams, activeTeamId, imageOffsets, studentModes } = useFormationStore();
+  const { user } = useAuthStore();
   
   const activeTeam = teams.find(t => t.id === activeTeamId) || teams[0];
   
@@ -79,7 +81,7 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
       
       {/* Title */}
       <div className="absolute top-6 left-6 z-20">
-         <div className="bg-[#2B3A55] text-[#F3C13A] font-bold text-2xl px-6 py-3 rounded-md shadow-lg italic border-l-4 border-[#F3C13A]">
+         <div className="bg-[#2B3A55] text-[#F3C13A] font-bold text-2xl px-6 py-3 rounded-md shadow-lg italic border-l-4 border-[#F3C13A] truncate max-w-[800px]">
            {activeTeam.name}
          </div>
       </div>
@@ -201,6 +203,7 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
 
       <div className="absolute bottom-4 right-6 z-20 text-slate-500/80 text-xs font-semibold">
         Generated at Plana.AI | Date : {new Date().toLocaleString('ko-KR')}
+        {user?.nickname ? ` | By ${user.nickname}` : ''}
       </div>
     </div>
     </div>
