@@ -6,7 +6,9 @@ import { ActiveTeamView } from './ActiveTeamView';
 import { TeamTabs } from './TeamTabs';
 import { toPng } from 'html-to-image';
 import { format } from 'date-fns';
-import { Camera, Loader2 } from 'lucide-react';
+import { Camera, Loader2, ImagePlus } from 'lucide-react';
+import { SingleFormationExportView } from './SingleFormationExportView';
+import { AllFormationsExportView } from './AllFormationsExportView';
 
 interface Props {
   masterData: StudentMaster[];
@@ -16,28 +18,20 @@ interface Props {
 export function FormationBuilder({ masterData, schema }: Props) {
   const { mode, setMode, rosterType, setRosterType, teams, activeTeamId, setActiveTeam } = useFormationStore();
   const [isExporting, setIsExporting] = useState(false);
+  const singleExportRef = React.useRef<HTMLDivElement>(null);
+  const allExportRef = React.useRef<HTMLDivElement>(null);
 
   const handleExport = async () => {
-    const el = document.getElementById('formation-capture-area');
-    if (!el) return;
+    if (!singleExportRef.current) return;
     
     setIsExporting(true);
     try {
       // Allow UI to settle
       await new Promise(res => setTimeout(res, 100));
       
-      const dataUrl = await toPng(el, {
+      const dataUrl = await toPng(singleExportRef.current, {
         cacheBust: true,
-        backgroundColor: '#F8F9FA', // Fallback background
-        style: {
-          backgroundImage: `url('${window.location.origin}/images/ui/plana_bg.jpg')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center"
-        },
-        filter: (node) => {
-          // exclude elements that we don't want in the screenshot if any
-          return true;
-        }
+        filter: (node) => true
       });
       
       const activeTeam = teams.find(t => t.id === activeTeamId);
@@ -46,6 +40,32 @@ export function FormationBuilder({ masterData, schema }: Props) {
       
       const link = document.createElement('a');
       link.download = `planaai_${teamName}_${dateStr}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Failed to export image', err);
+      alert('이미지 저장에 실패했습니다.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportAll = async () => {
+    if (!allExportRef.current) return;
+    
+    setIsExporting(true);
+    try {
+      await new Promise(res => setTimeout(res, 100));
+      
+      const dataUrl = await toPng(allExportRef.current, {
+        cacheBust: true,
+        filter: (node) => true
+      });
+      
+      const dateStr = format(new Date(), 'yyyyMMdd_HHmmss');
+      
+      const link = document.createElement('a');
+      link.download = `planaai_All_Formations_${dateStr}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -98,14 +118,24 @@ export function FormationBuilder({ masterData, schema }: Props) {
               ))}
             </div>
             
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="flex items-center space-x-2 px-4 py-1.5 text-sm rounded-md transition-colors font-bold bg-white border border-[var(--plana-primary)] text-[var(--plana-primary-dark)] hover:bg-[var(--plana-primary-light)] hover:text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-              <span>현재 편성을 이미지로 저장</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="flex items-center space-x-2 px-4 py-1.5 text-sm rounded-md transition-colors font-bold bg-white border border-[var(--plana-primary)] text-[var(--plana-primary-dark)] hover:bg-[var(--plana-primary-light)] hover:text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                <span>현재 편성 내보내기</span>
+              </button>
+              <button
+                onClick={handleExportAll}
+                disabled={isExporting}
+                className="flex items-center space-x-2 px-4 py-1.5 text-sm rounded-md transition-colors font-bold bg-[var(--plana-primary)] border border-[var(--plana-primary)] text-white hover:bg-[var(--plana-primary-dark)] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isExporting ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
+                <span>모든 편성 내보내기</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -130,6 +160,10 @@ export function FormationBuilder({ masterData, schema }: Props) {
             <RosterPanel masterData={masterData} schema={schema} />
           </div>
         </div>
+        
+        {/* Hidden Export Components */}
+        <SingleFormationExportView ref={singleExportRef} masterData={masterData} schema={schema} />
+        <AllFormationsExportView ref={allExportRef} masterData={masterData} schema={schema} />
       </div>
     </div>
   );
