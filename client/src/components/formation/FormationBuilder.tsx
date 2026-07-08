@@ -30,7 +30,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
         cacheBust: true,
         backgroundColor: '#F8F9FA', // Fallback background
         style: {
-          backgroundImage: "url('/images/ui/plana_bg.jpg')",
+          backgroundImage: `url('${window.location.origin}/images/ui/plana_bg.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center"
         },
@@ -104,7 +104,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
               className="flex items-center space-x-2 px-4 py-1.5 text-sm rounded-md transition-colors font-bold bg-white border border-[var(--plana-primary)] text-[var(--plana-primary-dark)] hover:bg-[var(--plana-primary-light)] hover:text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-              <span>이미지 저장</span>
+              <span>현재 편성을 이미지로 저장</span>
             </button>
           </div>
         </div>
