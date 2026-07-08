@@ -39,30 +39,39 @@ router.post('/sync', requireAuth, async (req, res) => {
     const results = [];
 
     for (const item of collections) {
-      const { studentId, starGrade, isOwned } = item;
+      let { studentId, starGrade, isOwned } = item;
       if (!studentId) continue;
+      
+      studentId = parseInt(studentId, 10);
+      if (isNaN(studentId)) continue;
+      
+      starGrade = starGrade !== undefined ? parseInt(starGrade, 10) : undefined;
 
-      const record = await prisma.collection.upsert({
-        where: {
-          userId_studentId: {
+      try {
+        const record = await prisma.collection.upsert({
+          where: {
+            userId_studentId: {
+              userId,
+              studentId
+            }
+          },
+          update: {
+            starGrade: starGrade !== undefined ? starGrade : undefined,
+            isOwned: isOwned !== undefined ? isOwned : undefined,
+            details: item
+          },
+          create: {
             userId,
-            studentId
+            studentId,
+            starGrade: starGrade || 3,
+            isOwned: isOwned !== undefined ? isOwned : true,
+            details: item
           }
-        },
-        update: {
-          starGrade: starGrade !== undefined ? starGrade : undefined,
-          isOwned: isOwned !== undefined ? isOwned : undefined,
-          details: item
-        },
-        create: {
-          userId,
-          studentId,
-          starGrade: starGrade || 3,
-          isOwned: isOwned !== undefined ? isOwned : true,
-          details: item
-        }
-      });
-      results.push(record);
+        });
+        results.push(record);
+      } catch (err) {
+        console.warn(`Failed to sync student ${studentId} for user ${userId}:`, err.message);
+      }
     }
 
     const lastSyncTime = new Date().toISOString();
