@@ -54,7 +54,7 @@ export default function Register() {
             <input
               type="text"
               required
-              className="w-full px-3 py-2 mt-1 border border-slate-600 rounded-md shadow-sm bg-slate-900 text-slate-800 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
+              className="w-full px-3 py-2 mt-1 border border-slate-300 rounded-md shadow-sm bg-white text-slate-800 focus:outline-none focus:ring-[var(--plana-primary)] focus:border-[var(--plana-primary)]"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -64,7 +64,7 @@ export default function Register() {
             <input
               type="password"
               required
-              className="w-full px-3 py-2 mt-1 border border-slate-600 rounded-md shadow-sm bg-slate-900 text-slate-800 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
+              className="w-full px-3 py-2 mt-1 border border-slate-300 rounded-md shadow-sm bg-white text-slate-800 focus:outline-none focus:ring-[var(--plana-primary)] focus:border-[var(--plana-primary)]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

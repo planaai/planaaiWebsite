@@ -29,26 +29,36 @@ router.get('/', optionalAuth, async (req, res) => {
 
 // 컬렉션 동기화 (Upsert 방식)
 router.post('/sync', requireAuth, async (req, res) => {
-  const { collections } = req.body; // 배열 형태로 전달
-  if (!Array.isArray(collections)) {
-    return res.status(400).json({ error: 'collections 배열이 필요합니다.' });
-  }
-
   try {
-    const userId = req.user.id;
-    const results = [];
+    const collections = req.body?.collections;
+    if (!Array.isArray(collections)) {
+      return res.status(400).json({ error: 'collections 배열이 필요합니다.' });
+    }
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: '인증 정보가 유효하지 않습니다.' });
+    }
+
+    let syncedCount = 0;
 
     for (const item of collections) {
+      if (!item || typeof item !== 'object') continue;
+      
       let { studentId, starGrade, isOwned } = item;
-      if (!studentId) continue;
+      
+      if (studentId === undefined || studentId === null) continue;
       
       studentId = parseInt(studentId, 10);
       if (isNaN(studentId)) continue;
       
-      starGrade = starGrade !== undefined ? parseInt(starGrade, 10) : undefined;
+      starGrade = starGrade !== undefined && starGrade !== null ? parseInt(starGrade, 10) : undefined;
+      if (starGrade !== undefined && isNaN(starGrade)) starGrade = undefined;
+      
+      isOwned = isOwned !== undefined && isOwned !== null ? Boolean(isOwned) : true;
 
       try {
-        const record = await prisma.collection.upsert({
+        await prisma.collection.upsert({
           where: {
             userId_studentId: {
               userId,
@@ -56,29 +66,29 @@ router.post('/sync', requireAuth, async (req, res) => {
             }
           },
           update: {
-            starGrade: starGrade !== undefined ? starGrade : undefined,
-            isOwned: isOwned !== undefined ? isOwned : undefined,
+            starGrade,
+            isOwned,
             details: item
           },
           create: {
             userId,
             studentId,
             starGrade: starGrade || 3,
-            isOwned: isOwned !== undefined ? isOwned : true,
+            isOwned,
             details: item
           }
         });
-        results.push(record);
+        syncedCount++;
       } catch (err) {
-        console.warn(`Failed to sync student ${studentId} for user ${userId}:`, err.message);
+        console.warn(`Failed to sync student ${studentId} for user ${userId}:`, err?.message || err);
       }
     }
 
     const lastSyncTime = new Date().toISOString();
-    res.json({ status: 'success', syncedCount: results.length, lastSyncTime });
+    return res.json({ status: 'success', syncedCount, lastSyncTime });
   } catch (error) {
-    console.error('Collection sync error:', error);
-    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    console.error('Collection sync error (Outer):', error);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.', details: error?.message || String(error) });
   }
 });
 
