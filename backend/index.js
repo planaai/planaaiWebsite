@@ -79,7 +79,13 @@ const uploadPortrait = multer({ storage: portraitStorage, limits: { fileSize: FI
 const uploadIllust = multer({ storage: illustStorage, limits: { fileSize: FILE_SIZE_LIMIT } });
 
 // /uploads 경로로 정적 파일 접근 허용
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res, path, stat) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  }
+}));
 
 // 이미지 업로드 API
 app.post('/api/upload/skill-icon', uploadSkill.single('icon'), (req, res) => {
