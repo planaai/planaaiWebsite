@@ -67,7 +67,8 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
   return (
     <div
       ref={ref}
-      className="absolute top-[-9999px] left-[-9999px] w-[1400px] h-[800px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans"
+      className="absolute opacity-0 pointer-events-none w-[1400px] h-[800px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans"
+      style={{ zIndex: -9999 }}
     >
       {/* Background Image */}
       <img 

@@ -53,7 +53,8 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
   return (
     <div
       ref={ref}
-      className="absolute top-[-9999px] left-[-9999px] w-[1000px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl"
+      className="absolute opacity-0 pointer-events-none w-[1000px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl"
+      style={{ zIndex: -9999 }}
     >
       {/* Background Image */}
       <img 
