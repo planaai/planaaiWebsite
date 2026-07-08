@@ -28,7 +28,6 @@ export function FormationBuilder({ masterData, schema }: Props) {
       
       const dataUrl = await toPng(el, {
         cacheBust: true,
-        useCORS: true,
         backgroundColor: '#F8F9FA', // Fallback background
         style: {
           backgroundImage: "url('/images/ui/plana_bg.jpg')",
