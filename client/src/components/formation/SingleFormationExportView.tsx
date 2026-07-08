@@ -68,7 +68,7 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
       <div
         ref={ref}
-        className="w-[1400px] h-[800px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans relative"
+        className="w-[1280px] h-[720px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans relative"
       >
       {/* Background Image */}
       <img 
@@ -91,7 +91,20 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
           <div className="flex justify-center items-end gap-12 max-w-full w-full h-full relative z-10 overflow-visible">
             {activeTeam.strikers.map((studentId, index) => {
               const student = getStudent(studentId);
-              if (!student) return null;
+              if (!student) {
+                return (
+                  <div key={`striker-empty-${index}`} className="relative flex flex-col items-center justify-end shrink min-w-0 w-[180px] h-[400px]">
+                     <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
+                       <img src={`${window.location.origin}/images/ui/equip_empty.png`} alt="empty" className="max-w-none object-contain opacity-40 drop-shadow-sm w-[100px] h-[100px] mb-10" />
+                     </div>
+                     <div className="absolute bottom-0 w-[115%] bg-white rounded shadow-lg z-20 skew-x-[-10deg] border-b-4 border-slate-300 overflow-hidden">
+                        <div className="flex bg-slate-100 px-2 py-3 items-center justify-center skew-x-[10deg]">
+                          <span className="font-bold text-sm text-slate-400">EMPTY</span>
+                        </div>
+                     </div>
+                  </div>
+                );
+              }
               const portraitUrl = getSlotPortraitUrl(student, 'striker');
               const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
               
@@ -147,7 +160,18 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
           <div className="flex justify-center items-center gap-6 max-w-full w-full px-6 relative mt-4 overflow-visible pt-4">
             {activeTeam.specials.map((studentId, index) => {
               const student = getStudent(studentId);
-              if (!student) return null;
+              if (!student) {
+                return (
+                  <div key={`special-empty-${index}`} className="relative bg-white/70 rounded-lg shadow-sm flex items-center p-1 border-b-4 border-slate-300 min-w-[120px] w-[200px] h-[70px]">
+                    <div className="aspect-square h-full rounded bg-slate-200/50 flex items-center justify-center overflow-hidden relative shadow-inner shrink-0">
+                       <img src={`${window.location.origin}/images/ui/equip_empty.png`} alt="empty" className="w-1/2 h-1/2 object-contain opacity-40" />
+                    </div>
+                    <div className="flex-1 px-2 flex flex-col justify-center overflow-hidden items-center">
+                      <div className="font-bold text-sm text-slate-400">EMPTY</div>
+                    </div>
+                  </div>
+                );
+              }
               const portraitUrl = getSlotPortraitUrl(student, 'special');
               
               return (

@@ -54,7 +54,7 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
       <div
         ref={ref}
-        className="w-[1000px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl relative"
+        className="w-fit min-w-[750px] pr-10 flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl relative"
       >
       {/* Background Image */}
       <img 
@@ -76,17 +76,20 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
               </div>
             </div>
 
-            <div className="flex w-full gap-8">
+            <div className="flex w-fit gap-8">
               {/* Strikers */}
-              <div className="flex-1 flex flex-col gap-2">
+              <div className="flex-none flex flex-col gap-2">
                 <div className="text-sm font-bold text-slate-500 border-b border-slate-300 pb-1">STRIKER</div>
-                <div className="flex gap-3 mt-1 flex-wrap">
+                <div className="flex gap-3 mt-1">
                   {team.strikers.map((studentId, sIdx) => {
                     const student = getStudent(studentId);
                     if (!student) {
                       return (
-                         <div key={`empty-s-${sIdx}`} className="w-[80px] h-[80px] rounded-lg bg-slate-200/50 border border-slate-300 flex items-center justify-center opacity-50">
-                           <span className="text-xs text-slate-400 font-bold">EMPTY</span>
+                         <div key={`empty-s-${sIdx}`} className="flex flex-col items-center gap-1 w-[80px]">
+                           <div className="relative w-[80px] h-[80px] rounded-lg bg-slate-200/50 border-b-4 border-slate-300 flex items-center justify-center opacity-80 overflow-hidden shrink-0">
+                              <img src={`${window.location.origin}/images/ui/equip_empty.png`} className="w-1/2 h-1/2 object-contain opacity-50" alt="empty" />
+                           </div>
+                           <div className="text-[11px] font-bold text-slate-400 text-center truncate w-full px-1">EMPTY</div>
                          </div>
                       );
                     }
@@ -116,8 +119,11 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
                     const student = getStudent(studentId);
                     if (!student) {
                       return (
-                         <div key={`empty-sp-${sIdx}`} className="w-[80px] h-[80px] rounded-lg bg-slate-200/50 border border-slate-300 flex items-center justify-center opacity-50">
-                           <span className="text-xs text-slate-400 font-bold">EMPTY</span>
+                         <div key={`empty-sp-${sIdx}`} className="flex flex-col items-center gap-1 w-[80px]">
+                           <div className="relative w-[80px] h-[80px] rounded-lg bg-slate-200/50 border-b-4 border-slate-300 flex items-center justify-center opacity-80 overflow-hidden shrink-0">
+                              <img src={`${window.location.origin}/images/ui/equip_empty.png`} className="w-1/2 h-1/2 object-contain opacity-50" alt="empty" />
+                           </div>
+                           <div className="text-[11px] font-bold text-slate-400 text-center truncate w-full px-1">EMPTY</div>
                          </div>
                       );
                     }
