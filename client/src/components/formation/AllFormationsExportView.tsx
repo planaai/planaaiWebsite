@@ -63,12 +63,8 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
         className="absolute inset-0 w-full h-full object-cover z-0 opacity-80" 
       />
       
-      {/* Header */}
-      <div className="relative z-10 w-full flex items-center justify-center pt-8 pb-6 bg-gradient-to-b from-white/80 to-transparent backdrop-blur-sm">
-        <h1 className="text-3xl font-black text-[#2B3A55] tracking-widest drop-shadow-sm font-gyeonggi-title">
-          전체 모의 편성 종합
-        </h1>
-      </div>
+      {/* Header Spacer */}
+      <div className="relative z-10 w-full pt-8"></div>
 
       <div className="relative z-10 flex-1 flex flex-col w-full px-10 gap-6">
         {activeTeams.map((team, index) => (
@@ -96,16 +92,16 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
                     }
                     const iconUrl = getSlotPortraitIconUrl(student);
                     return (
-                      <div key={`s-${sIdx}`} className="relative w-[80px] h-[80px] rounded-lg bg-slate-100 shadow-md border-b-4 overflow-hidden group shrink-0" style={{ borderColor: student ? (student.attackType === 'Explosion' ? '#D33F4A' : student.attackType === 'Pierce' ? '#E09F36' : student.attackType === 'Mystic' ? '#315B9A' : student.attackType === 'Vibration' ? '#8B5FBF' : '#1ABC9C') : '#cbd5e1' }}>
-                        {iconUrl && <img src={getImageUrl(iconUrl)} alt={student.name} className="w-full h-full object-cover" />}
-                        <div className="absolute top-1 left-1 flex gap-0.5 shadow-sm">
-                           <div className={`w-2.5 h-2.5 rounded-full ${getAttackColor(student.attackType)} border border-white/50`}></div>
-                           <div className={`w-2.5 h-2.5 rounded-sm ${getArmorColor(student.armorType)} border border-white/50`}></div>
+                      <div key={`s-${sIdx}`} className="flex flex-col items-center gap-1 w-[80px]">
+                        <div className="relative w-[80px] h-[80px] rounded-lg bg-slate-100 shadow-md border-b-4 overflow-hidden shrink-0" style={{ borderColor: student ? (student.attackType === 'Explosion' ? '#D33F4A' : student.attackType === 'Pierce' ? '#E09F36' : student.attackType === 'Mystic' ? '#315B9A' : student.attackType === 'Vibration' ? '#8B5FBF' : '#1ABC9C') : '#cbd5e1' }}>
+                          {iconUrl && <img src={getImageUrl(iconUrl)} alt={student.name} className="w-full h-full object-cover" />}
+                          <div className="absolute top-1 left-1 flex gap-0.5 shadow-sm">
+                             <div className={`w-2.5 h-2.5 rounded-full ${getAttackColor(student.attackType)} border border-white/50`}></div>
+                             <div className={`w-2.5 h-2.5 rounded-sm ${getArmorColor(student.armorType)} border border-white/50`}></div>
+                          </div>
+                          <div className="absolute bottom-1 right-1 text-yellow-400 text-[11px] font-black drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">★{student.starNum || 3}</div>
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pt-4 text-center">
-                          <div className="text-yellow-400 text-[10px] font-bold leading-none mb-0.5">★{student.starNum || 3}</div>
-                          <div className="text-white text-[10px] font-bold truncate leading-none">{student.name}</div>
-                        </div>
+                        <div className="text-[11px] font-bold text-slate-800 text-center truncate w-full px-1">{student.name}</div>
                       </div>
                     );
                   })}
@@ -113,9 +109,9 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
               </div>
 
               {/* Specials */}
-              <div className="flex-none w-[200px] flex flex-col gap-2 border-l-2 border-slate-200/50 pl-8">
+              <div className="flex-none flex flex-col gap-2 border-l-2 border-slate-200/50 pl-8">
                 <div className="text-sm font-bold text-slate-500 border-b border-slate-300 pb-1">SPECIAL</div>
-                <div className="flex gap-3 mt-1 flex-wrap">
+                <div className="flex gap-3 mt-1">
                   {team.specials.map((studentId, sIdx) => {
                     const student = getStudent(studentId);
                     if (!student) {
@@ -127,16 +123,16 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
                     }
                     const iconUrl = getSlotPortraitIconUrl(student);
                     return (
-                      <div key={`sp-${sIdx}`} className="relative w-[80px] h-[80px] rounded-lg bg-slate-100 shadow-md border-b-4 border-[#315B9A] overflow-hidden group shrink-0">
-                        {iconUrl && <img src={getImageUrl(iconUrl)} alt={student.name} className="w-full h-full object-cover" />}
-                        <div className="absolute top-1 left-1 flex gap-0.5 shadow-sm">
-                           <div className={`w-2.5 h-2.5 rounded-full ${getAttackColor(student.attackType)} border border-white/50`}></div>
-                           <div className={`w-2.5 h-2.5 rounded-sm ${getArmorColor(student.armorType)} border border-white/50`}></div>
+                      <div key={`sp-${sIdx}`} className="flex flex-col items-center gap-1 w-[80px]">
+                        <div className="relative w-[80px] h-[80px] rounded-lg bg-slate-100 shadow-md border-b-4 border-[#315B9A] overflow-hidden shrink-0">
+                          {iconUrl && <img src={getImageUrl(iconUrl)} alt={student.name} className="w-full h-full object-cover" />}
+                          <div className="absolute top-1 left-1 flex gap-0.5 shadow-sm">
+                             <div className={`w-2.5 h-2.5 rounded-full ${getAttackColor(student.attackType)} border border-white/50`}></div>
+                             <div className={`w-2.5 h-2.5 rounded-sm ${getArmorColor(student.armorType)} border border-white/50`}></div>
+                          </div>
+                          <div className="absolute bottom-1 right-1 text-yellow-400 text-[11px] font-black drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">★{student.starNum || 3}</div>
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pt-4 text-center">
-                          <div className="text-yellow-400 text-[10px] font-bold leading-none mb-0.5">★{student.starNum || 3}</div>
-                          <div className="text-white text-[10px] font-bold truncate leading-none">{student.name}</div>
-                        </div>
+                        <div className="text-[11px] font-bold text-slate-800 text-center truncate w-full px-1">{student.name}</div>
                       </div>
                     );
                   })}
@@ -146,6 +142,10 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
 
           </div>
         ))}
+      </div>
+
+      <div className="absolute bottom-4 right-6 z-20 text-slate-500/80 text-xs font-semibold">
+        Generated at Plana.AI | Date : {new Date().toLocaleString('ko-KR')}
       </div>
     </div>
     </div>

@@ -87,8 +87,8 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
       <div className="relative z-10 flex-1 flex flex-col w-full h-full pb-6">
         
         {/* Strikers Section */}
-        <div className="flex-1 flex items-end justify-center w-full px-8 pb-[100px] pt-16 relative overflow-hidden">
-          <div className="flex justify-center items-end gap-6 max-w-full w-full h-full relative z-10 overflow-visible">
+        <div className="flex-1 flex items-end justify-center w-full px-8 pb-[40px] pt-16 relative overflow-hidden">
+          <div className="flex justify-center items-end gap-12 max-w-full w-full h-full relative z-10 overflow-visible">
             {activeTeam.strikers.map((studentId, index) => {
               const student = getStudent(studentId);
               if (!student) return null;
@@ -173,6 +173,10 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
           </div>
         </div>
 
+      </div>
+
+      <div className="absolute bottom-4 right-6 z-20 text-slate-500/80 text-xs font-semibold">
+        Generated at Plana.AI | Date : {new Date().toLocaleString('ko-KR')}
       </div>
     </div>
     </div>
