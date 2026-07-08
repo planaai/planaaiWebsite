@@ -65,11 +65,11 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
   };
 
   return (
-    <div
-      ref={ref}
-      className="absolute opacity-0 pointer-events-none w-[1400px] h-[800px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans"
-      style={{ zIndex: -9999 }}
-    >
+    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+      <div
+        ref={ref}
+        className="w-[1400px] h-[800px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans relative"
+      >
       {/* Background Image */}
       <img 
         src={`${window.location.origin}/images/ui/plana_bg.jpg`} 
@@ -174,6 +174,7 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
         </div>
 
       </div>
+    </div>
     </div>
   );
 });

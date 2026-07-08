@@ -51,11 +51,11 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
   if (activeTeams.length === 0) return null;
 
   return (
-    <div
-      ref={ref}
-      className="absolute opacity-0 pointer-events-none w-[1000px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl"
-      style={{ zIndex: -9999 }}
-    >
+    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+      <div
+        ref={ref}
+        className="w-[1000px] flex flex-col overflow-hidden bg-white text-[var(--plana-text-main)] font-sans pb-10 shadow-2xl relative"
+      >
       {/* Background Image */}
       <img 
         src={`${window.location.origin}/images/ui/plana_bg.jpg`} 
@@ -147,6 +147,7 @@ export const AllFormationsExportView = forwardRef<HTMLDivElement, Props>(({ mast
           </div>
         ))}
       </div>
+    </div>
     </div>
   );
 });
