@@ -1,7 +1,7 @@
 #  Plana.AI
 
 프라나 AI는 블루 아카이브(Blue Archive) IP를 기반으로 한 다목적 유틸 사이트입니다.
-현재 이 사이트는 아직 개발 단계에 있습니다. 그래서 버그들이 난무하고 잘못된 정보가 기재되어 있을 수 있습니다.
+현재 이 사이트는 아직 개발 단계에 있으며 버그들이 난무하고 잘못된 정보가 기재되어 있을 수 있습니다.
 
 <img width="100%" alt="Plana.AI Main" src="https://github.com/user-attachments/assets/a3e28cdb-3ad4-465a-a58c-2ea75512b0cc" />
 
@@ -10,8 +10,8 @@
 
 ## 패치 내역 (Updates)
 
-1. **각 학생의 스킬과 portrait, portrait_ico의 이미지 가공 및 링크 작업이 완료되었습니다.**
-   * 제외 대상 : 키쿄(수영복)
+1. **대부분의 학생의 스킬과 portrait, portrait_ico의 이미지 가공 및 링크 작업이 완료되었습니다.**
+   * 이미지 제외 대상 : 키쿄(수영복)
    * 사유 : portrait 이미지 확보 못함 이슈
 
 2. **특정 학생과 Tactical Supoort 군의 학생 스킬을 다듬었습니다.**
@@ -25,6 +25,25 @@
      <img width="1527" height="809" alt="image" src="https://github.com/user-attachments/assets/c84c0baa-41d2-4f51-9e3d-73119da8876d" />
      <img width="1504" height="805" alt="image" src="https://github.com/user-attachments/assets/4e399caa-c022-4bd0-89ba-b31ce46822b4" />
 7. **모의 학생 모집 UI를 인게임과 유사하게 변경하였습니다**
+   * 변경 후 이미지
+     <img width="1155" height="841" alt="image" src="https://github.com/user-attachments/assets/29111d91-bc00-425b-8c20-7e75766d52e7" />
+8. **모의 편성 기능을 이용해 본인이 한 모의 편성을 쉽게 공유 할 수 있도록 이미지로 추출 기능을 추가하였습니다.
+   <img width="1500" height="675" alt="image" src="https://github.com/user-attachments/assets/2a24d403-570e-45a1-a923-c718863e3152" />
+   <img width="2560" height="1440" alt="planaai_1부대_20260709_011514" src="https://github.com/user-attachments/assets/22fa5bf2-8aa0-434f-8f06-75ba2b3b679e" />
+   <img width="2560" height="1440" alt="planaai_1부대_20260709_011519" src="https://github.com/user-attachments/assets/eead3158-b936-4524-bfdd-dd309b69db6c" />
+   <img width="1526" height="2238" alt="planaai_All_Formations_20260709_011516" src="https://github.com/user-attachments/assets/478efcfe-a1b4-49d6-b7a2-b681ed5daef9" />
+   <img width="2262" height="2238" alt="planaai_All_Formations_20260709_011521" src="https://github.com/user-attachments/assets/b2351f57-6090-48d8-a5f4-fae3cddc27c2" />
+9. 38명의 학생들의 애용품 이미지를 추가했습니다
+10. 일부 장비의 이미지를 추가했습니다.
+11. 서버에 본인의 육성 데이터를 저장하지 못하던 이슈를 수정하였습니다.
+12. 회원가입시 입력칸이 검정색으로 나오던 이슈를 수정하였습니다.
+13. 현 사이트의 버전이 1.5 BETA로 결정되었습니다(?)
+
+
+
+
+
+
 
 
 ---
@@ -33,8 +52,8 @@
 
 1. **이미지 리소스 미완료 이슈**
 2. **선물 도감 미완료**: 고급 선물 5개 등록 안됨
-3. **회원가입 UI 오류**: 회원가입 입력란이 검은 색으로 되어 있는 이슈
-4. **서버 동기화 오류**: 컬렉션에서 학생을 등록한 학생을 서버에 동기화 할때 서버에 전송을 실패하는 이슈
+3. **스킬 터짐 이슈**: 호시노(무장) 및 Tactical Support군의 학생 DB 작업중 이미지 링크가 끊기는 사고의 여파로 일부 학생들의 스킬 정보가 날아갔습니다
+   확인된 학생 목록 : 카호, 카에데, 치세
 ---
 
 ##  주요 기능 안내 (Features)
@@ -73,11 +92,13 @@
 선생님의 컬렉션을 바탕으로 특정 학생 혹은 여러 학생을 육성할 때 **필요한 재화를 확인**할 수 있는 기능입니다.
 
 ### 6. 모의 편성 || Mock Formation
-<img width="49%" alt="Mock Formation 1" src="https://github.com/user-attachments/assets/bd3f62a5-8c1e-4afe-8fb1-e41392e98b4c" /> <img width="49%" alt="Mock Formation 2" src="https://github.com/user-attachments/assets/344d39e4-d628-4919-a15c-d1340b834aca" />
+<img width="1853" height="839" alt="image" src="https://github.com/user-attachments/assets/f658ea88-21bf-4806-aea5-09cc3896ead6" />
+
 
 Plana.AI에 등록된 선생님의 컬렉션과 도감에 등록되어 있는 DB를 바탕으로 **모의로 편성을 할 수 있는 기능**입니다.
 * 실제 상황에 더 알맞게 쓸 수 있게끔 **총력전/대결전**과 **제약해제결전 편성모드**가 따로 존재합니다.
-* 부대를 각 모드별 **최대 4개씩** 편성할 수 있습니다.
+* 부대를 각 모드별 **최대 4개씩** 편성할 수 있으며, 편성 한 결과를 이미지로 추출을 해 다른 선생님들에게 편성을 공유할 수 있습니다.
+  
 
 ### 7. 청휘석 계산기 || Pyroxene Calculator
 <img width="100%" alt="Pyroxene Calculator" src="https://github.com/user-attachments/assets/804392ae-148d-4e19-871f-82ccb751528c" />
