@@ -89,17 +89,17 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   );
 
   return (
-    <div className={`p-5 rounded-xl border h-full overflow-y-auto overflow-x-hidden flex flex-col ${isCombined ? 'custom-scrollbar-emerald bg-slate-50 border-emerald-200 shadow-sm' : 'custom-scrollbar bg-white border-slate-200 shadow-sm'}`}>
-      <div className="flex justify-between items-center mb-5 sticky top-0 bg-white/90 backdrop-blur-sm p-3 rounded-xl z-10 shadow-sm border border-slate-100">
-        <h3 className={`text-lg font-bold flex items-center gap-2 ${isCombined ? 'text-emerald-500' : 'text-[var(--plana-primary)]'}`}>
+    <div className={`rounded-xl border h-full flex flex-col overflow-hidden ${isCombined ? 'bg-slate-50 border-emerald-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+      <div className={`flex justify-between items-center p-4 shrink-0 border-b z-10 backdrop-blur-md ${isCombined ? 'bg-emerald-50/90 border-emerald-100' : 'bg-white/90 border-slate-100'}`}>
+        <h3 className={`text-lg font-bold flex items-center gap-2 ${isCombined ? 'text-emerald-600' : 'text-[var(--plana-primary)]'}`}>
           {title}
         </h3>
-        <button onClick={onClose} className="p-1.5 bg-slate-50 text-slate-400 hover:text-[var(--plana-primary)] hover:bg-pink-50 rounded-lg transition-colors">
+        <button onClick={onClose} className="p-1.5 bg-white/50 text-slate-400 hover:text-[var(--plana-primary)] hover:bg-pink-50 rounded-lg transition-colors">
           <X size={20}/>
         </button>
       </div>
       
-      <div className="space-y-6 shrink-0 pb-6">
+      <div className={`flex-1 overflow-y-auto p-5 space-y-6 ${isCombined ? 'custom-scrollbar-emerald' : 'custom-scrollbar'}`}>
         <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm -skew-x-[10deg] rounded-lg flex justify-between items-center">
           <div className="skew-x-[10deg] flex justify-between items-center w-full px-2">
             <span className="text-sm font-bold text-slate-600 tracking-wider">필요 크레딧</span>
@@ -135,7 +135,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">장비 설계도</h4>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                   {Object.values(data.blueprints).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
                 </div>
               </div>
