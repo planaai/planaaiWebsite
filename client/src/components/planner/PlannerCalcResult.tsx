@@ -142,11 +142,11 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {recommendedStages.length > 0 && (
-            <div className="bg-emerald-50/50 shadow-sm -skew-x-[5deg] rounded-lg border border-emerald-100 mx-2">
+            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
               <div className="skew-x-[5deg] p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-emerald-500"></div>
+                    <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                     <h4 className="text-sm font-bold text-slate-800">추천 파밍 지역</h4>
                   </div>
                   <span className="text-xs text-slate-500">필요한 도면이 가장 많이 나오는 지역입니다.</span>
