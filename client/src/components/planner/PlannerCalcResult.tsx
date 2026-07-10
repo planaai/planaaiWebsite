@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { api } from '@/lib/api';
 import { X } from 'lucide-react';
 import { SchemaConfig } from '@/types';
 import { getImageUrl } from './utils';
@@ -12,7 +13,71 @@ interface PlannerCalcResultProps {
 }
 
 export function PlannerCalcResult({ data, title, isCombined = false, schema, onClose }: PlannerCalcResultProps) {
+  const [dropData, setDropData] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.get('/planner/equipment-drops')
+      .then(res => setDropData(res.data))
+      .catch(console.error);
+  }, []);
+
   if (!data) return null;
+
+  const getEquipmentIcon = (type: string, tier: number) => {
+     if (!schema?.equipments) return '';
+     const equipData = schema.equipments.find(e => e.key === type);
+     if (!equipData || !equipData.tiers || !equipData.tiers[tier - 1]) return '';
+     const tData = equipData.tiers[tier - 1];
+     return tData.blueprintIconUrl || tData.iconUrl || '';
+  };
+
+  const getRecommendedStages = () => {
+    if (!data.blueprints || Object.keys(data.blueprints).length === 0 || dropData.length === 0) return [];
+    
+    const requiredEquips = Object.entries(data.blueprints).map(([name, val]) => {
+       const tierMatch = name.match(/T(\d+)/);
+       const tier = tierMatch ? parseInt(tierMatch[1]) : 0;
+       
+       let type = '';
+       if (name.includes('모자')) type = 'Hat';
+       else if (name.includes('장갑')) type = 'Gloves';
+       else if (name.includes('신발')) type = 'Shoes';
+       else if (name.includes('가방')) type = 'Bag';
+       else if (name.includes('배지') || name.includes('뱃지')) type = 'Badge';
+       else if (name.includes('헤어핀')) type = 'Hairpin';
+       else if (name.includes('부적')) type = 'Charm';
+       else if (name.includes('시계')) type = 'Watch';
+       else if (name.includes('목걸이')) type = 'Necklace';
+    
+       return { tier, type, amount: (val as any).amount };
+    }).filter(req => req.amount > 0 && req.tier > 0 && req.type !== '');
+    
+    if (requiredEquips.length === 0) return [];
+    
+    const stageScores = dropData.map(stage => {
+      let score = 0;
+      let matches: any[] = [];
+      
+      stage.drops.forEach((drop: any) => {
+         const req = requiredEquips.find(r => r.tier === drop.tier && r.type === drop.type);
+         if (req) {
+             score += req.amount * (drop.rate / 100);
+             matches.push({ ...drop, reqAmount: req.amount });
+         }
+      });
+      
+      return { ...stage, score, overlapCount: matches.length, matches };
+    }).filter(s => s.overlapCount > 0);
+    
+    stageScores.sort((a, b) => {
+       if (b.overlapCount !== a.overlapCount) return b.overlapCount - a.overlapCount;
+       return b.score - a.score;
+    });
+    
+    return stageScores.slice(0, 5);
+  };
+
+  const recommendedStages = getRecommendedStages();
 
   const renderItem = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
     <div key={item.name} className="bg-white p-2.5 rounded-lg border border-slate-200 text-xs flex items-center justify-between hover:border-[var(--plana-primary)] transition-colors shadow-sm">
@@ -77,6 +142,44 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                   {Object.values(data.blueprints).map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0 && renderItem(item))}
+                </div>
+              </div>
+            </div>
+        )}
+
+        {recommendedStages.length > 0 && (
+            <div className="bg-emerald-50/50 shadow-sm -skew-x-[5deg] rounded-lg border border-emerald-100">
+              <div className="skew-x-[5deg] p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 bg-emerald-500"></div>
+                  <h4 className="text-sm font-bold text-slate-800">추천 파밍 지역</h4>
+                  <span className="text-xs text-slate-500 ml-2">필요한 도면이 가장 많이 나오는 지역입니다.</span>
+                </div>
+                <div className="space-y-3">
+                  {recommendedStages.map((stage: any) => (
+                    <div key={stage.stage} className="bg-white p-3 rounded-lg border border-emerald-100 flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-emerald-700 text-sm">스테이지 {stage.stage}</span>
+                        <span className="text-[10px] text-emerald-500 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">추천도: {stage.score.toFixed(1)}</span>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {stage.matches.map((match: any, idx: number) => {
+                           const iconUrl = getEquipmentIcon(match.type, match.tier);
+                           return (
+                             <div key={idx} className="flex flex-col items-center gap-1 bg-slate-50 border border-slate-200 rounded p-1.5 w-14 hover:border-emerald-300 transition-colors">
+                               {iconUrl ? (
+                                  <img src={getImageUrl(iconUrl)} className="w-8 h-8 object-contain drop-shadow-sm" alt="" />
+                               ) : (
+                                  <div className="w-8 h-8 bg-slate-200 rounded flex items-center justify-center text-[8px] text-slate-500">Img</div>
+                               )}
+                               <span className="text-[9px] font-bold text-slate-600 truncate w-full text-center">T{match.tier} {match.type}</span>
+                               <span className="text-[8px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">필요: {match.reqAmount}</span>
+                             </div>
+                           );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

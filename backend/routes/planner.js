@@ -489,4 +489,16 @@ router.post('/calculate/dynamic', async (req, res) => {
     }
 });
 
+const { getDropData } = require('../utils/dropData');
+
+router.get('/equipment-drops', async (req, res) => {
+    try {
+        const dropData = getDropData();
+        res.json(dropData);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to get equipment drops' });
+    }
+});
+
 module.exports = router;
