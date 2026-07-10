@@ -114,8 +114,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         </div>
         
         {data.expReports && Object.values(data.expReports).some((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.amount > 0) && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">경험치 보고서</h4>
@@ -128,8 +128,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {data.blueprints && Object.keys(data.blueprints).length > 0 && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">장비 설계도</h4>
@@ -142,8 +142,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {recommendedStages.length > 0 && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-4">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
@@ -182,8 +182,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {(data.elephs > 0 || (data.weaponItems && Object.keys(data.weaponItems).length > 0)) && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">고유무기</h4>
@@ -197,8 +197,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {((data.bds && Object.keys(data.bds).length > 0) || (data.techNotes && Object.keys(data.techNotes).length > 0) || data.secret > 0) && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">스킬 성장</h4>
@@ -213,8 +213,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {((data.ooparts && Object.keys(data.ooparts).length > 0) || (data.wbs && Object.keys(data.wbs).length > 0)) && (
-            <div className="bg-white shadow-sm -skew-x-[5deg] rounded-lg border border-slate-100">
-              <div className="skew-x-[5deg] p-6">
+            <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
+              <div className="skew-x-[2deg] p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
                   <h4 className="text-sm font-bold text-slate-800">오파츠 & WB</h4>
