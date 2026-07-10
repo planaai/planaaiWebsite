@@ -37,46 +37,104 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   };
 
   const getRecommendedStages = () => {
-    if (!data.blueprints || Object.keys(data.blueprints).length === 0 || dropData.length === 0) return [];
+    if (!data.blueprints || Object.keys(data.blueprints).length === 0 || dropData.length === 0) return { routes: [], totalAP: 0 };
     
-    const requiredEquips = Object.entries(data.blueprints).map(([name, val]) => {
+    // 1. 필요한 장비 목록 추출 및 복사
+    let requirements = Object.entries(data.blueprints).map(([name, val]) => {
        const v = val as any;
        const tier = v.tier || 0;
        const type = v.type || '';
-    
-       return { tier, type, amount: v.amount };
+       return { name, tier, type, amount: v.amount };
     }).filter(req => req.amount > 0 && req.tier > 0 && req.type !== '');
     
-    if (requiredEquips.length === 0) return [];
+    if (requirements.length === 0) return { routes: [], totalAP: 0 };
+
+    const results: any[] = [];
     
-    const stageScores = dropData.map(stage => {
-      let baseScore = 0;
-      let matches: any[] = [];
-      
-      stage.drops.forEach((drop: any) => {
-         const req = requiredEquips.find(r => r.tier === drop.tier && r.type === drop.type);
-         if (req) {
-             baseScore += req.amount * (drop.rate / 100);
-             matches.push({ ...drop, reqAmount: req.amount });
-         }
-      });
-      
-      // 다중 파밍 시너지 보너스 적용
-      // 1개 일치: 1.0배, 2개 일치: 1.5배, 3개 일치: 2.0배
-      const synergyMultiplier = matches.length > 0 ? 1.0 + (matches.length - 1) * 0.5 : 1.0;
-      const score = baseScore * synergyMultiplier;
-      
-      return { ...stage, score, overlapCount: matches.length, matches, baseScore, synergyMultiplier };
-    }).filter(s => s.overlapCount > 0);
+    // 2. 티어(Tier) 기준 내림차순 정렬 (고티어부터 우선 파밍)
+    requirements.sort((a, b) => b.tier - a.tier);
+
+    let maxIterations = 50; // 무한루프 방지
+    let totalAP = 0;
+
+    // 3. 시뮬레이션 시작
+    while (requirements.length > 0 && maxIterations > 0) {
+       maxIterations--;
+       
+       // 현재 남은 요구량 중 가장 우선순위가 높은 타겟 (고티어, 리스트 첫번째)
+       const target = requirements[0];
+       
+       let bestStage: any = null;
+       let bestScore = -1;
+       let bestTargetDropRate = 0;
+       
+       // 전체 스테이지 중 타겟 아이템을 드랍하면서 '잔여 필요 장비들'을 가장 많이 주는 곳 탐색
+       for (const stage of dropData) {
+           const targetDrop = stage.drops.find((d: any) => d.tier === target.tier && d.type === target.type);
+           if (!targetDrop) continue;
+           
+           let score = 0;
+           for (const drop of stage.drops) {
+               const req = requirements.find(r => r.tier === drop.tier && r.type === drop.type);
+               if (req) {
+                   // 임시 스코어: 잔여 요구량에 비례하여 높은 점수 부여 (병목 완화)
+                   score += (drop.rate / 100) * req.amount;
+               }
+           }
+           
+           if (score > bestScore) {
+               bestScore = score;
+               bestStage = stage;
+               bestTargetDropRate = targetDrop.rate;
+           }
+       }
+       
+       if (!bestStage || bestTargetDropRate === 0) {
+           // 드랍처를 찾지 못한 경우 목록에서 제거하고 진행
+           requirements.shift();
+           continue;
+       }
+       
+       // 타겟을 모두 획득하기 위해 필요한 반복 횟수 계산
+       const expectedPerRun = bestTargetDropRate / 100;
+       const runsNeeded = Math.ceil(target.amount / expectedPerRun);
+       
+       const farmedItems: any[] = [];
+       
+       // 해당 스테이지를 runsNeeded 만큼 돌았을 때 획득하는 아이템들을 모든 잔여 요구량에서 차감
+       for (const drop of bestStage.drops) {
+           const reqIndex = requirements.findIndex(r => r.tier === drop.tier && r.type === drop.type);
+           if (reqIndex !== -1) {
+               const farmedAmount = runsNeeded * (drop.rate / 100);
+               requirements[reqIndex].amount -= farmedAmount;
+               
+               farmedItems.push({
+                   type: drop.type,
+                   tier: drop.tier,
+                   amount: Math.round(farmedAmount) // 반올림하여 표기용으로 사용
+               });
+           }
+       }
+       
+       const cost = runsNeeded * 10;
+       totalAP += cost;
+       
+       // 시뮬레이션 결과에 추가 (동일 스테이지 누적 방지: 새로운 항목으로 추가해도 무방함)
+       results.push({
+           stage: bestStage.stage,
+           runs: runsNeeded,
+           expectedCost: cost,
+           farmed: farmedItems
+       });
+       
+       // 필요량이 0 이하가 된 장비 제거
+       requirements = requirements.filter(req => req.amount > 0);
+    }
     
-    stageScores.sort((a, b) => {
-       return b.score - a.score;
-    });
-    
-    return stageScores.slice(0, 5);
+    return { routes: results, totalAP };
   };
 
-  const recommendedStages = getRecommendedStages();
+  const { routes: farmingRoutes, totalAP } = getRecommendedStages();
 
   const renderItem = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
     <div key={item.name} className="bg-white p-2.5 rounded-lg border border-slate-200 text-xs flex items-center justify-between hover:border-[var(--plana-primary)] transition-colors shadow-sm">
@@ -146,25 +204,33 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
             </div>
         )}
 
-        {recommendedStages.length > 0 && (
+        {farmingRoutes && farmingRoutes.length > 0 && (
             <div className="bg-white shadow-sm -skew-x-[2deg] rounded-lg border border-slate-100">
               <div className="skew-x-[2deg] p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
-                    <h4 className="text-sm font-bold text-slate-800">추천 파밍 지역</h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
+                      <h4 className="text-sm font-bold text-slate-800">최적 파밍 견적서</h4>
+                    </div>
+                    <span className="text-xs text-slate-500">낭비 없이 필요 도면을 획득하기 위한 시뮬레이션 결과입니다.</span>
                   </div>
-                  <span className="text-xs text-slate-500">필요한 도면이 가장 많이 나오는 지역입니다.</span>
+                  <div className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                    총 예상 소모: {totalAP.toLocaleString()} AP
+                  </div>
                 </div>
                 <div className="space-y-3">
-                  {recommendedStages.map((stage: any) => (
-                    <div key={stage.stage} className="bg-white p-3 rounded-lg border border-emerald-100 flex flex-col gap-2">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-emerald-700 text-sm">스테이지 {stage.stage}</span>
-                        <span className="text-[10px] text-emerald-500 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">추천도: {stage.score.toFixed(1)}</span>
+                  {farmingRoutes.map((route: any, i: number) => (
+                    <div key={`${route.stage}-${i}`} className="bg-white p-3 rounded-lg border border-emerald-100 flex flex-col gap-2 relative">
+                      <div className="absolute top-2 right-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {route.runs}회 소탕 (소모 {route.expectedCost} AP)
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-black text-slate-400">Step {i + 1}</span>
+                        <span className="font-bold text-emerald-700 text-sm">스테이지 {route.stage}</span>
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        {stage.matches.map((match: any, idx: number) => {
+                        {route.farmed.map((match: any, idx: number) => {
                            const iconUrl = getEquipmentIcon(match.type, match.tier);
                            return (
                              <div key={idx} className="flex flex-col items-center gap-1 bg-slate-50 border border-slate-200 rounded p-1.5 w-16 hover:border-emerald-300 transition-colors shrink-0">
@@ -174,7 +240,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                                   <div className="w-8 h-8 bg-slate-200 rounded flex items-center justify-center text-[8px] text-slate-500">Img</div>
                                )}
                                <span className="text-[9px] font-bold text-slate-600 w-full text-center whitespace-normal leading-tight">T{match.tier} {getEquipmentLabel(match.type)}</span>
-                               <span className="text-[8px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">필요: {match.reqAmount}</span>
+                               <span className="text-[8px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">획득: {match.amount}</span>
                              </div>
                            );
                         })}
