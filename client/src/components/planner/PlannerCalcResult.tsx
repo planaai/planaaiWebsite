@@ -98,7 +98,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         </button>
       </div>
       
-      <div className={`flex-1 overflow-y-auto p-5 space-y-6 ${isCombined ? 'custom-scrollbar-emerald' : 'custom-scrollbar'}`}>
+      <div className={`flex-1 overflow-y-auto py-5 px-6 sm:px-8 space-y-6 ${isCombined ? 'custom-scrollbar-emerald' : 'custom-scrollbar'}`}>
         <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm -skew-x-[10deg] rounded-lg flex justify-between items-center">
           <div className="skew-x-[10deg] flex justify-between items-center w-full px-2">
             <span className="text-sm font-bold text-slate-600 tracking-wider">필요 크레딧</span>
