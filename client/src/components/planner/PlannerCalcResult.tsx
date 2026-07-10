@@ -50,18 +50,23 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
     if (requiredEquips.length === 0) return [];
     
     const stageScores = dropData.map(stage => {
-      let score = 0;
+      let baseScore = 0;
       let matches: any[] = [];
       
       stage.drops.forEach((drop: any) => {
          const req = requiredEquips.find(r => r.tier === drop.tier && r.type === drop.type);
          if (req) {
-             score += req.amount * (drop.rate / 100);
+             baseScore += req.amount * (drop.rate / 100);
              matches.push({ ...drop, reqAmount: req.amount });
          }
       });
       
-      return { ...stage, score, overlapCount: matches.length, matches };
+      // 다중 파밍 시너지 보너스 적용
+      // 1개 일치: 1.0배, 2개 일치: 1.5배, 3개 일치: 2.0배
+      const synergyMultiplier = matches.length > 0 ? 1.0 + (matches.length - 1) * 0.5 : 1.0;
+      const score = baseScore * synergyMultiplier;
+      
+      return { ...stage, score, overlapCount: matches.length, matches, baseScore, synergyMultiplier };
     }).filter(s => s.overlapCount > 0);
     
     stageScores.sort((a, b) => {
