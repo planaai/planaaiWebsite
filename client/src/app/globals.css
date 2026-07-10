@@ -93,6 +93,26 @@ body {
   background: var(--plana-primary-dark); 
 }
 
+/* Emerald Scrollbar */
+.custom-scrollbar-emerald::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.custom-scrollbar-emerald::-webkit-scrollbar-track {
+  background: rgba(16, 185, 129, 0.1); 
+  border-radius: 4px;
+}
+
+.custom-scrollbar-emerald::-webkit-scrollbar-thumb {
+  background: rgba(52, 211, 153, 1); 
+  border-radius: 4px;
+}
+
+.custom-scrollbar-emerald::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 1); 
+}
+
 /* Diagonal utilities for Blue Archive UI Style */
 .clip-diagonal {
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);

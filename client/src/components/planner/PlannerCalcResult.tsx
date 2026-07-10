@@ -89,7 +89,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   );
 
   return (
-    <div className={`p-5 rounded-xl border h-full overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col ${isCombined ? 'bg-slate-50 border-emerald-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`p-5 rounded-xl border h-full overflow-y-auto overflow-x-hidden flex flex-col ${isCombined ? 'custom-scrollbar-emerald bg-slate-50 border-emerald-200 shadow-sm' : 'custom-scrollbar bg-white border-slate-200 shadow-sm'}`}>
       <div className="flex justify-between items-center mb-5 sticky top-0 bg-white/90 backdrop-blur-sm p-3 rounded-xl z-10 shadow-sm border border-slate-100">
         <h3 className={`text-lg font-bold flex items-center gap-2 ${isCombined ? 'text-emerald-500' : 'text-[var(--plana-primary)]'}`}>
           {title}
@@ -99,7 +99,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         </button>
       </div>
       
-      <div className="space-y-6 flex-1 pb-4">
+      <div className="space-y-6 shrink-0 pb-6">
         <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm -skew-x-[10deg] rounded-lg flex justify-between items-center">
           <div className="skew-x-[10deg] flex justify-between items-center w-full px-2">
             <span className="text-sm font-bold text-slate-600 tracking-wider">필요 크레딧</span>
