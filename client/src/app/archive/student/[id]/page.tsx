@@ -1,11 +1,12 @@
 'use client';
 
-export const runtime = 'edge';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
-import { MasterDetailView } from '@/components/archive/MasterDetailView';
+import dynamic from 'next/dynamic';
+
+const MasterDetailView = dynamic(() => import('@/components/archive/MasterDetailView').then(m => m.MasterDetailView), { ssr: false });
 
 export default function ArchiveStudentPage() {
   const params = useParams();
