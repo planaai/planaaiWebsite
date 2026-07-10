@@ -65,7 +65,6 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
     }).filter(s => s.overlapCount > 0);
     
     stageScores.sort((a, b) => {
-       if (b.overlapCount !== a.overlapCount) return b.overlapCount - a.overlapCount;
        return b.score - a.score;
     });
     
@@ -163,7 +162,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                         {stage.matches.map((match: any, idx: number) => {
                            const iconUrl = getEquipmentIcon(match.type, match.tier);
                            return (
-                             <div key={idx} className="flex flex-col items-center gap-1 bg-slate-50 border border-slate-200 rounded p-1.5 w-14 hover:border-emerald-300 transition-colors">
+                             <div key={idx} className="flex flex-col items-center gap-1 bg-slate-50 border border-slate-200 rounded p-1.5 w-16 hover:border-emerald-300 transition-colors shrink-0">
                                {iconUrl ? (
                                   <img src={getImageUrl(iconUrl)} className="w-8 h-8 object-contain drop-shadow-sm" alt="" />
                                ) : (
