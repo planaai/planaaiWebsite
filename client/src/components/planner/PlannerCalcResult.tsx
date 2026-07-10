@@ -31,6 +31,11 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
      return tData.blueprintIconUrl || tData.iconUrl || '';
   };
 
+  const getEquipmentLabel = (type: string) => {
+     if (!schema?.equipments) return type;
+     return schema.equipments.find(e => e.key === type)?.label || type;
+  };
+
   const getRecommendedStages = () => {
     if (!data.blueprints || Object.keys(data.blueprints).length === 0 || dropData.length === 0) return [];
     
@@ -84,7 +89,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   );
 
   return (
-    <div className={`p-5 rounded-xl border h-full overflow-y-auto custom-scrollbar flex flex-col ${isCombined ? 'bg-slate-50 border-emerald-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
+    <div className={`p-5 rounded-xl border h-full overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col ${isCombined ? 'bg-slate-50 border-emerald-200 shadow-sm' : 'bg-white border-slate-200 shadow-sm'}`}>
       <div className="flex justify-between items-center mb-5 sticky top-0 bg-white/90 backdrop-blur-sm p-3 rounded-xl z-10 shadow-sm border border-slate-100">
         <h3 className={`text-lg font-bold flex items-center gap-2 ${isCombined ? 'text-emerald-500' : 'text-[var(--plana-primary)]'}`}>
           {title}
@@ -138,12 +143,14 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
         )}
 
         {recommendedStages.length > 0 && (
-            <div className="bg-emerald-50/50 shadow-sm -skew-x-[5deg] rounded-lg border border-emerald-100">
+            <div className="bg-emerald-50/50 shadow-sm -skew-x-[5deg] rounded-lg border border-emerald-100 mx-2">
               <div className="skew-x-[5deg] p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 bg-emerald-500"></div>
-                  <h4 className="text-sm font-bold text-slate-800">추천 파밍 지역</h4>
-                  <span className="text-xs text-slate-500 ml-2">필요한 도면이 가장 많이 나오는 지역입니다.</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-emerald-500"></div>
+                    <h4 className="text-sm font-bold text-slate-800">추천 파밍 지역</h4>
+                  </div>
+                  <span className="text-xs text-slate-500">필요한 도면이 가장 많이 나오는 지역입니다.</span>
                 </div>
                 <div className="space-y-3">
                   {recommendedStages.map((stage: any) => (
@@ -162,7 +169,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
                                ) : (
                                   <div className="w-8 h-8 bg-slate-200 rounded flex items-center justify-center text-[8px] text-slate-500">Img</div>
                                )}
-                               <span className="text-[9px] font-bold text-slate-600 truncate w-full text-center">T{match.tier} {match.type}</span>
+                               <span className="text-[9px] font-bold text-slate-600 w-full text-center whitespace-normal leading-tight">T{match.tier} {getEquipmentLabel(match.type)}</span>
                                <span className="text-[8px] text-emerald-600 font-bold bg-emerald-50 px-1 rounded">필요: {match.reqAmount}</span>
                              </div>
                            );

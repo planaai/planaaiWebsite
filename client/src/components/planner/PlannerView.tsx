@@ -172,7 +172,11 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
 
     for (const [key, val] of Object.entries(req.blueprints || {})) {
        if (typeof val === 'object' && val !== null) {
-           enriched.blueprints[key] = { amount: (val as any).amount, name: key, iconUrl: (val as any).iconUrl || '', tier: (val as any).tier, type: (val as any).type };
+           const tier = (val as any).tier;
+           const type = (val as any).type;
+           const equipLabel = schema?.equipments?.find(e => e.key === type)?.label || type;
+           const name = tier && type ? `T${tier} ${equipLabel} 설계도면` : key;
+           enriched.blueprints[key] = { amount: (val as any).amount, name, iconUrl: (val as any).iconUrl || '', tier, type };
        } else {
            enriched.blueprints[key] = { amount: val as number, name: key, iconUrl: '' };
        }
