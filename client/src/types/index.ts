@@ -23,7 +23,7 @@ export interface Oopart {
 export interface Equipment {
   key: string;
   label: string;
-  tiers: { name: string; iconUrl: string }[];
+  tiers: { name: string; iconUrl: string; blueprintIconUrl?: string; }[];
 }
 
 export interface Gift {
