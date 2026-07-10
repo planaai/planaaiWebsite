@@ -190,7 +190,7 @@ router.get('/calculate/:id', requireAuth, async (req, res) => {
                         const blueprintName = `${equipName} 설계도면`;
 
                         if (!required.blueprints[blueprintName]) {
-                            required.blueprints[blueprintName] = { amount: 0, iconUrl };
+                            required.blueprints[blueprintName] = { amount: 0, iconUrl, tier: tierNum, type: equipType };
                         }
                         required.blueprints[blueprintName].amount += amount;
                     }

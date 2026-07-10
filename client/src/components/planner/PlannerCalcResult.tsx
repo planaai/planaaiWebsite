@@ -35,21 +35,11 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
     if (!data.blueprints || Object.keys(data.blueprints).length === 0 || dropData.length === 0) return [];
     
     const requiredEquips = Object.entries(data.blueprints).map(([name, val]) => {
-       const tierMatch = name.match(/T(\d+)/);
-       const tier = tierMatch ? parseInt(tierMatch[1]) : 0;
-       
-       let type = '';
-       if (name.includes('모자')) type = 'Hat';
-       else if (name.includes('장갑')) type = 'Gloves';
-       else if (name.includes('신발')) type = 'Shoes';
-       else if (name.includes('가방')) type = 'Bag';
-       else if (name.includes('배지') || name.includes('뱃지')) type = 'Badge';
-       else if (name.includes('헤어핀')) type = 'Hairpin';
-       else if (name.includes('부적')) type = 'Charm';
-       else if (name.includes('시계')) type = 'Watch';
-       else if (name.includes('목걸이')) type = 'Necklace';
+       const v = val as any;
+       const tier = v.tier || 0;
+       const type = v.type || '';
     
-       return { tier, type, amount: (val as any).amount };
+       return { tier, type, amount: v.amount };
     }).filter(req => req.amount > 0 && req.tier > 0 && req.type !== '');
     
     if (requiredEquips.length === 0) return [];
