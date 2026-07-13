@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, Calendar, Eye, User, Download, Loader2 } from 'lucide-react';
+import remarkBreaks from 'remark-breaks';
+import rehypeRaw from 'rehype-raw';
+import { ArrowLeft, Calendar, Eye, User, Download, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -81,6 +83,19 @@ export default function NoticeDetailPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('정말로 이 공지사항을 삭제하시겠습니까?')) return;
+    
+    try {
+      await api.delete(`/notices/${id}`);
+      alert('공지사항이 삭제되었습니다.');
+      router.push('/notices');
+    } catch (err) {
+      console.error('Failed to delete notice:', err);
+      alert('공지사항 삭제에 실패했습니다.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto py-12 flex justify-center">
@@ -111,18 +126,34 @@ export default function NoticeDetailPage() {
             </span>
 
             {isAdmin && (
-              <button
-                onClick={handleDownloadImage}
-                disabled={isDownloading}
-                className="inline-flex items-center px-4 py-2 bg-[var(--plana-primary)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:scale-95"
-              >
-                {isDownloading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4 mr-2" />
-                )}
-                이미지로 저장
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push(`/notices/${id}/edit`)}
+                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-all shadow-sm hover:shadow-md active:scale-95"
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  수정
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="inline-flex items-center px-4 py-2 bg-white border border-red-200 text-red-600 text-sm font-medium rounded-xl hover:bg-red-50 transition-all shadow-sm hover:shadow-md active:scale-95"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  삭제
+                </button>
+                <button
+                  onClick={handleDownloadImage}
+                  disabled={isDownloading}
+                  className="inline-flex items-center px-4 py-2 bg-[var(--plana-primary)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md active:scale-95"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  이미지로 저장
+                </button>
+              </div>
             )}
           </div>
           
@@ -149,7 +180,7 @@ export default function NoticeDetailPage() {
         {/* Content */}
         <div className="p-8 md:p-10">
           <div className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>
               {notice.content}
             </ReactMarkdown>
           </div>
@@ -197,7 +228,7 @@ export default function NoticeDetailPage() {
 
               {/* Content */}
               <div className="prose prose-xl prose-blue max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-2xl">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>
                   {notice.content}
                 </ReactMarkdown>
               </div>
@@ -205,7 +236,7 @@ export default function NoticeDetailPage() {
               {/* Footer */}
               <div className="mt-20 pt-8 border-t border-gray-200 flex justify-end items-center">
                 <span className="text-xl font-bold text-gray-300 tracking-wider">
-                  Plana AI Official
+                  Plana.AI
                 </span>
               </div>
             </div>
