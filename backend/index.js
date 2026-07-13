@@ -15,7 +15,8 @@ const corsOptions = {
   origin: [
     'https://planaai.kro.kr',
     'http://localhost:3000',
-    'http://localhost:3001'
+    'http://localhost:3001',
+    'https://planaai-admin.planaai.workers.dev'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
