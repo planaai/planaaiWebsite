@@ -64,6 +64,10 @@ export function Navbar() {
             <li>
               <Link href="/ap-calculator" className="px-4 hover:text-[var(--plana-primary)] transition-colors">AP 존버 계산기</Link>
             </li>
+            <li className="text-slate-300">/</li>
+            <li>
+              <Link href="/notices" className="px-4 hover:text-[var(--plana-primary)] transition-colors">공지사항</Link>
+            </li>
           </ul>
 
           <div className="w-px h-5 bg-slate-300 mx-4"></div>

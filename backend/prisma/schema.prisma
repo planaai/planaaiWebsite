@@ -62,6 +62,7 @@ model User {
   nickname    String?
   collections Collection[]
   growthPlans GrowthPlan[]
+  notices     Notice[]
 }
 
 model Collection {
@@ -164,4 +165,22 @@ enum Position {
 enum Role {
   USER
   ADMIN
+}
+
+enum NoticeCategory {
+  UPDATE
+  EVENT
+  GENERAL
+}
+
+model Notice {
+  id        Int            @id @default(autoincrement())
+  title     String
+  content   String
+  category  NoticeCategory @default(GENERAL)
+  viewCount Int            @default(0)
+  authorId  Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }

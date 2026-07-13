@@ -12,10 +12,11 @@ import { GiftsManager } from './components/gifts/GiftsManager';
 import { ImageDBManager } from './components/images/ImageDBManager';
 import { ImageOffsetsManager } from './components/images/ImageOffsetsManager';
 import { GachaAdminManager } from './components/gacha/GachaAdminManager';
+import { NoticeManager } from './components/notice/NoticeManager';
 import { AdminLogin } from './components/auth/AdminLogin';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -207,6 +208,7 @@ export default function App() {
           {activeTab === 'images' && <ImageDBManager data={data} schema={schema} onRefresh={fetchData} showToast={showToast} />}
           {activeTab === 'imageOffsets' && <ImageOffsetsManager data={data} showToast={showToast} />}
           {activeTab === 'gacha' && <GachaAdminManager showToast={showToast} />}
+          {activeTab === 'notices' && <NoticeManager />}
         </div>
       </main>
     </div>
