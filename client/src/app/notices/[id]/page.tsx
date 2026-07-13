@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ArrowLeft, Calendar, Eye, User } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface Notice {
   id: number;
@@ -30,6 +31,7 @@ export default function NoticeDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    useAuthStore.getState().checkAuth();
     if (id) {
       fetchNotice();
     }

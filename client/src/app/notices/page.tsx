@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 
 interface Notice {
   id: number;
@@ -22,6 +23,7 @@ export default function NoticesPage() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
 
   useEffect(() => {
+    useAuthStore.getState().checkAuth();
     fetchNotices();
   }, [page, categoryFilter]);
 
