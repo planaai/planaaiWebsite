@@ -6,9 +6,17 @@ const { requireAuth, JWT_SECRET } = require('../middleware/auth');
 const { prisma } = require('../db');
 
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
+
+// 로그인/회원가입 요청 제한 (15분에 10회)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { error: '요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.' }
+});
 
 // 회원가입
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'ID와 비밀번호를 입력해주세요.' });
@@ -40,7 +48,7 @@ router.post('/register', async (req, res) => {
 });
 
 // 로그인
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'ID와 비밀번호를 입력해주세요.' });
