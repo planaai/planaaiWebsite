@@ -106,6 +106,10 @@ export default function NoticeDetailPage() {
 
   if (!notice) return null;
 
+  const exportContent = notice.content.replace(/(src="|\]\()(https?:\/\/[^\s"\)]+)/g, (match, prefix, url) => {
+    return `${prefix}/api/proxy-image?url=${encodeURIComponent(url)}`;
+  });
+
   return (
     <div className="max-w-4xl mx-auto py-8">
       <Link href="/notices" className="inline-flex items-center text-sm text-gray-500 hover:text-[var(--plana-primary)] mb-8 transition-colors">
@@ -229,7 +233,7 @@ export default function NoticeDetailPage() {
               {/* Content */}
               <div className="prose prose-xl prose-blue max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-2xl">
                 <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>
-                  {notice.content}
+                  {exportContent}
                 </ReactMarkdown>
               </div>
 

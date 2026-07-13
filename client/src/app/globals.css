@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   /* Plana Theme Colors (Light Pink Core, Lavender Accent) */
