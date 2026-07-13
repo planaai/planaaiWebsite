@@ -37,8 +37,8 @@ const menuGroups = [
 export default function LobbyPage() {
   const { showAlert } = useAlert();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    '정보 & 도감': true,
-    '플래너 & 유틸리티': true,
+    '정보 & 도감': false,
+    '플래너 & 유틸리티': false,
     '시스템': false
   });
 

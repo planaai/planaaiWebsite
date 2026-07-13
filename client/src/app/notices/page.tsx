@@ -21,6 +21,7 @@ export default function NoticesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const user = useAuthStore(state => state.user);
 
   useEffect(() => {
     useAuthStore.getState().checkAuth();
@@ -46,20 +47,27 @@ export default function NoticesPage() {
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8 text-[var(--plana-primary)]">공지사항</h1>
       
-      <div className="flex mb-6">
-        <select
-          value={categoryFilter}
-          onChange={(e) => {
-            setCategoryFilter(e.target.value);
-            setPage(1);
-          }}
-          className="border border-gray-300 rounded-md px-4 py-2 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)]"
-        >
-          <option value="ALL">전체보기</option>
-          <option value="GENERAL">일반</option>
-          <option value="UPDATE">업데이트</option>
-          <option value="EVENT">이벤트</option>
-        </select>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex">
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+            className="border border-gray-300 rounded-md px-4 py-2 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)]"
+          >
+            <option value="ALL">전체보기</option>
+            <option value="GENERAL">일반</option>
+            <option value="UPDATE">업데이트</option>
+            <option value="EVENT">이벤트</option>
+          </select>
+        </div>
+        {user?.role === 'ADMIN' && (
+          <Link href="/notices/write" className="bg-[var(--plana-primary)] text-white px-4 py-2 text-sm rounded-md font-medium hover:bg-pink-500 transition-colors shadow-sm">
+            글쓰기
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
