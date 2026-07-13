@@ -11,7 +11,17 @@ const { optionalAuth, requireAdmin } = require('./middleware/auth');
 const app = express();
 const port = 3000;
 
-app.use(cors());
+const corsOptions = {
+  origin: [
+    'https://planaai.kro.kr',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false })); // 이미지 서빙 등을 위해 허용
 app.use(hpp());
 app.use(express.json({ limit: '10mb' }));
