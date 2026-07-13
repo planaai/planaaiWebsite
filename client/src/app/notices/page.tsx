@@ -97,7 +97,7 @@ export default function NoticesPage() {
               notices.map((notice) => (
                 <tr key={notice.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium ${
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap ${
                       notice.category === 'UPDATE' ? 'bg-green-50 text-green-700 border border-green-200' :
                       notice.category === 'EVENT' ? 'bg-pink-50 text-pink-700 border border-pink-200' :
                       'bg-gray-50 text-gray-700 border border-gray-200'
