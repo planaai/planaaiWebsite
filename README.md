@@ -1,3 +1,11 @@
+---
+
+##  알려진 이슈 (Known Issues)
+
+1. **이미지 리소스 미완료 이슈**
+2. **선물 도감 미완료**: 고급 선물 5개 등록 안됨
+
+---
 #  Plana.AI
 
 프라나 AI는 블루 아카이브(Blue Archive) IP를 기반으로 한 다목적 유틸 사이트입니다.
@@ -6,12 +14,6 @@
 <img width="100%" alt="Plana.AI Main" src="https://github.com/user-attachments/assets/a3e28cdb-3ad4-465a-a58c-2ea75512b0cc" />
 
 현재 구현 완료되었거나 개발 중인 기능은 **총 11개**입니다.
----
-
-##  알려진 이슈 (Known Issues)
-
-1. **이미지 리소스 미완료 이슈**
-2. **선물 도감 미완료**: 고급 선물 5개 등록 안됨
 
 ---
 
