@@ -325,9 +325,9 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       <div key={i} className="bg-white p-4 shadow-sm -skew-x-[10deg] rounded-lg flex items-center gap-4 min-h-[100px]">
                         <div className="skew-x-[10deg] flex w-full gap-4 items-center">
                           {/* Icon placeholder */}
-                          <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
+                          <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                             {sData.iconUrl ? (
-                              <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover rounded-full" />
+                              <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
@@ -375,9 +375,9 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                         <div key={i} className="bg-white p-4 shadow-sm -skew-x-[10deg] rounded-lg flex items-center gap-4 min-h-[100px]">
                           <div className="skew-x-[10deg] flex w-full gap-4 items-center">
                             {/* Icon placeholder */}
-                            <div className="w-14 h-14 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center shrink-0">
+                            <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                               {sData.iconUrl ? (
-                                <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover rounded-full" />
+                                <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[10px] font-black text-slate-400">IMG</span>
                               )}

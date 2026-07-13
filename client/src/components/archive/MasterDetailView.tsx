@@ -419,7 +419,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                           className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50/50 transition-colors"
                         >
                           {/* Icon */}
-                          <div className="w-14 h-14 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                             {sData.iconUrl ? (
                               <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                             ) : (
@@ -499,7 +499,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                             onClick={() => setShowSkillMultipliers(prev => ({...prev, [`summon_${key}`]: !prev[`summon_${key}` as any]} as any))}
                             className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50/50 transition-colors"
                           >
-                            <div className="w-14 h-14 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                            <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                               {sData.iconUrl ? (
                                 <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                               ) : (
