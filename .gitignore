@@ -64,3 +64,16 @@ scratch/
 
 # Icons
 /ico/
+
+# TypeScript
+*.tsbuildinfo
+
+# Linter outputs
+lint-results.json
+lint-results.txt
+.eslintcache
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
