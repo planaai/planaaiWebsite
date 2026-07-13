@@ -11,7 +11,8 @@
 프라나 AI는 블루 아카이브(Blue Archive) IP를 기반으로 한 다목적 유틸 사이트입니다.
 현재 이 사이트는 아직 개발 단계에 있으며 버그들이 난무하고 잘못된 정보가 기재되어 있을 수 있습니다.
 
-<img width="100%" alt="Plana.AI Main" src="https://github.com/user-attachments/assets/a3e28cdb-3ad4-465a-a58c-2ea75512b0cc" />
+<img width="1920" height="1028" alt="image" src="https://github.com/user-attachments/assets/99586347-87c9-4fe6-9ff9-b70766c5c53b" />
+
 
 현재 구현 완료되었거나 개발 중인 기능은 **총 11개**입니다.
 
