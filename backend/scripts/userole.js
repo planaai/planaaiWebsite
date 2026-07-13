@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../db');
 const bcrypt = require('bcrypt');
 const readline = require('readline');
-
-const prisma = new PrismaClient();
 
 const rl = readline.createInterface({
   input: process.stdin,
