@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { StudentMaster, SchemaConfig } from '../types';
 
-export const API_BASE = typeof window !== 'undefined' ? 'https://api.planaai.kro.kr/api' : 'https://api.planaai.kro.kr/api';
+export const API_BASE = 'https://api.planaai.kro.kr/api';
 
 const api = axios.create({
   baseURL: API_BASE,
