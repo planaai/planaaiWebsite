@@ -251,7 +251,7 @@ export default function GachaPage() {
                           {/* Portrait */}
                           <div className="absolute inset-0 z-0 bg-slate-200 overflow-hidden rounded-md">
                             {student && student.portraitUrls && student.portraitUrls.length > 0 ? (
-                              <img src={getImageUrl(student.portraitUrls.length > 1 ? student.portraitUrls[1] : student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top skew-x-[6deg] scale-110" />
+                              <img src={getImageUrl(student.portraitUrls[0])} alt={r.name} className="w-full h-full object-cover object-top skew-x-[6deg] scale-110" />
                             ) : (
                               <div className="w-full h-full flex flex-col items-center justify-center skew-x-[6deg]">
                                 <User size={32} className="text-slate-400 opacity-50" />
