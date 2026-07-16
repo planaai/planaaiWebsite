@@ -29,8 +29,8 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
   const fetchImages = async () => {
     try {
       const [imgRes, folderRes] = await Promise.all([
-        axios.get(`${API}/api/images`),
-        axios.get(`${API}/api/images/folders`)
+        axios.get(`${API}/api/images?t=${Date.now()}`),
+        axios.get(`${API}/api/images/folders?t=${Date.now()}`)
       ]);
       setImages(imgRes.data);
       setServerFolders(folderRes.data);
