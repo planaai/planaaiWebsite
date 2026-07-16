@@ -80,7 +80,32 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  const handleUploadFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('paths', files[i].webkitRelativePath);
+      }
+      for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+      }
+      const url = `${API}/api/images/upload_folder?folder=${encodeURIComponent(currentPath)}`;
+      await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      showToast(`${files.length}개의 이미지(폴더 구조 포함) 업로드 완료`);
+      fetchImages();
+    } catch {
+      showToast('폴더 업로드 실패', 'error');
+    } finally {
+      setUploading(false);
+      if (folderInputRef.current) folderInputRef.current.value = '';
+    }
+  };
 
   const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -334,6 +359,11 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
             {uploading ? '업로드 중...' : '이미지 업로드'}
           </button>
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleUploadImage} />
+          
+          <button onClick={() => folderInputRef.current?.click()} disabled={uploading} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg text-white">
+            {uploading ? '업로드 중...' : '폴더 업로드'}
+          </button>
+          <input type="file" ref={folderInputRef} className="hidden" accept="image/*" multiple {...({ webkitdirectory: "true" } as any)} onChange={handleUploadFolder} />
           
           <button onClick={fetchImages} className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg text-white">
             새로고침

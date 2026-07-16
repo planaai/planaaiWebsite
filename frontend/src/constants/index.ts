@@ -1,4 +1,4 @@
-export const API = 'https://api.planaai.kro.kr';
+export const API = import.meta.env.DEV ? '' : 'https://api.planaai.kro.kr';
 
 export const EX_COSTS: Record<number, any> = {
   2: { bd: { tier: 0, amount: 12 }, oopart1: { tier: 0, amount: 13 }, credit: 80000 },

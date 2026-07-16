@@ -16,6 +16,7 @@ const corsOptions = {
     'https://planaai.kro.kr',
     'http://localhost:3000',
     'http://localhost:3001',
+    'http://localhost:5173',
     'https://planaai-admin.planaai.workers.dev'
   ],
   credentials: true,
@@ -302,6 +303,63 @@ app.post('/api/images/upload', uploadDynamic.any(), (req, res) => {
   let folder = req.query.folder || 'misc';
   folder = folder.replace(/\.\./g, '');
   const urls = req.files.map(file => `/uploads/${folder === '' ? '' : folder + '/'}${file.filename}`.replace('//', '/'));
+  res.json({ status: 'success', urls });
+});
+
+const os = require('os');
+const folderUploadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!req.tempUploadDir) {
+      req.tempUploadDir = path.join(os.tmpdir(), 'plana_upload_' + Date.now() + Math.random().toString().slice(2,8));
+      fs.mkdirSync(req.tempUploadDir, { recursive: true });
+    }
+    cb(null, req.tempUploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+const uploadFolderDynamic = multer({ storage: folderUploadStorage, limits: { fileSize: FILE_SIZE_LIMIT } });
+
+app.post('/api/images/upload_folder', uploadFolderDynamic.any(), (req, res) => {
+  if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
+  let folder = req.query.folder || '';
+  folder = folder.replace(/\.\./g, '');
+  
+  const uploadDir = path.join(__dirname, 'uploads', folder);
+  const paths = req.body.paths;
+  const urls = [];
+  
+  for (let i = 0; i < req.files.length; i++) {
+    const file = req.files[i];
+    let relPath = file.originalname;
+    if (paths) {
+      if (Array.isArray(paths)) {
+        relPath = paths[i] || file.originalname;
+      } else if (typeof paths === 'string' && req.files.length === 1) {
+        relPath = paths;
+      }
+    }
+    
+    const safeRelPath = relPath.replace(/\.\./g, '');
+    const destPath = path.join(uploadDir, safeRelPath);
+    const destDir = path.dirname(destPath);
+    
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+    
+    fs.renameSync(file.path, destPath);
+    
+    const url = `/uploads/${folder === '' ? '' : folder + '/'}${safeRelPath}`.replace(/\/\//g, '/');
+    urls.push(url);
+  }
+  
+  if (req.tempUploadDir) {
+    try { fs.rmSync(req.tempUploadDir, { recursive: true, force: true }); } catch (e) {}
+  }
+  
   res.json({ status: 'success', urls });
 });
 
