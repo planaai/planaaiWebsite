@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useAlert } from '@/contexts/AlertContext';
@@ -198,6 +199,28 @@ export default function InquiriesPage() {
               {activeTab === 'WRITE_SUGGESTION' && '사이트 발전을 위한 좋은 아이디어가 있다면 자유롭게 남겨주세요.'}
               {activeTab === 'WRITE_RESOURCE' && '누락된 캐릭터 전신 일러스트나 아이템 등의 이미지를 지원해주세요.'}
             </p>
+            
+            {activeTab === 'WRITE_BUG' && (
+              <div className="mt-4">
+                <Link href="/notices/4" target="_blank" className="inline-flex items-center px-4 py-2 bg-pink-50 text-[var(--plana-primary)] text-sm font-bold rounded-lg border border-pink-100 hover:bg-pink-100 transition-colors">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  오류 제보 전 드리는 말씀
+                </Link>
+              </div>
+            )}
+            
+            {activeTab === 'WRITE_RESOURCE' && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href="/notices/5" target="_blank" className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  엔비디아 그래픽카드 전용
+                </Link>
+                <Link href="/notices/6" target="_blank" className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 text-sm font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  라데온 그래픽카드 전용
+                </Link>
+              </div>
+            )}
           </div>
 
           {activeTab === 'WRITE_RESOURCE' && (
