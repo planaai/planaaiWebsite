@@ -15,20 +15,23 @@ export async function GET(request: Request) {
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
       }
     });
+    
     if (!response.ok) {
       return new Response(`Failed to fetch image: ${response.statusText}`, { status: response.status });
     }
 
+    const arrayBuffer = await response.arrayBuffer();
     const headers = new Headers();
     headers.set('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     headers.set('Access-Control-Allow-Origin', '*');
 
-    return new Response(response.body, {
+    return new Response(arrayBuffer, {
       headers,
     });
   } catch (error) {
     console.error('Proxy image error:', error);
-    return new Response('Failed to proxy image', { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return new Response(`Failed to proxy image: ${errorMessage}`, { status: 500 });
   }
 }
