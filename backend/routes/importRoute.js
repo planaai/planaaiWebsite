@@ -112,10 +112,13 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
     if (equipment?.slot3?.level) detailsObj.equip3Level = equipment.slot3.level;
     if (equipment?.slot4?.tier) detailsObj.equip4Tier = equipment.slot4.tier;
     
-    // 능력개방 레벨 저장
-    if (stats?.hpAbility !== undefined) detailsObj.hpAbility = stats.hpAbility;
-    if (stats?.atkAbility !== undefined) detailsObj.atkAbility = stats.atkAbility;
-    if (stats?.healAbility !== undefined) detailsObj.healAbility = stats.healAbility;
+    // 능력개방 레벨 저장 (frontend의 potentialLevels 구조에 맞춤)
+    if (stats?.hpAbility !== undefined || stats?.atkAbility !== undefined || stats?.healAbility !== undefined) {
+      if (!detailsObj.potentialLevels) detailsObj.potentialLevels = {};
+      if (stats?.hpAbility !== undefined) detailsObj.potentialLevels.maxHP = stats.hpAbility;
+      if (stats?.atkAbility !== undefined) detailsObj.potentialLevels.attackPower = stats.atkAbility;
+      if (stats?.healAbility !== undefined) detailsObj.potentialLevels.healPower = stats.healAbility;
+    }
 
     await prisma.collection.upsert({
       where: {

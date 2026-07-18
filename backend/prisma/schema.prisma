@@ -59,10 +59,12 @@ model User {
   role        Role         @default(USER)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  nickname    String?
-  collections Collection[]
-  growthPlans GrowthPlan[]
-  notices     Notice[]
+  nickname         String?
+  collections      Collection[]
+  growthPlans      GrowthPlan[]
+  notices          Notice[]
+  inquiries        Inquiry[]
+  inquiryResponses InquiryResponse[]
 }
 
 model Collection {
@@ -183,4 +185,64 @@ model Notice {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+enum InquiryCategory {
+  BUG_REPORT
+  RESOURCE_SUPPORT
+  SUGGESTION
+}
+
+enum InquirySubCategory {
+  FULL_BODY
+  ITEM
+  ETC
+}
+
+enum InquiryStatus {
+  PENDING
+  ANSWERED
+}
+
+model Inquiry {
+  id           Int                 @id @default(autoincrement())
+  userId       Int
+  category     InquiryCategory
+  subCategory  InquirySubCategory?
+  title        String?
+  content      String?
+  status       InquiryStatus       @default(PENDING)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images       InquiryImage[]
+  responses    InquiryResponse[]
+}
+
+model InquiryImage {
+  id        Int      @id @default(autoincrement())
+  inquiryId Int
+  imageUrl  String
+  createdAt DateTime @default(now())
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+}
+
+model InquiryResponse {
+  id        Int               @id @default(autoincrement())
+  inquiryId Int
+  adminId   Int
+  content   String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  inquiry   Inquiry           @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  admin     User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  images    ResponseImage[]
+}
+
+model ResponseImage {
+  id         Int             @id @default(autoincrement())
+  responseId Int
+  imageUrl   String
+  createdAt  DateTime        @default(now())
+  response   InquiryResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
 }

@@ -47,6 +47,7 @@ const importRouter = require('./routes/importRoute'); // NEW
 const studentsRouter = require('./routes/students');
 const imageOffsetsRouter = require('./routes/imageOffsets');
 const noticesRouter = require('./routes/notices');
+const inquiriesRouter = require('./routes/inquiries'); // NEW
 
 app.use('/api/auth', authRouter);
 app.use('/api/collection', collectionRouter);
@@ -55,6 +56,7 @@ app.use('/api/import', importRouter); // NEW
 app.use('/api/students', studentsRouter);
 app.use('/api/image-offsets', imageOffsetsRouter);
 app.use('/api/notices', noticesRouter);
+app.use('/api/inquiries', inquiriesRouter); // NEW
 
 /* ═══════════════════════════════════════════════
    정적 파일 & Multer 업로드 설정 (스킬 아이콘 & 초상화)

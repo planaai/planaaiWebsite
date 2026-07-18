@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal, Info, ChevronDown, ChevronRight, Folder } from 'lucide-react';
+import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal, Info, ChevronDown, ChevronRight, Folder, MessageSquare } from 'lucide-react';
 import { useAlert } from '@/contexts/AlertContext';
 
 const menuGroups = [
@@ -28,8 +28,9 @@ const menuGroups = [
     title: '시스템',
     items: [
       { num: '09', title: '공지사항', path: '/notices', icon: Info },
-      { num: '10', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
-      { num: '11', title: '계정', path: '/account', icon: User },
+      { num: '10', title: '문의사항', path: '/inquiries', icon: MessageSquare },
+      { num: '11', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
+      { num: '12', title: '계정', path: '/account', icon: User },
     ]
   }
 ];
