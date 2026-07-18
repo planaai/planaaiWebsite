@@ -336,7 +336,7 @@ export default function InquiriesPage() {
                         {inq.images?.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-3">
                             {inq.images.map((img: any) => (
-                              <img key={img.id} src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${img.imageUrl}`} alt="attachment" className="max-h-32 rounded border border-gray-200" />
+                              <img key={img.id} src={`https://api.planaai.kro.kr${img.imageUrl}`} alt="attachment" className="max-h-32 rounded border border-gray-200" />
                             ))}
                           </div>
                         )}
@@ -362,7 +362,7 @@ export default function InquiriesPage() {
                               {res.images?.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-3">
                                   {res.images.map((img: any) => (
-                                    <img key={img.id} src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}${img.imageUrl}`} alt="admin attachment" className="max-h-32 rounded border border-gray-200" />
+                                    <img key={img.id} src={`https://api.planaai.kro.kr${img.imageUrl}`} alt="admin attachment" className="max-h-32 rounded border border-gray-200" />
                                   ))}
                                 </div>
                               )}
