@@ -773,6 +773,11 @@ app.get('/api/students/names', (req, res) => {
   res.json(studentMasterDB.map(s => s.name));
 });
 
+// Added to allow the screenshot macro to fetch the full list of students
+app.get('/api/students', (req, res) => {
+  res.json(studentMasterDB);
+});
+
 app.get('/api/archive', optionalAuth, async (req, res) => {
   try {
     const requiredFields = schemaConfig.statFields.filter(f => f.required).map(f => f.key);
