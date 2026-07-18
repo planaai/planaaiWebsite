@@ -19,6 +19,7 @@ dist-ssr/
 # Backend / Express / Node
 uploads/
 /backend/uploads/
+/backend/data/
 *.log
 
 # Prisma
