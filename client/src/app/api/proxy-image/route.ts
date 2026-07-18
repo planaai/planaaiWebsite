@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -20,13 +20,12 @@ export async function GET(request: Request) {
       return new Response(`Failed to fetch image: ${response.statusText}`, { status: response.status });
     }
 
-    const arrayBuffer = await response.arrayBuffer();
     const headers = new Headers();
     headers.set('Content-Type', response.headers.get('Content-Type') || 'application/octet-stream');
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     headers.set('Access-Control-Allow-Origin', '*');
 
-    return new Response(arrayBuffer, {
+    return new Response(response.body, {
       headers,
     });
   } catch (error) {
