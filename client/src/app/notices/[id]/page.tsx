@@ -184,7 +184,18 @@ export default function NoticeDetailPage() {
         {/* Content */}
         <div className="p-8 md:p-10">
           <div className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm, remarkBreaks]} 
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                a: ({ node, ...props }) => {
+                  if (typeof props.href === 'string' && props.href.includes('postimg.cc')) {
+                    return <img src={props.href} alt="postimage" className="max-w-full rounded-xl mt-4 mb-4" />;
+                  }
+                  return <a {...props} />;
+                }
+              }}
+            >
               {notice.content}
             </ReactMarkdown>
           </div>
@@ -232,7 +243,19 @@ export default function NoticeDetailPage() {
 
               {/* Content */}
               <div className="prose prose-xl prose-blue max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-2xl">
-                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeRaw]}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm, remarkBreaks]} 
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    a: ({ node, ...props }) => {
+                      if (typeof props.href === 'string' && props.href.includes('postimg.cc')) {
+                        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(props.href)}`;
+                        return <img src={proxyUrl} alt="postimage" className="max-w-full rounded-2xl mt-6 mb-6" />;
+                      }
+                      return <a {...props} />;
+                    }
+                  }}
+                >
                   {exportContent}
                 </ReactMarkdown>
               </div>
