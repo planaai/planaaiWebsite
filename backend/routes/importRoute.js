@@ -106,7 +106,12 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
     let detailsObj = existingCollection?.details ? (typeof existingCollection.details === 'string' ? JSON.parse(existingCollection.details) : existingCollection.details) : {};
     
     // bondRank와 장비 레벨 저장
-    if (req.body.bondRank !== undefined && req.body.bondRank !== null) detailsObj.bondRank = req.body.bondRank;
+    const extractedBondRank = req.body.bondRank ?? req.body.bond_rank ?? stats?.bondRank ?? stats?.bond_rank;
+    if (extractedBondRank !== undefined && extractedBondRank !== null) {
+      const parsedBond = parseInt(extractedBondRank);
+      if (!isNaN(parsedBond)) detailsObj.bondRank = parsedBond;
+    }
+    
     if (equipment?.slot1?.level) detailsObj.equip1Level = equipment.slot1.level;
     if (equipment?.slot2?.level) detailsObj.equip2Level = equipment.slot2.level;
     if (equipment?.slot3?.level) detailsObj.equip3Level = equipment.slot3.level;
@@ -118,6 +123,65 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
       if (stats?.hpAbility !== undefined) detailsObj.potentialLevels.maxHP = stats.hpAbility;
       if (stats?.atkAbility !== undefined) detailsObj.potentialLevels.attackPower = stats.atkAbility;
       if (stats?.healAbility !== undefined) detailsObj.potentialLevels.healPower = stats.healAbility;
+    }
+
+    const parseEquip = (val) => {
+      if (typeof val === 'string' && val.toUpperCase().startsWith('T')) {
+        const num = parseInt(val.toUpperCase().replace('T', ''));
+        return isNaN(num) ? 1 : num;
+      }
+      return parseInt(val) || 1;
+    };
+
+    const parseSkill = (val, isEx) => {
+      if (val === 'MAX' || val === 'max') return isEx ? 5 : 10;
+      if (typeof val === 'string') {
+        const match = val.match(/\d+/);
+        if (match) return parseInt(match[0]);
+      }
+      const num = parseInt(val);
+      return isNaN(num) ? 1 : num;
+    };
+
+    // 기본 레벨
+    detailsObj.level = currentLevel || 1;
+    
+    // 스킬 정보
+    if (skills) {
+      detailsObj.skillLevels = {
+        ex: parseSkill(skills.ex, true),
+        normal: parseSkill(skills.basic, false),
+        passive: parseSkill(skills.enh, false),
+        sub: parseSkill(skills.sub, false)
+      };
+    }
+    
+    // 장비 정보 (프론트엔드의 { tier, level } 구조 반영)
+    if (equipment) {
+      detailsObj.equipment = {
+        slot1: equipment.slot1 ? { tier: equipment.slot1.tier || parseEquip(equipment.slot1), level: equipment.slot1.level || 1 } : null,
+        slot2: equipment.slot2 ? { tier: equipment.slot2.tier || parseEquip(equipment.slot2), level: equipment.slot2.level || 1 } : null,
+        slot3: equipment.slot3 ? { tier: equipment.slot3.tier || parseEquip(equipment.slot3), level: equipment.slot3.level || 1 } : null,
+        slot4: equipment.slot4 ? { tier: equipment.slot4.tier || parseEquip(equipment.slot4), level: equipment.slot4.level || 1 } : null,
+      };
+    }
+    
+    // 고유무기 정보
+    if (weapon) {
+      detailsObj.uniqueWeapon = {
+        stars: weapon.star || 1,
+        level: weapon.level || 1
+      };
+    }
+
+    // 상세 스탯을 collection details에 저장
+    if (stats) {
+      detailsObj.stats = {
+        maxHP: stats.maxHP,
+        attackPower: stats.attackPower,
+        defensePower: stats.defensePower,
+        healPower: stats.healPower
+      };
     }
 
     await prisma.collection.upsert({
@@ -141,24 +205,8 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
       }
     });
 
-    // 2. GrowthPlan (육성 상태) 업데이트
-    const parseSkill = (val, isEx) => {
-      if (val === 'MAX' || val === 'max') return isEx ? 5 : 10;
-      if (typeof val === 'string') {
-        const match = val.match(/\d+/);
-        if (match) return parseInt(match[0]);
-      }
-      const num = parseInt(val);
-      return isNaN(num) ? 1 : num;
-    };
-
-    const parseEquip = (val) => {
-      if (typeof val === 'string' && val.toUpperCase().startsWith('T')) {
-        const num = parseInt(val.toUpperCase().replace('T', ''));
-        return isNaN(num) ? 1 : num;
-      }
-      return parseInt(val) || 1;
-    };
+    // GrowthPlan (육성 상태) 업데이트
+    // parseSkill, parseEquip는 위에서 선언됨
 
     // findFirst() 대신 findMany로 체크
     const existingPlan = await prisma.growthPlan.findFirst({

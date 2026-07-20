@@ -461,7 +461,10 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     const equipLabel = getLabel('EquipmentCategory', equipCategory);
                     
                     const equipmentDef = schema.equipments?.find(e => e.key === equipCategory);
-                    const equipImage = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl || equipmentDef?.tiers?.[equipmentDef.tiers.length - 1]?.iconUrl || '/images/ui/equip_empty.png';
+                    const equipImageRaw = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl || equipmentDef?.tiers?.[equipmentDef.tiers.length - 1]?.iconUrl;
+                    const equipImage = equipImageRaw 
+                      ? (equipImageRaw.startsWith('img-') ? `/uploads/equipment/${equipImageRaw}` : equipImageRaw)
+                      : '/images/ui/equip_empty.png';
                     
                     return (
                       <div key={i} className="w-20 h-24 bg-white shadow-sm flex flex-col justify-between p-2 border border-slate-100 relative group cursor-pointer hover:border-[var(--plana-primary)] transition-colors rounded-xl">

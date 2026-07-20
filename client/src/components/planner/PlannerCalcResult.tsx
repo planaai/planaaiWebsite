@@ -28,7 +28,8 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
      const equipData = schema.equipments.find(e => e.key === type);
      if (!equipData || !equipData.tiers || !equipData.tiers[tier - 1]) return '';
      const tData = equipData.tiers[tier - 1];
-     return tData.blueprintIconUrl || tData.iconUrl || '';
+     const rawUrl = tData.blueprintIconUrl || tData.iconUrl || '';
+     return rawUrl.startsWith('img-') ? `/uploads/equipment/${rawUrl}` : rawUrl;
   };
 
   const getEquipmentLabel = (type: string) => {
