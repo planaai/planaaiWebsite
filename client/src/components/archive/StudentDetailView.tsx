@@ -461,7 +461,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     const equipLabel = getLabel('EquipmentCategory', equipCategory);
                     
                     const equipmentDef = schema.equipments?.find(e => e.key === equipCategory);
-                    const equipImageRaw = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl || equipmentDef?.tiers?.[equipmentDef.tiers.length - 1]?.iconUrl;
+                    const equipImageRaw = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl;
                     const equipImage = equipImageRaw 
                       ? (equipImageRaw.startsWith('img-') ? `https://api.planaai.kro.kr/uploads/equipment/${equipImageRaw}` : (equipImageRaw.startsWith('/') ? `https://api.planaai.kro.kr${equipImageRaw}` : equipImageRaw))
                       : '/images/ui/equip_empty.png';
