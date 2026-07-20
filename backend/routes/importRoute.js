@@ -133,44 +133,44 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
       return parseInt(val) || 1;
     };
 
-    const parseSkill = (val, isEx) => {
+    const parseSkill = (val, isEx, currentVal) => {
+      if (val === undefined || val === null || val === '') return currentVal || 1;
       if (val === 'MAX' || val === 'max') return isEx ? 5 : 10;
       if (typeof val === 'string') {
         const match = val.match(/\d+/);
         if (match) return parseInt(match[0]);
       }
       const num = parseInt(val);
-      return isNaN(num) ? 1 : num;
+      return isNaN(num) ? (currentVal || 1) : num;
     };
 
     // 기본 레벨
-    detailsObj.level = currentLevel || 1;
+    detailsObj.level = currentLevel || detailsObj.level || 1;
     
     // 스킬 정보
     if (skills) {
       detailsObj.skillLevels = {
-        ex: parseSkill(skills.ex, true),
-        normal: parseSkill(skills.basic, false),
-        passive: parseSkill(skills.enh, false),
-        sub: parseSkill(skills.sub, false)
+        ex: parseSkill(skills.ex, true, detailsObj.skillLevels?.ex),
+        normal: parseSkill(skills.basic, false, detailsObj.skillLevels?.normal),
+        passive: parseSkill(skills.enh, false, detailsObj.skillLevels?.passive),
+        sub: parseSkill(skills.sub, false, detailsObj.skillLevels?.sub)
       };
     }
     
     // 장비 정보 (프론트엔드의 { tier, level } 구조 반영)
     if (equipment) {
-      detailsObj.equipment = {
-        slot1: equipment.slot1 ? { tier: equipment.slot1.tier || parseEquip(equipment.slot1), level: equipment.slot1.level || 1 } : null,
-        slot2: equipment.slot2 ? { tier: equipment.slot2.tier || parseEquip(equipment.slot2), level: equipment.slot2.level || 1 } : null,
-        slot3: equipment.slot3 ? { tier: equipment.slot3.tier || parseEquip(equipment.slot3), level: equipment.slot3.level || 1 } : null,
-        slot4: equipment.slot4 ? { tier: equipment.slot4.tier || parseEquip(equipment.slot4), level: equipment.slot4.level || 1 } : null,
-      };
+      if (!detailsObj.equipment) detailsObj.equipment = {};
+      detailsObj.equipment.slot1 = equipment.slot1 ? { tier: equipment.slot1.tier || parseEquip(equipment.slot1), level: equipment.slot1.level || 1 } : (detailsObj.equipment.slot1 || null);
+      detailsObj.equipment.slot2 = equipment.slot2 ? { tier: equipment.slot2.tier || parseEquip(equipment.slot2), level: equipment.slot2.level || 1 } : (detailsObj.equipment.slot2 || null);
+      detailsObj.equipment.slot3 = equipment.slot3 ? { tier: equipment.slot3.tier || parseEquip(equipment.slot3), level: equipment.slot3.level || 1 } : (detailsObj.equipment.slot3 || null);
+      detailsObj.equipment.slot4 = equipment.slot4 ? { tier: equipment.slot4.tier || parseEquip(equipment.slot4), level: equipment.slot4.level || 1 } : (detailsObj.equipment.slot4 || null);
     }
     
     // 고유무기 정보
-    if (weapon) {
+    if (weapon && (weapon.star || weapon.level)) {
       detailsObj.uniqueWeapon = {
-        stars: weapon.star || 1,
-        level: weapon.level || 1
+        stars: weapon.star || detailsObj.uniqueWeapon?.stars || 1,
+        level: weapon.level || detailsObj.uniqueWeapon?.level || 1
       };
     }
 

@@ -29,7 +29,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
      if (!equipData || !equipData.tiers || !equipData.tiers[tier - 1]) return '';
      const tData = equipData.tiers[tier - 1];
      const rawUrl = tData.blueprintIconUrl || tData.iconUrl || '';
-     return rawUrl.startsWith('img-') ? `/uploads/equipment/${rawUrl}` : rawUrl;
+     return rawUrl.startsWith('img-') ? `https://api.planaai.kro.kr/uploads/equipment/${rawUrl}` : rawUrl;
   };
 
   const getEquipmentLabel = (type: string) => {
