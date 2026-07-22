@@ -65,6 +65,7 @@ model User {
   notices          Notice[]
   inquiries        Inquiry[]
   inquiryResponses InquiryResponse[]
+  sharedParties    SharedRaidParty[]
 }
 
 model Collection {
@@ -246,3 +247,22 @@ model ResponseImage {
   createdAt  DateTime        @default(now())
   response   InquiryResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
 }
+
+model SharedRaidParty {
+  id           Int      @id @default(autoincrement())
+  bossId       String
+  terrain      String
+  difficulty   String
+  name         String
+  parties      Json     // [{name: "1파티", strikers: [...], specials: [...]}]
+  tags         Json     // ["#1파티클", "#고점픽"]
+  tactics      String   @db.Text
+  clearTime    String?
+  imagePath    String?
+  authorId     Int
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likeCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

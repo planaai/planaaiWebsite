@@ -7,6 +7,8 @@ import { useAuthStore } from '@/store/authStore';
 const MENU_ITEMS = [
   { name: '컬렉션', path: '/' },
   { name: '도감', path: '/archive' },
+  { name: '모의 편성', path: '/formation' },
+  { name: '조합 추천', path: '/raids' },
   { name: '가챠 시뮬레이터', path: '/gacha' },
   { name: '육성 플래너', path: '/planner' },
   { name: '청휘석 계산기', path: '/pyroxene' },

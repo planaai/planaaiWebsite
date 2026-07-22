@@ -1,0 +1,78 @@
+{
+  "bosses": [
+    {
+      "id": "binah",
+      "name": "비나 (Binah)",
+      "iconUrl": "/images/boss/binah.png",
+      "defenseType": "HeavyArmor"
+    },
+    {
+      "id": "shirokuro",
+      "name": "시로 & 쿠로 (Shiro & Kuro)",
+      "iconUrl": "/images/boss/shirokuro.png",
+      "defenseType": "SpecialArmor"
+    }
+  ],
+  "seasons": [
+    {
+      "bossId": "binah",
+      "terrain": "Urban",
+      "difficulty": "Insane",
+      "parties": [
+        {
+          "id": "binah_urban_insane_1",
+          "name": "마키 메인 방깎 1파티",
+          "parties": [
+            {
+              "name": "1파티",
+              "strikers": [10000, 10001, 10002, 10003],
+              "specials": [20000, 20001]
+            }
+          ],
+          "tags": ["#1파티클", "#고점픽", "#안정성높음"],
+          "tactics": "아코(20000) -> 마키(10000) -> 히마리(20001) 순서로 버프를 몰아줍니다. 방어력 감소 타이밍에 맞춰 EX를 사용하세요.",
+          "clearTime": "03:15.300"
+        },
+        {
+          "id": "binah_urban_insane_2",
+          "name": "가성비 다이해 2파티",
+          "parties": [
+            {
+              "name": "1파티",
+              "strikers": [10004, 10005, 10006, 10007],
+              "specials": [20002, 20003]
+            },
+            {
+              "name": "2파티 (설거지)",
+              "strikers": [10000, 10001, null, null],
+              "specials": [20000, null]
+            }
+          ],
+          "tags": ["#다회차", "#가성비", "#대여가능"],
+          "tactics": "미도리(10004)와 모모이(10005)를 활용한 지속딜 덱입니다. 1파티에서 보스 체력을 깎고 2파티로 마무리합니다.",
+          "clearTime": "설거지용"
+        }
+      ]
+    },
+    {
+      "bossId": "shirokuro",
+      "terrain": "Indoor",
+      "difficulty": "Torment",
+      "parties": [
+        {
+          "id": "shirokuro_indoor_torment_1",
+          "name": "이즈나 이동기 택틱",
+          "parties": [
+            {
+              "name": "1파티",
+              "strikers": [10008, 10009, 10010, 10011],
+              "specials": [20004, 20005]
+            }
+          ],
+          "tags": ["#이동기필수", "#패턴회피"],
+          "tactics": "시즈코(20004) EX로 공을 반사하고, 이즈나(10008) EX로 위치를 이동하여 장판을 피합니다."
+        }
+      ]
+    }
+  ]
+}

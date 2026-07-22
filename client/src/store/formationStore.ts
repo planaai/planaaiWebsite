@@ -37,6 +37,7 @@ export interface FormationState {
   fetchImageOffsets: () => Promise<void>;
   studentModes: Record<number, number>;
   setStudentMode: (studentId: number, modeIndex: number) => void;
+  importTeam: (strikers: (number | null)[], specials: (number | null)[]) => void;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -143,7 +144,7 @@ export const useFormationStore = create<FormationState>()(
 
       addTeam: () =>
         set((state) => {
-          if (state.teams.length >= 4) return state; // Max 4 teams
+          if (state.teams.length >= 20) return state; // Max 20 teams
           const newTeam = createEmptyTeam(`${state.teams.length + 1}부대`, state.mode);
           return {
             teams: [...state.teams, newTeam],
@@ -251,6 +252,31 @@ export const useFormationStore = create<FormationState>()(
           console.error('Failed to fetch image offsets:', err);
         }
       },
+
+      importTeam: (strikers, specials) =>
+        set((state) => {
+          if (!state.activeTeamId) return state;
+          const newTeams = [...state.teams];
+          const teamIndex = newTeams.findIndex((t) => t.id === state.activeTeamId);
+          if (teamIndex === -1) return state;
+
+          const team = { ...newTeams[teamIndex] };
+          team.strikers = [...strikers];
+          team.specials = [...specials];
+          
+          // Ensure arrays match mode size if needed
+          const strikerCount = state.mode === 'elimination' ? 6 : 4;
+          const specialCount = state.mode === 'elimination' ? 4 : 2;
+          
+          while (team.strikers.length < strikerCount) team.strikers.push(null);
+          while (team.specials.length < specialCount) team.specials.push(null);
+          
+          if (team.strikers.length > strikerCount) team.strikers = team.strikers.slice(0, strikerCount);
+          if (team.specials.length > specialCount) team.specials = team.specials.slice(0, specialCount);
+
+          newTeams[teamIndex] = team;
+          return { teams: newTeams };
+        }),
     }),
     {
       name: 'formation-storage',

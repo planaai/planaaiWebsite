@@ -25,7 +25,13 @@ export function TeamTabs() {
   };
 
   return (
-    <div className="absolute left-0 top-24 flex flex-col z-20 space-y-3">
+    <div 
+      className="absolute left-0 top-24 bottom-4 z-20 flex flex-col space-y-3 overflow-y-auto overflow-x-hidden pb-8 hide-scroll"
+      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scroll::-webkit-scrollbar { display: none; }
+      `}} />
       {teams.map((team) => {
         const isActive = team.id === activeTeamId;
         return (
@@ -84,11 +90,11 @@ export function TeamTabs() {
         );
       })}
       
-      {/* 4 max teams */}
-      {teams.length < 4 && (
+      {/* 20 max teams */}
+      {teams.length < 20 && (
         <button
           onClick={addTeam}
-          className="w-32 bg-white/50 text-slate-600 hover:bg-white hover:w-36 transition-all duration-300 shadow-sm rounded-r-lg p-3 flex items-center justify-center space-x-2"
+          className="w-32 bg-white/50 text-slate-600 hover:bg-white hover:w-36 transition-all duration-300 shadow-sm rounded-r-lg p-3 flex items-center justify-center space-x-2 shrink-0 mb-4"
         >
           <Plus size={18} />
           <span className="font-bold">부대 추가</span>
