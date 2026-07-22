@@ -250,6 +250,8 @@ model ResponseImage {
 
 model SharedRaidParty {
   id           Int      @id @default(autoincrement())
+  shortCode    String?  @unique @default(cuid())
+  mode         String   @default("TotalAssault")
   bossId       String
   terrain      String
   difficulty   String
@@ -266,3 +268,20 @@ model SharedRaidParty {
   updatedAt    DateTime @updatedAt
 }
 
+model RaidBoss {
+  id          String       @id
+  name        String
+  iconUrl     String
+  bannerUrl   String?
+  defenseType String
+  category    String       @default("Assault") // "Assault" (Total/Grand) or "LimitBreak"
+  seasons     RaidSeason[]
+}
+
+model RaidSeason {
+  id         Int      @id @default(autoincrement())
+  bossId     String
+  boss       RaidBoss @relation(fields: [bossId], references: [id], onDelete: Cascade)
+  terrain    String
+  difficulty String
+}

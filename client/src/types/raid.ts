@@ -2,7 +2,9 @@ export interface RaidBoss {
   id: string;
   name: string;
   iconUrl: string;
+  bannerUrl?: string;
   defenseType: string;
+  category?: string;
 }
 
 export interface RaidPartyMember {
@@ -18,6 +20,8 @@ export interface SubParty {
 
 export interface RaidParty {
   id: number | string; // backend uses Int, static uses string
+  shortCode?: string;
+  mode?: string;
   bossId?: string;
   terrain?: string;
   difficulty?: string;

@@ -34,7 +34,7 @@ export default function RaidWritePage() {
   }
 
   return (
-    <div className="h-full bg-[var(--plana-bg-dark)] overflow-hidden">
+    <div className="h-full overflow-hidden">
       <RaidWriteForm masterData={masterData} />
     </div>
   );

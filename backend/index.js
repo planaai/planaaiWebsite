@@ -26,8 +26,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false })); // 이미지 서빙 등을 위해 허용
 app.use(hpp());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // 마스터 DB 수정 전용 라우트에 대한 일괄 관리자 인증 적용
 app.use((req, res, next) => {
@@ -96,7 +96,7 @@ const illustStorage = multer.diskStorage({
   }
 });
 
-const FILE_SIZE_LIMIT = 10 * 1024 * 1024; // 10MB
+const FILE_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
 const uploadSkill = multer({ storage: skillStorage, limits: { fileSize: FILE_SIZE_LIMIT } });
 const uploadPortrait = multer({ storage: portraitStorage, limits: { fileSize: FILE_SIZE_LIMIT } });
 const uploadIllust = multer({ storage: illustStorage, limits: { fileSize: FILE_SIZE_LIMIT } });

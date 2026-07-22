@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare } from 'lucide-react';
+import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare, Target } from 'lucide-react';
 
 import type { ArchiveData, SchemaConfig } from './types';
 import { API } from './constants';
@@ -14,10 +14,11 @@ import { ImageOffsetsManager } from './components/images/ImageOffsetsManager';
 import { GachaAdminManager } from './components/gacha/GachaAdminManager';
 import { NoticeManager } from './components/notice/NoticeManager';
 import { InquiryAdminManager } from './components/inquiries/InquiryAdminManager';
+import { RaidAdminManager } from './components/raids/RaidAdminManager';
 import { AdminLogin } from './components/auth/AdminLogin';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -185,7 +186,9 @@ export default function App() {
              { id: 'images', icon: ImageIcon, label: '이미지 풀', color: 'purple' },
              { id: 'imageOffsets', icon: ImageIcon, label: '이미지 비율 조절', color: 'cyan' },
              { id: 'gacha', icon: RefreshCw, label: '가챠 유지보수', color: 'indigo' },
-             { id: 'inquiries', icon: MessageSquare, label: '문의사항 관리', color: 'rose' }
+             { id: 'notices', icon: MessageSquare, label: '공지사항 관리', color: 'sky' },
+             { id: 'inquiries', icon: MessageSquare, label: '문의사항 관리', color: 'rose' },
+             { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
@@ -210,8 +213,9 @@ export default function App() {
           {activeTab === 'images' && <ImageDBManager data={data} schema={schema} onRefresh={fetchData} showToast={showToast} />}
           {activeTab === 'imageOffsets' && <ImageOffsetsManager data={data} showToast={showToast} />}
           {activeTab === 'gacha' && <GachaAdminManager showToast={showToast} />}
-          {activeTab === 'notices' && <NoticeManager />}
-          {activeTab === 'inquiries' && <InquiryAdminManager showToast={showToast} />}
+          { activeTab === 'notices' && <NoticeManager /> }
+          { activeTab === 'inquiries' && <InquiryAdminManager showToast={showToast} /> }
+          { activeTab === 'raids' && <RaidAdminManager showToast={showToast} /> }
         </div>
       </main>
     </div>
