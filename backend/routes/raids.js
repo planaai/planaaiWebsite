@@ -116,13 +116,20 @@ router.post('/seasons', requireAuth, async (req, res) => {
 // GET /api/raids/parties - Fetch shared parties
 router.get('/parties', async (req, res) => {
   try {
-    const { bossId, terrain, difficulty, mode } = req.query;
+    const { bossId, terrain, difficulty, mode, q } = req.query;
     
     const whereClause = {};
     if (bossId) whereClause.bossId = bossId;
     if (terrain) whereClause.terrain = terrain;
     if (difficulty) whereClause.difficulty = difficulty;
     if (mode) whereClause.mode = mode;
+
+    if (q) {
+      whereClause.OR = [
+        { name: { contains: q } },
+        { shortCode: { contains: q } }
+      ];
+    }
 
     const parties = await prisma.sharedRaidParty.findMany({
       where: whereClause,
