@@ -130,6 +130,7 @@ export function RaidWriteForm({ masterData }: Props) {
       .map(t => t.startsWith('#') ? t : `#${t}`);
 
     const payload = new FormData();
+    payload.append('mode', formData.mode);
     payload.append('name', formData.name);
     payload.append('bossId', formData.bossId);
     payload.append('terrain', formData.terrain);

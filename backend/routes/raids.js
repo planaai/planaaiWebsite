@@ -158,8 +158,16 @@ router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res
     const authorId = req.user.id;
 
     // Validate required fields
-    if (!name || !subParties || !bossId || !terrain || !difficulty || !mode) {
-      return res.status(400).json({ error: '필수 항목이 누락되었습니다.' });
+    const missingFields = [];
+    if (!name) missingFields.push('이름');
+    if (!subParties) missingFields.push('사용 부대(파티)');
+    if (!bossId) missingFields.push('보스');
+    if (!terrain) missingFields.push('지형');
+    if (!difficulty) missingFields.push('난이도');
+    if (!mode) missingFields.push('분류(모드)');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ error: `필수 항목이 누락되었습니다: ${missingFields.join(', ')}` });
     }
 
     if (!req.file) {
