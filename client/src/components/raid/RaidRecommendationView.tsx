@@ -143,6 +143,7 @@ export function RaidRecommendationView({ masterData }: Props) {
                 party={party}
                 masterData={masterData}
                 onDelete={typeof party.id === 'number' ? () => handleDeleteParty(party.id as number) : undefined}
+                bossName={bosses.find(b => b.id === party.bossId)?.name}
               />
             ))}
           </div>

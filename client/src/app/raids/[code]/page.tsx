@@ -19,6 +19,7 @@ export default function RaidDetailPage() {
 
   const [masterData, setMasterData] = useState<StudentMaster[]>([]);
   const [party, setParty] = useState<RaidParty | null>(null);
+  const [bosses, setBosses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -29,6 +30,13 @@ export default function RaidDetailPage() {
       if (cancelled) return;
       setMasterData(masterData);
       
+      try {
+        const metaRes = await api.get('/raids/meta');
+        setBosses(metaRes.data.bosses);
+      } catch (err) {
+        console.error('Failed to fetch raid meta', err);
+      }
+
       try {
         // Try fetching from API first (by shortCode)
         const res = await api.get(`/raids/parties/code/${code}`);
@@ -106,6 +114,7 @@ export default function RaidDetailPage() {
           masterData={masterData}
           isDetail={true}
           onDelete={typeof party.id === 'number' ? handleDelete : undefined}
+          bossName={bosses.find(b => b.id === party.bossId)?.name}
         />
       </div>
     </div>

@@ -13,9 +13,10 @@ interface Props {
   masterData: StudentMaster[];
   onDelete?: () => void;
   isDetail?: boolean;
+  bossName?: string;
 }
 
-export function RaidPartyCard({ party, masterData, onDelete, isDetail = false }: Props) {
+export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, bossName }: Props) {
   const router = useRouter();
   const { importTeam } = useFormationStore();
   const { user } = useAuthStore();
@@ -55,6 +56,20 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false }:
     );
   };
 
+  const getTerrainName = (t?: string) => {
+    if (t === 'Urban') return '시가전';
+    if (t === 'Outdoor') return '야전';
+    if (t === 'Indoor') return '실내전';
+    return t || '알 수 없음';
+  };
+
+  const getModeName = (m?: string) => {
+    if (m === 'TotalAssault') return '총력전';
+    if (m === 'GrandAssault') return '대결전';
+    if (m === 'LimitBreakAssault') return '제약해제결전';
+    return m || '알 수 없음';
+  };
+
   return (
     <div className="bg-white/90 backdrop-blur rounded-lg p-4 flex flex-col gap-4 border border-purple-100 shadow-sm">
       <div className="flex justify-between items-start">
@@ -65,6 +80,22 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false }:
               Code: {party.shortCode || party.id}
             </span>
           </div>
+          
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="px-2 py-1 bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold rounded">
+              {getModeName(party.mode)}
+            </span>
+            <span className="px-2 py-1 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded">
+              {bossName || party.bossId}
+            </span>
+            <span className="px-2 py-1 bg-green-50 border border-green-200 text-green-700 text-xs font-bold rounded">
+              {getTerrainName(party.terrain)}
+            </span>
+            <span className="px-2 py-1 bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold rounded">
+              {party.difficulty}
+            </span>
+          </div>
+
           <div className="flex gap-2 mb-2">
             {party.tags.map(tag => (
               <span key={tag} className="px-2 py-1 bg-blue-50 border border-blue-200 text-blue-600 text-xs rounded-full">
