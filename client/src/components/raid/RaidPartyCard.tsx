@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface Props {
   party: RaidParty;
@@ -53,7 +54,7 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
 
   const handleLike = async () => {
     if (!user) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       router.push('/login');
       return;
     }
@@ -67,7 +68,7 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
       // Use Turnstile token
       const token = turnstileToken;
       if (!token) {
-        alert('보안 인증이 갱신되었습니다. 좋아요 버튼을 다시 눌러주세요.');
+        toast.info('안전한 처리를 위해 연결을 확인했어요. 추천 버튼을 한 번 더 눌러주세요!');
         setIsLiking(false);
         turnstileRef.current?.reset();
         return;
@@ -86,11 +87,11 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
         // Revert on failure
         setIsLiked(originalIsLiked);
         setLikeCount(originalLikeCount);
-        alert('추천 처리 중 오류가 발생했습니다.');
+        toast.error('추천 처리 중 오류가 발생했습니다.');
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
+      toast.error(err.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
       // Revert on failure
       setIsLiked(originalIsLiked);
       setLikeCount(originalLikeCount);
