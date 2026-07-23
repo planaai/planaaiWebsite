@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare, Target } from 'lucide-react';
+import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare, Target, ShieldAlert } from 'lucide-react';
 
 import type { ArchiveData, SchemaConfig } from './types';
 import { API } from './constants';
@@ -15,10 +15,11 @@ import { GachaAdminManager } from './components/gacha/GachaAdminManager';
 import { NoticeManager } from './components/notice/NoticeManager';
 import { InquiryAdminManager } from './components/inquiries/InquiryAdminManager';
 import { RaidAdminManager } from './components/raids/RaidAdminManager';
+import { ShadowbanAdminManager } from './components/shadowban/ShadowbanAdminManager';
 import { AdminLogin } from './components/auth/AdminLogin';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'shadowban'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -188,7 +189,8 @@ export default function App() {
              { id: 'gacha', icon: RefreshCw, label: '가챠 유지보수', color: 'indigo' },
              { id: 'notices', icon: MessageSquare, label: '공지사항 관리', color: 'sky' },
              { id: 'inquiries', icon: MessageSquare, label: '문의사항 관리', color: 'rose' },
-             { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' }
+             { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' },
+             { id: 'shadowban', icon: ShieldAlert, label: '쉐도우밴', color: 'red' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
@@ -216,6 +218,7 @@ export default function App() {
           { activeTab === 'notices' && <NoticeManager /> }
           { activeTab === 'inquiries' && <InquiryAdminManager showToast={showToast} /> }
           { activeTab === 'raids' && <RaidAdminManager showToast={showToast} /> }
+          { activeTab === 'shadowban' && <ShadowbanAdminManager showToast={showToast} /> }
         </div>
       </main>
     </div>
