@@ -57,6 +57,12 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
           const [obj, key] = field.split('.');
           return { ...f, [obj]: { ...(f as any)[obj], [key]: value } };
         }
+        if (field === 'studentId' && typeof value === 'number') {
+          const master = masterData.find(m => m.id === value);
+          if (master) {
+            return { ...f, [field]: value, currentStars: master.starNum || 1 };
+          }
+        }
         return { ...f, [field]: value };
       }
       return f;
