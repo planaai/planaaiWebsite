@@ -51,7 +51,19 @@ export function RaidWriteForm({ masterData }: Props) {
         setBosses(res.data.bosses);
         setSeasons(res.data.seasons);
         if (res.data.bosses.length > 0) {
-          setFormData(prev => ({ ...prev, bossId: res.data.bosses[0].id }));
+          const firstBossId = res.data.bosses[0].id;
+          const bossSeasons = res.data.seasons.filter((s: any) => s.bossId === firstBossId);
+          const terrains = Array.from(new Set(bossSeasons.map((s: any) => s.terrain))) as string[];
+          const firstTerrain = terrains.length > 0 ? terrains[0] : '';
+          const diffs = Array.from(new Set(bossSeasons.filter((s: any) => s.terrain === firstTerrain).map((s: any) => s.difficulty))) as string[];
+          const firstDiff = diffs.length > 0 ? diffs[0] : '';
+
+          setFormData(prev => ({ 
+            ...prev, 
+            bossId: firstBossId,
+            terrain: firstTerrain,
+            difficulty: firstDiff
+          }));
         }
       } catch (err) {
         console.error('Failed to fetch raid meta:', err);
@@ -63,7 +75,34 @@ export function RaidWriteForm({ masterData }: Props) {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    
+    if (name === 'bossId') {
+      const bossSeasons = seasons.filter(s => s.bossId === value);
+      const terrains = Array.from(new Set(bossSeasons.map(s => s.terrain))) as string[];
+      const firstTerrain = terrains.length > 0 ? terrains[0] : '';
+      
+      const diffs = Array.from(new Set(bossSeasons.filter(s => s.terrain === firstTerrain).map(s => s.difficulty))) as string[];
+      const firstDiff = diffs.length > 0 ? diffs[0] : '';
+
+      setFormData(prev => ({ 
+        ...prev, 
+        bossId: value,
+        terrain: firstTerrain,
+        difficulty: firstDiff
+      }));
+    } else if (name === 'terrain') {
+      const diffs = Array.from(new Set(seasons.filter(s => s.bossId === formData.bossId && s.terrain === value).map(s => s.difficulty))) as string[];
+      const firstDiff = diffs.length > 0 ? diffs[0] : '';
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        terrain: value,
+        difficulty: firstDiff
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

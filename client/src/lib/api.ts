@@ -7,11 +7,22 @@ const api = axios.create({
   baseURL: API_BASE,
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Add fingerprint header
+    try {
+      const { getDeviceFingerprint } = await import('./fingerprint');
+      const fp = await getDeviceFingerprint();
+      if (fp) {
+        config.headers['X-Device-Fingerprint'] = fp;
+      }
+    } catch (e) {
+      console.warn('Failed to attach device fingerprint');
     }
   }
   return config;

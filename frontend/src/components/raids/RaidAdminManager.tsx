@@ -107,11 +107,25 @@ export const RaidAdminManager: React.FC<{ showToast: (msg: string, type: 'succes
     }
   };
 
+  const handleSyncAllSeasons = async () => {
+    if (!confirm('모든 보스의 지형에 누락된 난이도를 일괄 동기화(추가)하시겠습니까?')) return;
+    try {
+      await axios.post(`${API}/api/raids/seasons/sync`);
+      showToast('모든 보스의 난이도가 성공적으로 동기화되었습니다.', 'success');
+      fetchMeta();
+    } catch (err: any) {
+      showToast(err.response?.data?.error || '난이도 동기화 실패', 'error');
+    }
+  };
+
   const selectedBoss = bosses.find(b => b.id === selectedBossId);
   const bossSeasons = seasons.filter(s => s.bossId === selectedBossId);
   
-  // Group by terrain for display
-  const groupedSeasons = Array.from(new Set(bossSeasons.map(s => s.terrain)));
+  // Group by terrain for display, keeping the difficulties
+  const groupedSeasons = Array.from(new Set(bossSeasons.map(s => s.terrain))).map(terrain => ({
+    terrain,
+    difficulties: bossSeasons.filter(s => s.terrain === terrain).map(s => s.difficulty)
+  }));
 
   return (
     <div className="flex h-[calc(100vh-180px)] gap-6">
@@ -264,10 +278,20 @@ export const RaidAdminManager: React.FC<{ showToast: (msg: string, type: 'succes
               <div className="p-6">
                 <h3 className="text-lg font-bold text-slate-200 mb-4">현재 등록된 지형 (모든 난이도 포함)</h3>
               {groupedSeasons.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-                  {groupedSeasons.map(terrain => (
-                    <div key={terrain} className="p-3 border border-slate-700 rounded-lg bg-slate-900 flex justify-center items-center text-slate-300">
-                      <span className="font-bold">{terrain}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  {groupedSeasons.map(group => (
+                    <div key={group.terrain} className="p-4 border border-slate-700 rounded-xl bg-slate-900 flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-slate-200">
+                        <span className="font-black text-lg">{group.terrain}</span>
+                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-1 rounded-full">{group.difficulties.length}개 난이도</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {group.difficulties.map(diff => (
+                          <span key={diff} className="px-2 py-1 text-xs font-bold rounded bg-slate-800 border border-slate-700 text-slate-400">
+                            {diff}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -275,9 +299,17 @@ export const RaidAdminManager: React.FC<{ showToast: (msg: string, type: 'succes
                 <p className="text-slate-500 mb-8 p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">등록된 지형 정보가 없습니다.</p>
               )}
 
-              <h3 className="text-lg font-bold text-slate-200 mb-4 border-t border-slate-700/50 pt-6 flex items-center gap-2">
-                <Plus size={18} className="text-blue-400"/> 새로운 지형 추가 (전체 난이도 일괄 추가)
-              </h3>
+              <div className="flex justify-between items-end mb-4 border-t border-slate-700/50 pt-6">
+                <h3 className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                  <Plus size={18} className="text-blue-400"/> 새로운 지형 추가 (전체 난이도 일괄 추가)
+                </h3>
+                <button 
+                  onClick={handleSyncAllSeasons}
+                  className="px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/30 font-bold rounded-lg hover:bg-purple-600/30 transition-colors text-sm"
+                >
+                  모든 보스 난이도 동기화 (Sync)
+                </button>
+              </div>
               <div className="flex gap-4 items-end bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 max-w-lg">
                 <div className="flex-1">
                   <label className="block text-sm font-bold text-slate-400 mb-2">지형</label>

@@ -33,6 +33,7 @@ export interface RaidParty {
   imagePath?: string;
   author?: { id: number; nickname: string | null; username: string };
   likeCount?: number;
+  isLiked?: boolean;
 }
 
 export interface RaidSeasonData {

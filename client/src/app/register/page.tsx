@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { api } from '@/lib/api';
 
 export default function Register() {
@@ -11,6 +12,8 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   
   const router = useRouter();
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -25,10 +28,16 @@ export default function Register() {
     e.preventDefault();
     setError('');
     setSuccess('');
+
+    if (!recaptchaToken) {
+      setError('reCAPTCHA 인증을 완료해주세요.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const res = await api.post('/auth/register', { username, password });
+      const res = await api.post('/auth/register', { username, password, recaptchaToken });
       if (res.data.status === 'success') {
         setSuccess('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
         redirectTimerRef.current = setTimeout(() => {
@@ -37,6 +46,9 @@ export default function Register() {
       }
     } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.response?.data?.error || '회원가입에 실패했습니다.');
+      // Reset reCAPTCHA on failure
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +81,15 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          
+          <div className="flex justify-center my-4">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'dummy_site_key_for_dev'}
+              onChange={(token) => setRecaptchaToken(token)}
+            />
+          </div>
+
           <button
             type="submit"
             disabled={isLoading}

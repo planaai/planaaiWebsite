@@ -3,6 +3,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { requireAuth, JWT_SECRET } = require('../middleware/auth');
+const { verifyRecaptcha } = require('../utils/recaptcha');
 const { prisma } = require('../db');
 
 const router = express.Router();
@@ -17,9 +18,15 @@ const authLimiter = rateLimit({
 
 // 회원가입
 router.post('/register', authLimiter, async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, recaptchaToken } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'ID와 비밀번호를 입력해주세요.' });
+  }
+
+  // reCAPTCHA 검증
+  const isHuman = await verifyRecaptcha(recaptchaToken);
+  if (!isHuman) {
+    return res.status(403).json({ error: '비정상적인 접근이 감지되었습니다. (reCAPTCHA 실패)' });
   }
 
   try {

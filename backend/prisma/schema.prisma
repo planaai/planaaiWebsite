@@ -60,12 +60,14 @@ model User {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   nickname         String?
+  isShadowBanned   Boolean      @default(false)
   collections      Collection[]
   growthPlans      GrowthPlan[]
   notices          Notice[]
   inquiries        Inquiry[]
   inquiryResponses InquiryResponse[]
   sharedParties    SharedRaidParty[]
+  likedParties     SharedRaidPartyLike[]
 }
 
 model Collection {
@@ -266,6 +268,20 @@ model SharedRaidParty {
   likeCount    Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  likes        SharedRaidPartyLike[]
+}
+
+model SharedRaidPartyLike {
+  id               Int             @id @default(autoincrement())
+  userId           Int
+  partyId          Int
+  deviceFp         String?
+  ipAddress        String?
+  createdAt        DateTime        @default(now())
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  party            SharedRaidParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, partyId])
 }
 
 model RaidBoss {
@@ -284,4 +300,6 @@ model RaidSeason {
   boss       RaidBoss @relation(fields: [bossId], references: [id], onDelete: Cascade)
   terrain    String
   difficulty String
+
+  @@unique([bossId, terrain, difficulty])
 }

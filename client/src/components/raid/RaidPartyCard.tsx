@@ -4,9 +4,12 @@ import type { StudentMaster } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ThumbsUp } from 'lucide-react';
 import { getImageUrl } from '../planner/utils';
 import Link from 'next/link';
+import { useRef, useState, useEffect } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
+import { api } from '@/lib/api';
 
 interface Props {
   party: RaidParty;
@@ -20,6 +23,17 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
   const router = useRouter();
   const { importTeam } = useFormationStore();
   const { user } = useAuthStore();
+  
+  const [likeCount, setLikeCount] = useState(party.likeCount || 0);
+  const [isLiked, setIsLiked] = useState(party.isLiked || false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const [isLiking, setIsLiking] = useState(false);
+
+  // Sync state if party prop changes
+  useEffect(() => {
+    setLikeCount(party.likeCount || 0);
+    setIsLiked(party.isLiked || false);
+  }, [party]);
 
   const canDelete = user && typeof party.id === 'number' && (user.role === 'ADMIN' || user.id === party.author?.id);
 
@@ -33,6 +47,51 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
     if (party.parties.length > 0) {
       importTeam(party.parties[0].strikers, party.parties[0].specials);
       router.push('/formation');
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      alert('로그인이 필요합니다.');
+      router.push('/login');
+      return;
+    }
+    if (isLiking) return;
+
+    try {
+      setIsLiking(true);
+      // Execute invisible reCAPTCHA
+      const token = await recaptchaRef.current?.executeAsync();
+      if (!token) {
+        alert('reCAPTCHA 인증에 실패했습니다.');
+        setIsLiking(false);
+        return;
+      }
+      
+      recaptchaRef.current?.reset();
+
+      // Optimistic update
+      const prevLiked = isLiked;
+      setIsLiked(!prevLiked);
+      setLikeCount(prev => prevLiked ? Math.max(0, prev - 1) : prev + 1);
+
+      const res = await api.post(`/raids/parties/${party.id}/like`, { recaptchaToken: token });
+      
+      if (!res.data.success) {
+        // Revert on failure
+        setIsLiked(prevLiked);
+        setLikeCount(prev => prevLiked ? prev + 1 : Math.max(0, prev - 1));
+        alert('추천 처리 중 오류가 발생했습니다.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
+      // Revert on failure
+      const prevLiked = !isLiked; // isLiked is currently optimistic state
+      setIsLiked(prevLiked); 
+      setLikeCount(prev => prevLiked ? prev + 1 : Math.max(0, prev - 1));
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -114,6 +173,23 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
         </div>
         
         <div className="flex flex-col gap-2 items-end">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleLike}
+              disabled={isLiking}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all ${isLiked ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+              title="추천하기"
+            >
+              <ThumbsUp size={16} className={isLiked ? 'fill-blue-500 text-blue-500' : ''} />
+              <span className="text-sm font-bold">{likeCount}</span>
+            </button>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              size="invisible"
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'dummy_site_key_for_dev'}
+            />
+          </div>
+
           {!isDetail && (
             <Link 
               href={`/raids/${party.shortCode || party.id}`}
