@@ -344,10 +344,10 @@ router.post('/parties/:id/like', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '잘못된 파티 ID 입니다.' });
     }
     
-    const { recaptchaToken } = req.body;
-    const isHuman = await verifyRecaptcha(recaptchaToken);
+    const { turnstileToken } = req.body;
+    const isHuman = await verifyRecaptcha(turnstileToken);
     if (!isHuman) {
-      return res.status(403).json({ error: '비정상적인 접근입니다. (reCAPTCHA 실패)' });
+      return res.status(403).json({ error: '비정상적인 접근입니다. (보안 인증 실패)' });
     }
 
     const deviceFp = req.headers['x-device-fingerprint'] || null;

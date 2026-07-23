@@ -8,7 +8,7 @@ import { Trash2, ThumbsUp } from 'lucide-react';
 import { getImageUrl } from '../planner/utils';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
+import TurnstileWidget from '@/components/TurnstileWidget';
 import { api } from '@/lib/api';
 
 interface Props {
@@ -26,7 +26,8 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
   
   const [likeCount, setLikeCount] = useState(party.likeCount || 0);
   const [isLiked, setIsLiked] = useState(party.isLiked || false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const turnstileRef = useRef<any>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState(false);
 
   // Sync state if party prop changes
@@ -60,22 +61,23 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
 
     try {
       setIsLiking(true);
-      // Execute invisible reCAPTCHA
-      const token = await recaptchaRef.current?.executeAsync();
+      // Use Turnstile token
+      const token = turnstileToken;
       if (!token) {
-        alert('reCAPTCHA 인증에 실패했습니다.');
+        alert('보안 인증이 완료되지 않았습니다. 잠시 후 다시 시도해주세요.');
         setIsLiking(false);
         return;
       }
       
-      recaptchaRef.current?.reset();
+      turnstileRef.current?.reset();
+      setTurnstileToken(null);
 
       // Optimistic update
       const prevLiked = isLiked;
       setIsLiked(!prevLiked);
       setLikeCount(prev => prevLiked ? Math.max(0, prev - 1) : prev + 1);
 
-      const res = await api.post(`/raids/parties/${party.id}/like`, { recaptchaToken: token });
+      const res = await api.post(`/raids/parties/${party.id}/like`, { turnstileToken: token });
       
       if (!res.data.success) {
         // Revert on failure
@@ -183,10 +185,11 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
               <ThumbsUp size={16} className={isLiked ? 'fill-blue-500 text-blue-500' : ''} />
               <span className="text-sm font-bold">{likeCount}</span>
             </button>
-            <ReCAPTCHA
-              ref={recaptchaRef}
+            <TurnstileWidget
+              ref={turnstileRef}
               size="invisible"
-              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || 'dummy_site_key_for_dev'}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken(null)}
             />
           </div>
 

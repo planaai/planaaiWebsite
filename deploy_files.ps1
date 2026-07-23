@@ -8,6 +8,7 @@ $Files = @(
     "backend\routes\auth.js",
     "backend\routes\raids.js",
     "backend\utils\recaptcha.js",
+    "client\src\components\TurnstileWidget.tsx",
     "client\src\app\register\page.tsx",
     "client\src\components\raid\RaidPartyCard.tsx",
     "client\src\types\raid.ts",

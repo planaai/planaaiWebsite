@@ -18,15 +18,15 @@ const authLimiter = rateLimit({
 
 // 회원가입
 router.post('/register', authLimiter, async (req, res) => {
-  const { username, password, recaptchaToken } = req.body;
+  const { username, password, turnstileToken } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: 'ID와 비밀번호를 입력해주세요.' });
   }
 
-  // reCAPTCHA 검증
-  const isHuman = await verifyRecaptcha(recaptchaToken);
+  // Turnstile 검증
+  const isHuman = await verifyRecaptcha(turnstileToken);
   if (!isHuman) {
-    return res.status(403).json({ error: '비정상적인 접근이 감지되었습니다. (reCAPTCHA 실패)' });
+    return res.status(403).json({ error: '비정상적인 접근이 감지되었습니다. (보안 인증 실패)' });
   }
 
   try {
