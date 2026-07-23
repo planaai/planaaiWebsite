@@ -42,11 +42,6 @@ export function RaidRecommendationView({ masterData }: Props) {
 
   useEffect(() => {
     async function fetchParties() {
-      if (!appliedSearchQuery && (!selectedBossId || !selectedTerrain || !selectedDifficulty)) {
-        setParties([]);
-        return;
-      }
-      
       setLoading(true);
       try {
         const params: any = {};
@@ -55,6 +50,10 @@ export function RaidRecommendationView({ masterData }: Props) {
         if (selectedBossId) params.bossId = selectedBossId;
         if (selectedTerrain) params.terrain = selectedTerrain;
         if (selectedDifficulty) params.difficulty = selectedDifficulty;
+
+        if (!appliedSearchQuery && (!selectedBossId || !selectedTerrain || !selectedDifficulty)) {
+          params.sort = 'popular';
+        }
 
         const res = await api.get('/raids/parties', { params });
         setParties(res.data);
@@ -115,9 +114,9 @@ export function RaidRecommendationView({ masterData }: Props) {
 
       <RaidFilterPanel bosses={bosses} seasons={seasons} />
 
-      {!selectedBossId && !appliedSearchQuery && (
+      {!selectedBossId && !appliedSearchQuery && partiesToDisplay.length === 0 && !loading && (
         <div className="flex-1 flex items-center justify-center text-gray-500">
-          위에서 공략을 확인할 보스를 선택하거나 검색어를 입력해주세요.
+          등록된 공략이 아직 없습니다.
         </div>
       )}
 
@@ -127,15 +126,17 @@ export function RaidRecommendationView({ masterData }: Props) {
         </div>
       )}
 
-      {(selectedBossId || appliedSearchQuery) && loading && (
+      {loading && (
         <div className="flex-1 flex items-center justify-center text-gray-500">
           공략을 불러오는 중입니다...
         </div>
       )}
 
-      {(selectedBossId || appliedSearchQuery) && partiesToDisplay.length > 0 && !loading && (
+      {partiesToDisplay.length > 0 && !loading && (
         <div className="flex flex-col gap-4 pb-10">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">추천 파티 리스트</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            {!selectedBossId && !appliedSearchQuery ? '🔥 실시간 인기 파티' : '추천 파티 리스트'}
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {partiesToDisplay.map((party) => (
               <RaidPartyCard 

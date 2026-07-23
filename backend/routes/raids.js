@@ -157,7 +157,7 @@ router.post('/seasons/sync', requireAuth, async (req, res) => {
 // GET /api/raids/parties - Fetch shared parties
 router.get('/parties', optionalAuth, async (req, res) => {
   try {
-    const { bossId, terrain, difficulty, mode, q } = req.query;
+    const { bossId, terrain, difficulty, mode, q, sort } = req.query;
     
     const whereClause = {};
     if (bossId) whereClause.bossId = bossId;
@@ -172,6 +172,11 @@ router.get('/parties', optionalAuth, async (req, res) => {
       ];
     }
 
+    let orderBy = { createdAt: 'desc' };
+    if (sort === 'popular') {
+      orderBy = { likeCount: 'desc' };
+    }
+
     const parties = await prisma.sharedRaidParty.findMany({
       where: whereClause,
       include: {
@@ -179,9 +184,7 @@ router.get('/parties', optionalAuth, async (req, res) => {
           select: { id: true, nickname: true, username: true }
         }
       },
-      orderBy: {
-        createdAt: 'desc'
-      },
+      orderBy,
       take: 50 // Limit for now
     });
 
