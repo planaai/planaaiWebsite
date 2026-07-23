@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { requireAuth, JWT_SECRET } = require('../middleware/auth');
+const { requireAuth, requireAdmin, JWT_SECRET } = require('../middleware/auth');
 const { verifyRecaptcha } = require('../utils/recaptcha');
 const { prisma } = require('../db');
 
@@ -126,6 +126,49 @@ router.put('/me', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 쉐도우밴 유저 목록 조회
+router.get('/admin/shadowbanned', requireAdmin, async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { isShadowBanned: true },
+      select: {
+        id: true,
+        uid: true,
+        username: true,
+        nickname: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    res.json({ status: 'success', users });
+  } catch (error) {
+    console.error('Shadowban list error:', error);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// 관리자: 쉐도우밴 유저 해제
+router.put('/admin/shadowban/:id/unban', requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 유저 ID입니다.' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isShadowBanned: false }
+    });
+
+    res.json({ status: 'success', message: '쉐도우밴이 해제되었습니다.' });
+  } catch (error) {
+    console.error('Shadowban unban error:', error);
     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

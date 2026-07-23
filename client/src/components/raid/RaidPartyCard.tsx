@@ -59,13 +59,17 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
     }
     if (isLiking) return;
 
+    const originalIsLiked = isLiked;
+    const originalLikeCount = likeCount;
+
     try {
       setIsLiking(true);
       // Use Turnstile token
       const token = turnstileToken;
       if (!token) {
-        alert('보안 인증이 완료되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        alert('보안 인증이 갱신되었습니다. 좋아요 버튼을 다시 눌러주세요.');
         setIsLiking(false);
+        turnstileRef.current?.reset();
         return;
       }
       
@@ -73,25 +77,23 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
       setTurnstileToken(null);
 
       // Optimistic update
-      const prevLiked = isLiked;
-      setIsLiked(!prevLiked);
-      setLikeCount(prev => prevLiked ? Math.max(0, prev - 1) : prev + 1);
+      setIsLiked(!originalIsLiked);
+      setLikeCount(originalIsLiked ? Math.max(0, originalLikeCount - 1) : originalLikeCount + 1);
 
       const res = await api.post(`/raids/parties/${party.id}/like`, { turnstileToken: token });
       
       if (!res.data.success) {
         // Revert on failure
-        setIsLiked(prevLiked);
-        setLikeCount(prev => prevLiked ? prev + 1 : Math.max(0, prev - 1));
+        setIsLiked(originalIsLiked);
+        setLikeCount(originalLikeCount);
         alert('추천 처리 중 오류가 발생했습니다.');
       }
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
       // Revert on failure
-      const prevLiked = !isLiked; // isLiked is currently optimistic state
-      setIsLiked(prevLiked); 
-      setLikeCount(prev => prevLiked ? prev + 1 : Math.max(0, prev - 1));
+      setIsLiked(originalIsLiked);
+      setLikeCount(originalLikeCount);
     } finally {
       setIsLiking(false);
     }
