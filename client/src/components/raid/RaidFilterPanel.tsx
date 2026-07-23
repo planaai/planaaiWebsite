@@ -4,6 +4,23 @@ import { getImageUrl } from '@/components/planner/utils';
 import type { RaidBoss, RaidSeasonData } from '@/types/raid';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
+const DIFFICULTY_ORDER = ['Normal', 'Hard', 'VeryHard', 'Hardcore', 'Extreme', 'Insane', 'Torment', 'Lunatic'];
+
+const sortDifficulties = (a: string, b: string) => {
+  const indexA = DIFFICULTY_ORDER.indexOf(a);
+  const indexB = DIFFICULTY_ORDER.indexOf(b);
+  
+  if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+  if (indexA !== -1) return -1;
+  if (indexB !== -1) return 1;
+  
+  const numA = parseInt(a, 10);
+  const numB = parseInt(b, 10);
+  if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+  
+  return a.localeCompare(b);
+};
+
 interface Props {
   bosses: RaidBoss[];
   seasons: RaidSeasonData[];
@@ -14,26 +31,17 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
   
   const { 
     selectedMode,
-    selectedBossId, 
-    selectedTerrain, 
-    selectedDifficulty, 
+    selectedBossIds, 
+    bossFilters,
     setModeFilter,
     setBossFilter, 
-    setTerrainFilter, 
-    setDifficultyFilter 
+    setBossTerrain, 
+    setBossDifficulty 
   } = useRaidStore();
 
-  const availableTerrains = selectedBossId 
-    ? Array.from(new Set(seasons.filter(s => s.bossId === selectedBossId).map(s => s.terrain)))
-    : [];
-
-  const availableDifficulties = (selectedBossId && selectedTerrain)
-    ? Array.from(new Set(seasons.filter(s => s.bossId === selectedBossId && s.terrain === selectedTerrain).map(s => s.difficulty)))
-    : [];
-
   return (
-    <div className="bg-white/80 backdrop-blur border border-purple-100 shadow-sm rounded-lg p-4 mb-6 transition-all duration-300">
-      <div className="flex gap-4 border-b border-purple-100 pb-4 mb-4">
+    <div className="bg-white/80 backdrop-blur border border-gray-200 shadow-sm rounded-lg p-4 mb-6 transition-all duration-300">
+      <div className="flex gap-4 border-b border-gray-200 pb-4 mb-4">
         {[
           { id: 'TotalAssault', label: '총력전' },
           { id: 'GrandAssault', label: '대결전' },
@@ -44,8 +52,8 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
             onClick={() => setModeFilter(mode.id)}
             className={`px-4 py-2 font-bold rounded-t-lg transition-colors border-b-2 ${
               selectedMode === mode.id
-                ? 'border-purple-600 text-purple-700 bg-purple-50'
-                : 'border-transparent text-gray-500 hover:text-purple-600 hover:bg-purple-50/50'
+                ? 'border-pink-400 text-pink-600 bg-pink-50'
+                : 'border-transparent text-gray-500 hover:text-pink-500 hover:bg-pink-50/50'
             }`}
           >
             {mode.label}
@@ -64,7 +72,7 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
       </div>
       
       {isBossListExpanded && (
-        <div className="flex flex-wrap gap-3 mb-4 animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="flex flex-wrap gap-4 mb-4 animate-in slide-in-from-top-2 fade-in duration-200">
           {bosses
             .filter(boss => {
               if (selectedMode === 'LimitBreakAssault') return boss.category === 'LimitBreak';
@@ -76,10 +84,10 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
               onClick={() => {
                 setBossFilter(boss.id);
               }}
-              className={`relative flex items-end p-3 rounded-xl border-2 overflow-hidden transition-all text-left ${
-                selectedBossId === boss.id 
-                  ? 'border-blue-500 shadow-md ring-2 ring-blue-300 ring-offset-2' 
-                  : 'border-transparent hover:border-purple-300 hover:shadow-sm'
+              className={`relative flex items-end p-3 rounded-xl border-4 overflow-hidden transition-all text-left ${
+                selectedBossIds.includes(boss.id)
+                  ? 'border-pink-500 shadow-lg ring-2 ring-pink-300 ring-offset-2 scale-[1.02] z-10' 
+                  : 'border-transparent hover:border-pink-300 hover:shadow-md hover:scale-[1.02] hover:z-10 z-0'
               }`}
               style={{ width: '180px', height: '100px' }}
             >
@@ -97,47 +105,66 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
         </div>
       )}
 
-      {selectedBossId && (
-        <div className="flex gap-8 border-t border-purple-100 pt-4">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-gray-500">지형</span>
-            <div className="flex gap-2">
-              {availableTerrains.map((terrain) => (
-                <button
-                  key={terrain}
-                  onClick={() => setTerrainFilter(terrain)}
-                  className={`px-3 py-1 rounded border text-sm transition-colors ${
-                    selectedTerrain === terrain 
-                      ? 'bg-green-600 border-green-500 text-white' 
-                      : 'bg-white border-purple-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700'
-                  }`}
-                >
-                  {terrain === 'Urban' ? '시가전' : terrain === 'Outdoor' ? '야전' : '실내전'}
-                </button>
-              ))}
-            </div>
-          </div>
+      {selectedBossIds.length > 0 && (
+        <div className="flex flex-col gap-4 border-t border-gray-200 pt-4">
+          {selectedBossIds.map(bossId => {
+            const boss = bosses.find(b => b.id === bossId);
+            if (!boss) return null;
+            
+            const currentFilter = bossFilters[bossId] || { terrain: null, difficulty: null };
+            
+            const availableTerrains = Array.from(new Set(seasons.filter(s => s.bossId === bossId).map(s => s.terrain)));
+            const availableDifficulties = currentFilter.terrain
+              ? Array.from(new Set(seasons.filter(s => s.bossId === bossId && s.terrain === currentFilter.terrain).map(s => s.difficulty))).sort(sortDifficulties)
+              : [];
+              
+            return (
+              <div key={bossId} className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                <div className="font-bold text-gray-700 w-32 shrink-0">{boss.name}</div>
+                <div className="flex flex-col md:flex-row gap-4 md:gap-8 flex-1">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 font-bold">지형</span>
+                    <div className="flex flex-wrap gap-2">
+                      {availableTerrains.map((terrain) => (
+                        <button
+                          key={terrain}
+                          onClick={() => setBossTerrain(bossId, currentFilter.terrain === terrain ? null : terrain)}
+                          className={`px-3 py-1 rounded border text-sm transition-colors shadow-sm ${
+                            currentFilter.terrain === terrain 
+                              ? 'bg-green-600 border-green-500 text-white' 
+                              : 'bg-white border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600'
+                          }`}
+                        >
+                          {terrain === 'Urban' ? '시가전' : terrain === 'Outdoor' ? '야전' : '실내전'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          {selectedTerrain && (
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-gray-500">난이도</span>
-              <div className="flex gap-2">
-                {availableDifficulties.map((difficulty) => (
-                  <button
-                    key={difficulty}
-                    onClick={() => setDifficultyFilter(difficulty)}
-                    className={`px-3 py-1 rounded border text-sm transition-colors ${
-                      selectedDifficulty === difficulty 
-                        ? 'bg-red-600 border-red-500 text-white' 
-                        : 'bg-white border-purple-200 text-gray-600 hover:bg-purple-50 hover:text-purple-700'
-                    }`}
-                  >
-                    {difficulty}
-                  </button>
-                ))}
+                  {currentFilter.terrain && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2">
+                      <span className="text-xs text-gray-500 font-bold">난이도</span>
+                      <div className="flex flex-wrap gap-2">
+                        {availableDifficulties.map((difficulty) => (
+                          <button
+                            key={difficulty}
+                            onClick={() => setBossDifficulty(bossId, currentFilter.difficulty === difficulty ? null : difficulty)}
+                            className={`px-3 py-1 rounded border text-sm transition-colors shadow-sm ${
+                              currentFilter.difficulty === difficulty 
+                                ? 'bg-red-600 border-red-500 text-white' 
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600'
+                            }`}
+                          >
+                            {difficulty}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       )}
     </div>

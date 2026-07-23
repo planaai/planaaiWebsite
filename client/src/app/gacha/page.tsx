@@ -7,6 +7,7 @@ import { Sparkles, RotateCcw, User, AlertCircle } from 'lucide-react';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { getImageUrl } from '@/components/planner/utils';
+import { toast } from 'sonner';
 
 interface GachaResult {
   name: string;
@@ -67,7 +68,7 @@ export default function GachaPage() {
   const handlePull = (type: 'single' | 'ten') => {
     if (!gachaData || !banner) return;
     if (isEncore && !encoreTarget) {
-      alert('앙코르 모집의 픽업 대상을 선택해주세요.');
+      toast.error('잠시 후에 다시 시도해 주세요');
       return;
     }
 

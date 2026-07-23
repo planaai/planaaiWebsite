@@ -41,6 +41,31 @@ router.get('/meta', async (req, res) => {
   }
 });
 
+// GET /api/raids/youtube-meta - Fetch YouTube metadata
+router.get('/youtube-meta', async (req, res) => {
+  try {
+    const { url } = req.query;
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    
+    const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+    const data = await response.json();
+    
+    if (data.error) {
+      return res.status(400).json({ error: data.error });
+    }
+    
+    res.json({
+      title: data.title || '',
+      channel: data.author_name || ''
+    });
+  } catch (error) {
+    console.error('Error fetching YouTube meta:', error);
+    res.status(500).json({ error: '유튜브 정보를 가져오는 데 실패했습니다.' });
+  }
+});
+
 // POST /api/raids/bosses - Add a new boss (Admin)
 router.post('/bosses', requireAuth, async (req, res) => {
   try {
@@ -157,12 +182,9 @@ router.post('/seasons/sync', requireAuth, async (req, res) => {
 // GET /api/raids/parties - Fetch shared parties
 router.get('/parties', optionalAuth, async (req, res) => {
   try {
-    const { bossId, terrain, difficulty, mode, q, sort } = req.query;
+    const { bossId, terrain, difficulty, mode, q, sort, filters } = req.query;
     
     const whereClause = {};
-    if (bossId) whereClause.bossId = bossId;
-    if (terrain) whereClause.terrain = terrain;
-    if (difficulty) whereClause.difficulty = difficulty;
     if (mode) whereClause.mode = mode;
 
     if (q) {
@@ -170,6 +192,41 @@ router.get('/parties', optionalAuth, async (req, res) => {
         { name: { contains: q } },
         { shortCode: { contains: q } }
       ];
+    }
+
+    if (filters) {
+      try {
+        const parsedFilters = JSON.parse(filters);
+        if (Array.isArray(parsedFilters) && parsedFilters.length > 0) {
+          const filterConditions = parsedFilters.map(f => {
+            const cond = { bossId: f.bossId };
+            if (f.terrain) cond.terrain = f.terrain;
+            if (f.difficulty) cond.difficulty = f.difficulty;
+            return cond;
+          });
+          
+          if (whereClause.OR) {
+             whereClause.AND = [{ OR: filterConditions }, { OR: whereClause.OR }];
+             delete whereClause.OR;
+          } else {
+             whereClause.OR = filterConditions;
+          }
+        }
+      } catch (e) {
+        console.error("Invalid filters format", e);
+      }
+    } else {
+      // Fallback for legacy requests without filters
+      if (bossId) {
+        const bossIds = bossId.split(',');
+        if (bossIds.length > 1) {
+          whereClause.bossId = { in: bossIds };
+        } else {
+          whereClause.bossId = bossId;
+        }
+      }
+      if (terrain) whereClause.terrain = terrain;
+      if (difficulty) whereClause.difficulty = difficulty;
     }
 
     let orderBy = { createdAt: 'desc' };
@@ -188,22 +245,28 @@ router.get('/parties', optionalAuth, async (req, res) => {
       take: 50 // Limit for now
     });
 
-    if (req.user) {
-      const likedParties = await prisma.sharedRaidPartyLike.findMany({
-        where: {
-          userId: req.user.id,
-          partyId: { in: parties.map(p => p.id) }
-        }
-      });
-      const likedPartyIds = new Set(likedParties.map(l => l.partyId));
-      parties.forEach(p => { p.isLiked = likedPartyIds.has(p.id); });
+    if (req.user && req.user.id && parties.length > 0) {
+      try {
+        const likedParties = await prisma.sharedRaidPartyLike.findMany({
+          where: {
+            userId: req.user.id,
+            partyId: { in: parties.map(p => p.id) }
+          }
+        });
+        const likedPartyIds = new Set(likedParties.map(l => l.partyId));
+        parties.forEach(p => { p.isLiked = likedPartyIds.has(p.id); });
+      } catch (likeErr) {
+        console.error('Error fetching like status:', likeErr);
+        parties.forEach(p => { p.isLiked = false; });
+      }
     } else {
       parties.forEach(p => { p.isLiked = false; });
     }
 
     res.json(parties);
   } catch (error) {
-    console.error('Error fetching raid parties:', error);
+    console.error('Error fetching raid parties:', error.message, error.stack);
+    console.error('Query params:', req.query);
     res.status(500).json({ error: '서버 에러가 발생했습니다.' });
   }
 });
@@ -211,7 +274,7 @@ router.get('/parties', optionalAuth, async (req, res) => {
 // POST /api/raids/parties - Create a new shared party
 router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res) => {
   try {
-    const { name, parties: subParties, bossId, terrain, difficulty, tags, tactics, clearTime, mode } = req.body;
+    const { name, parties: subParties, bossId, terrain, difficulty, tags, tactics, clearTime, mode, youtubeUrls } = req.body;
     const authorId = req.user.id;
 
     // Validate required fields
@@ -233,9 +296,26 @@ router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res
 
     let parsedParties;
     let parsedTags;
+    let parsedYoutubeUrls = [];
     try {
       parsedParties = JSON.parse(subParties);
       parsedTags = tags ? JSON.parse(tags) : [];
+      if (youtubeUrls) {
+        parsedYoutubeUrls = JSON.parse(youtubeUrls);
+        if (!Array.isArray(parsedYoutubeUrls) || parsedYoutubeUrls.length > 5) {
+          return res.status(400).json({ error: '유튜브 링크는 최대 5개까지 등록할 수 있습니다.' });
+        }
+        // Validate each URL (long-form only)
+        const youtubeRegex = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+        for (const video of parsedYoutubeUrls) {
+          if (!video.url) {
+            return res.status(400).json({ error: '유튜브 URL을 입력해주세요.' });
+          }
+          if (!youtubeRegex.test(video.url.trim())) {
+            return res.status(400).json({ error: '유효하지 않은 YouTube 롱폼 영상 URL이 포함되어 있습니다. (Shorts 불가)' });
+          }
+        }
+      }
     } catch (e) {
       return res.status(400).json({ error: '데이터 형식이 잘못되었습니다.' });
     }
@@ -256,6 +336,7 @@ router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res
         tactics: tactics || '',
         clearTime: clearTime || null,
         imagePath,
+        youtubeUrls: parsedYoutubeUrls.length > 0 ? parsedYoutubeUrls : null,
         authorId
       }
     });
@@ -267,6 +348,78 @@ router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res
   }
 });
 
+// PUT /api/raids/parties/:id - Edit an existing raid party
+router.put('/parties/:id', requireAuth, upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const authorId = req.user.id;
+    const userRole = req.user.role;
+    const { mode, name, bossId, terrain, difficulty, tags, tactics, clearTime, parties: subParties, youtubeUrls } = req.body;
+
+    const existingParty = await prisma.sharedRaidParty.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingParty) {
+      return res.status(404).json({ error: '공략을 찾을 수 없습니다.' });
+    }
+
+    if (existingParty.authorId !== authorId && userRole !== 'ADMIN') {
+      return res.status(403).json({ error: '공략을 수정할 권한이 없습니다.' });
+    }
+
+    let parsedParties;
+    let parsedTags;
+    let parsedYoutubeUrls = [];
+    try {
+      parsedParties = subParties ? JSON.parse(subParties) : existingParty.parties;
+      parsedTags = tags ? JSON.parse(tags) : existingParty.tags;
+      if (youtubeUrls) {
+        parsedYoutubeUrls = JSON.parse(youtubeUrls);
+        if (!Array.isArray(parsedYoutubeUrls) || parsedYoutubeUrls.length > 5) {
+          return res.status(400).json({ error: '유튜브 링크는 최대 5개까지 등록할 수 있습니다.' });
+        }
+        const youtubeRegex = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+        for (const video of parsedYoutubeUrls) {
+          if (!video.url) {
+            return res.status(400).json({ error: '유튜브 URL을 입력해주세요.' });
+          }
+          if (!youtubeRegex.test(video.url.trim())) {
+            return res.status(400).json({ error: '유효하지 않은 YouTube 롱폼 영상 URL이 포함되어 있습니다. (Shorts 불가)' });
+          }
+        }
+      } else {
+        parsedYoutubeUrls = existingParty.youtubeUrls;
+      }
+    } catch (e) {
+      return res.status(400).json({ error: '데이터 형식이 잘못되었습니다.' });
+    }
+
+    const imagePath = req.file ? '/uploads/raids/' + req.file.filename : existingParty.imagePath;
+
+    const updatedParty = await prisma.sharedRaidParty.update({
+      where: { id: parseInt(id) },
+      data: {
+        mode: mode || existingParty.mode,
+        bossId: bossId || existingParty.bossId,
+        terrain: terrain || existingParty.terrain,
+        difficulty: difficulty || existingParty.difficulty,
+        name: name !== undefined ? name : existingParty.name,
+        parties: parsedParties,
+        tags: parsedTags,
+        tactics: tactics !== undefined ? tactics : existingParty.tactics,
+        clearTime: clearTime !== undefined ? clearTime : existingParty.clearTime,
+        imagePath,
+        youtubeUrls: parsedYoutubeUrls && parsedYoutubeUrls.length > 0 ? parsedYoutubeUrls : null,
+      }
+    });
+
+    res.status(200).json(updatedParty);
+  } catch (error) {
+    console.error('Error updating raid party:', error);
+    res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+  }
+});
 // GET /api/raids/parties/code/:code - Get single party by short code
 router.get('/parties/code/:code', optionalAuth, async (req, res) => {
   try {
@@ -347,23 +500,29 @@ router.post('/parties/:id/like', requireAuth, async (req, res) => {
       return res.status(400).json({ error: '잘못된 파티 ID 입니다.' });
     }
     
-    const { turnstileToken } = req.body;
-    const isHuman = await verifyRecaptcha(turnstileToken);
-    if (!isHuman) {
-      return res.status(403).json({ error: '비정상적인 접근입니다. (보안 인증 실패)' });
-    }
-
-    const deviceFp = req.headers['x-device-fingerprint'] || null;
-    const ipAddress = req.ip || req.connection.remoteAddress;
-
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (user.isShadowBanned) {
       return res.json({ success: true, fake: true });
     }
 
+    const existingLike = await prisma.sharedRaidPartyLike.findUnique({
+      where: { userId_partyId: { userId: user.id, partyId } }
+    });
+
+    if (!existingLike) {
+      const { turnstileToken } = req.body;
+      const isHuman = await verifyRecaptcha(turnstileToken);
+      if (!isHuman) {
+        return res.status(403).json({ error: '비정상적인 접근입니다. (보안 인증 실패)' });
+      }
+    }
+
+    const deviceFp = req.headers['x-device-fingerprint'] || null;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
     // 어뷰징 조건: 생성 24시간 내 + 같은 기기에서 3개 이상 계정으로 누른 경우
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    if (user.createdAt > oneDayAgo && deviceFp) {
+    if (!existingLike && user.createdAt > oneDayAgo && deviceFp) {
       const usersOnDevice = await prisma.sharedRaidPartyLike.findMany({
         where: { deviceFp },
         select: { userId: true },
@@ -374,10 +533,6 @@ router.post('/parties/:id/like', requireAuth, async (req, res) => {
         return res.json({ success: true, fake: true });
       }
     }
-
-    const existingLike = await prisma.sharedRaidPartyLike.findUnique({
-      where: { userId_partyId: { userId: user.id, partyId } }
-    });
 
     if (existingLike) {
       // 취소

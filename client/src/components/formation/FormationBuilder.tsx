@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { Camera, Loader2, ImagePlus } from 'lucide-react';
 import { SingleFormationExportView } from './SingleFormationExportView';
 import { AllFormationsExportView } from './AllFormationsExportView';
+import { toast } from 'sonner';
 
 interface Props {
   masterData: StudentMaster[];
@@ -45,7 +46,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
       link.click();
     } catch (err) {
       console.error('Failed to export image', err);
-      alert('이미지 저장에 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsExporting(false);
     }
@@ -72,7 +73,7 @@ export function FormationBuilder({ masterData, schema }: Props) {
       link.click();
     } catch (err) {
       console.error('Failed to export image', err);
-      alert('이미지 저장에 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsExporting(false);
     }

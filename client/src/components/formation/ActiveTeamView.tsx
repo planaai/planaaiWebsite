@@ -21,7 +21,7 @@ export function ActiveTeamView({ masterData, schema }: Props) {
 
   const getStudent = (id: number | null) => {
     if (!id) return null;
-    return masterData.find(s => s.id === id) || null;
+    return masterData.find(s => s.id === id || String(s.id) === String(id)) || null;
   };
 
   if (!activeTeam) return null;

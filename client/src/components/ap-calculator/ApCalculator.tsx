@@ -5,6 +5,7 @@ import { calculateApSchedule, ApTimelineStep } from './apLogic';
 import { format } from 'date-fns';
 import { toPng } from 'html-to-image';
 import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CAFE_MAX_AP: Record<number, number> = {
   1: 90,
@@ -55,7 +56,7 @@ export function ApCalculator() {
         link.click();
       } catch (err) {
         console.error('Failed to download image:', err);
-        alert('이미지 저장에 실패했습니다.');
+        toast.error('잠시 후에 다시 시도해 주세요');
       } finally {
         setIsExporting(false);
       }
@@ -64,7 +65,7 @@ export function ApCalculator() {
 
   const handleCalculate = () => {
     if (!targetDateStr) {
-      alert('목표 시간을 입력해주세요.');
+      toast.error('잠시 후에 다시 시도해 주세요');
       return;
     }
 

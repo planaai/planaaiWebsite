@@ -102,7 +102,7 @@ export function RosterPanel({ masterData, schema }: Props) {
   const handleStudentClick = (studentId: number, fieldType: string) => {
     const normalizedType = fieldType.toLowerCase() as 'striker' | 'special';
 
-    const activeTeam = teams.find(t => t.id === useFormationStore.getState().activeTeamId);
+    const activeTeam = teams.find(t => t.id === activeTeamId);
     if (!activeTeam) return;
 
     const slotArray = normalizedType === 'striker' ? activeTeam.strikers : activeTeam.specials;
@@ -117,7 +117,11 @@ export function RosterPanel({ masterData, schema }: Props) {
 
     // Auto-fill logic
     const doAssign = () => {
-      const firstEmptyIndex = slotArray.findIndex(id => id === null);
+      const firstEmptyIndex = slotArray.findIndex(id => {
+        if (!id || String(id) === 'null' || String(id) === 'undefined') return true;
+        const studentExists = masterData.some(s => s.id === id || String(s.id) === String(id));
+        return !studentExists;
+      });
       if (firstEmptyIndex !== -1) {
         assignStudent(activeTeam.id, normalizedType, firstEmptyIndex, studentId);
       } else {

@@ -12,6 +12,7 @@ import type { RaidParty } from '@/types/raid';
 import { RaidPartyCard } from '@/components/raid/RaidPartyCard';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 export default function RaidDetailPage() {
   const params = useParams();
   const code = params.code as string;
@@ -68,16 +69,16 @@ export default function RaidDetailPage() {
   const handleDelete = async () => {
     if (!party) return;
     if (typeof party.id !== 'number') {
-      alert('기본 공략은 삭제할 수 없습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
       return;
     }
     if (!confirm('정말 이 공략을 삭제하시겠습니까?')) return;
     try {
       await api.delete(`/raids/parties/${party.id}`);
-      alert('공략이 삭제되었습니다.');
+      toast.success('공략이 삭제되었습니다.');
       router.push('/raids');
     } catch (err: any) {
-      alert(err.response?.data?.error || '삭제 중 오류가 발생했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     }
   };
 

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIcon, Loader2 } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
+import { toast } from 'sonner';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -105,7 +106,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
       onClose();
     } catch (err) {
       console.error(err);
-      alert('저장 중 오류가 발생했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsSaving(false);
     }

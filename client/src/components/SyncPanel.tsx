@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { useArchiveStore } from '@/store/archiveStore';
+import { toast } from 'sonner';
 
 export default function SyncPanel() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -20,9 +21,9 @@ export default function SyncPanel() {
     setIsSyncing(true);
     try {
       await syncToServer();
-      alert('서버에 데이터가 안전하게 저장되었습니다.');
+      toast.success('서버에 데이터가 안전하게 저장되었습니다.');
     } catch (error) {
-      alert('서버 저장에 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsSyncing(false);
     }
@@ -36,9 +37,9 @@ export default function SyncPanel() {
     setIsFetching(true);
     try {
       await fetchFromServer();
-      alert('서버에서 데이터를 성공적으로 가져왔습니다.');
+      toast.success('서버에서 데이터를 성공적으로 가져왔습니다.');
     } catch (error) {
-      alert('데이터를 가져오는데 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsFetching(false);
     }

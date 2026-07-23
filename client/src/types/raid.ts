@@ -31,6 +31,7 @@ export interface RaidParty {
   tactics: string;
   clearTime?: string;
   imagePath?: string;
+  youtubeUrls?: { url: string; title: string; channel: string }[];
   author?: { id: number; nickname: string | null; username: string };
   likeCount?: number;
   isLiked?: boolean;

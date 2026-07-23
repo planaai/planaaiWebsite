@@ -12,6 +12,7 @@ import { StudentSelectModal } from './StudentSelectModal';
 import { PlannerPlanCard } from './PlannerPlanCard';
 import { PlannerEditForm } from './PlannerEditForm';
 import { PlannerCalcResult } from './PlannerCalcResult';
+import { toast } from 'sonner';
 
 interface PlannerViewProps {
   masterData: StudentMaster[];
@@ -61,7 +62,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
       setCombinedResult(null);
       setEditingPlan(null);
     } catch (e) {
-      alert('계산 실패');
+      toast.error('잠시 후에 다시 시도해 주세요');
     }
   };
 
@@ -118,7 +119,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
       }
       setCombinedResult(total);
     } catch (e) {
-      alert('통합 계산 실패');
+      toast.error('잠시 후에 다시 시도해 주세요');
     }
   };
 

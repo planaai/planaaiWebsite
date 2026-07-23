@@ -7,44 +7,57 @@ import { useAuthStore } from '@/store/authStore';
 import { useFormationStore } from '@/store/formationStore';
 import { Loader2, ArrowLeft, Upload, Users, X, Trash2 } from 'lucide-react';
 import type { StudentMaster } from '@/types';
-import type { SubParty, RaidBoss, RaidSeasonData } from '@/types/raid';
+import type { SubParty, RaidBoss, RaidSeasonData, RaidParty } from '@/types/raid';
+import { toast } from 'sonner';
+import { getImageUrl } from '@/components/planner/utils';
+
+export function extractYouTubeVideoId(url: string): string | null {
+  const match = url.match(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[3] : null;
+}
 
 interface Props {
   masterData: StudentMaster[];
+  initialData?: RaidParty;
 }
 
-export function RaidWriteForm({ masterData }: Props) {
+export function RaidWriteForm({ masterData, initialData }: Props) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
-  const { teams } = useFormationStore();
+  const { rosterType, getAllFormations } = useFormationStore();
 
   const [loading, setLoading] = useState(false);
   const [metaLoading, setMetaLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [bosses, setBosses] = useState<RaidBoss[]>([]);
   const [seasons, setSeasons] = useState<RaidSeasonData[]>([]);
 
   const [formData, setFormData] = useState({
-    mode: 'TotalAssault',
-    name: '',
-    bossId: '',
-    terrain: 'Urban',
-    difficulty: 'Insane',
-    tags: '',
-    tactics: '',
-    clearTime: ''
+    mode: initialData?.mode || 'TotalAssault',
+    name: initialData?.name || '',
+    bossId: initialData?.bossId || '',
+    terrain: initialData?.terrain || 'Urban',
+    difficulty: initialData?.difficulty || 'Insane',
+    tags: initialData?.tags?.join(', ') || '',
+    tactics: initialData?.tactics || '',
+    clearTime: initialData?.clearTime || ''
   });
 
-  const [parties, setParties] = useState<SubParty[]>([]);
+  const [parties, setParties] = useState<SubParty[]>(initialData?.parties || []);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imagePath ? getImageUrl(initialData.imagePath) : null);
+  const [youtubeUrls, setYoutubeUrls] = useState<{url: string; title: string; channel: string}[]>(
+    initialData?.youtubeUrls?.map(u => typeof u === 'string' ? {url: u, title: '', channel: ''} : {url: u.url, title: u.title || '', channel: u.channel || ''}) || []
+  );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
+    setIsMounted(true);
     async function fetchMeta() {
       try {
         const res = await api.get('/raids/meta');
@@ -74,6 +87,39 @@ export function RaidWriteForm({ masterData }: Props) {
     fetchMeta();
   }, []);
 
+  const fetchedUrls = useRef<Set<string>>(new Set());
+
+  React.useEffect(() => {
+    youtubeUrls.forEach((video, index) => {
+      const videoId = extractYouTubeVideoId(video.url);
+      if (videoId && !fetchedUrls.current.has(video.url)) {
+        fetchedUrls.current.add(video.url);
+        
+        api.get(`/raids/youtube-meta?url=${encodeURIComponent(video.url)}`)
+          .then(res => {
+            if (res.data.title || res.data.channel) {
+              setYoutubeUrls(prev => {
+                const newUrls = [...prev];
+                // Check if the URL at this index is still the same
+                if (newUrls[index] && newUrls[index].url === video.url) {
+                  const fetchedTitle = res.data.title || '';
+                  const fetchedChannel = res.data.channel || '';
+                  const combined = [fetchedTitle, fetchedChannel].filter(Boolean).join(' - ');
+                  newUrls[index] = { 
+                    ...newUrls[index], 
+                    title: combined || newUrls[index].title,
+                    channel: ''
+                  };
+                }
+                return newUrls;
+              });
+            }
+          })
+          .catch(err => console.error('Failed to fetch youtube meta', err));
+      }
+    });
+  }, [youtubeUrls]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
@@ -102,6 +148,10 @@ export function RaidWriteForm({ masterData }: Props) {
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+      if (name === 'mode') {
+        setParties([]);
+        setSelectedTeamIds([]);
+      }
     }
   };
 
@@ -113,13 +163,60 @@ export function RaidWriteForm({ masterData }: Props) {
     }
   };
 
+  const handleYoutubeUrlChange = (index: number, field: 'url' | 'title' | 'channel', value: string) => {
+    const newUrls = [...youtubeUrls];
+    newUrls[index] = { ...newUrls[index], [field]: value };
+    setYoutubeUrls(newUrls);
+  };
+
+  const addYoutubeUrl = () => {
+    if (youtubeUrls.length < 5) {
+      setYoutubeUrls([...youtubeUrls, { url: '', title: '', channel: '' }]);
+    }
+  };
+
+  const removeYoutubeUrl = (index: number) => {
+    const newUrls = [...youtubeUrls];
+    newUrls.splice(index, 1);
+    setYoutubeUrls(newUrls);
+  };
+
+  const getRelevantTeams = () => {
+    if (!isMounted) return [];
+    const targetMode = formData.mode === 'LimitBreakAssault' ? 'elimination' : 'raid';
+    const allFormations = getAllFormations();
+    
+    // 1. primaryKey (현재 rosterType 매칭)
+    const primaryKey = `${targetMode}_${rosterType}`;
+    const primaryFormation = allFormations[primaryKey];
+    
+    if (primaryFormation && primaryFormation.teams.some(t => 
+      t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
+    )) {
+      return primaryFormation.teams;
+    }
+    
+    // 2. fallbackKey (다른 rosterType 매칭)
+    const fallbackKey = `${targetMode}_${rosterType === 'collection' ? 'all' : 'collection'}`;
+    const fallbackFormation = allFormations[fallbackKey];
+    
+    if (fallbackFormation && fallbackFormation.teams.some(t => 
+      t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
+    )) {
+      return fallbackFormation.teams;
+    }
+    
+    return [];
+  };
+
   const openImportModal = () => {
-    if (teams.length === 0) {
-      alert("모의 편성에 구성된 부대가 없습니다.");
+    const relevantTeams = getRelevantTeams();
+    if (relevantTeams.length === 0 || (relevantTeams.length === 1 && relevantTeams[0].strikers.every(s => s === null))) {
+      toast.error('모의 편성에 구성된 부대가 없습니다.');
       return;
     }
     // 기본적으로 모두 선택된 상태로 띄움
-    setSelectedTeamIds(teams.map(t => t.id));
+    setSelectedTeamIds(relevantTeams.map(t => t.id));
     setIsImportModalOpen(true);
   };
 
@@ -130,7 +227,8 @@ export function RaidWriteForm({ masterData }: Props) {
   };
 
   const confirmImport = () => {
-    const selectedTeams = teams.filter(t => selectedTeamIds.includes(t.id));
+    const relevantTeams = getRelevantTeams();
+    const selectedTeams = relevantTeams.filter(t => selectedTeamIds.includes(t.id));
     const importedParties = selectedTeams.map((team, idx) => ({
       name: team.name || `${idx + 1}파티`,
       strikers: team.strikers,
@@ -154,7 +252,7 @@ export function RaidWriteForm({ masterData }: Props) {
       setError('최소 1개 이상의 파티가 구성되어야 합니다. 모의 편성에서 불러오기를 사용해주세요.');
       return;
     }
-    if (!imageFile) {
+    if (!imageFile && !initialData) {
       setError('대미지 인증 이미지를 반드시 첨부해야 합니다.');
       return;
     }
@@ -178,14 +276,28 @@ export function RaidWriteForm({ masterData }: Props) {
     payload.append('clearTime', formData.clearTime);
     payload.append('tags', JSON.stringify(tagsArray));
     payload.append('parties', JSON.stringify(parties));
-    payload.append('image', imageFile);
+    if (imageFile) {
+      payload.append('image', imageFile);
+    }
+    const validYoutubeUrls = youtubeUrls.filter(v => v.url.trim().length > 0);
+    if (validYoutubeUrls.length > 0) {
+      payload.append('youtubeUrls', JSON.stringify(validYoutubeUrls));
+    }
 
     try {
-      await api.post('/raids/parties', payload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      alert('성공적으로 공략이 등록되었습니다!');
-      router.push('/raids');
+      if (initialData) {
+        await api.put(`/raids/parties/${initialData.id}`, payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        alert('성공적으로 공략이 수정되었습니다!');
+        router.push(`/raids/${initialData.shortCode || initialData.id}`);
+      } else {
+        await api.post('/raids/parties', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        alert('성공적으로 공략이 등록되었습니다!');
+        router.push('/raids');
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || '업로드 중 오류가 발생했습니다.');
@@ -207,7 +319,7 @@ export function RaidWriteForm({ masterData }: Props) {
         className="w-10 h-10 rounded-full bg-white border border-pink-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-sm"
       >
         {student && student.portraitUrls?.[0] ? (
-          <img src={student.portraitUrls[0]} alt={student.name} className="w-full h-full object-cover scale-[1.3] pt-1.5" />
+          <img src={getImageUrl(student.portraitUrls[0])} alt={student.name} className="w-full h-full object-cover scale-[1.3] pt-1.5" />
         ) : (
           <span className="text-[10px] text-gray-400">Empty</span>
         )}
@@ -217,11 +329,21 @@ export function RaidWriteForm({ masterData }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6 h-full overflow-y-auto">
-      <div className="mb-6 flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-gray-500 hover:text-pink-300 transition-colors">
-          <ArrowLeft size={28} strokeWidth={2.5} />
+      <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="text-gray-500 hover:text-pink-300 transition-colors">
+            <ArrowLeft size={28} strokeWidth={2.5} />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">공략 작성하기</h1>
+        </div>
+        <button 
+          type="button" 
+          onClick={openImportModal}
+          className="flex items-center gap-2 bg-pink-50 border border-pink-100 hover:border-pink-200 hover:bg-pink-100 text-pink-500 px-5 py-2.5 rounded-lg text-sm shadow-sm transition-all font-extrabold"
+        >
+          <Users size={18} />
+          <span>모의 편성에서 불러오기</span>
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">공략 작성하기</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur border border-pink-50 rounded-xl p-6 shadow-sm flex flex-col gap-6">
@@ -308,14 +430,6 @@ export function RaidWriteForm({ masterData }: Props) {
         <div className="border-t border-pink-50 pt-6">
           <div className="flex justify-between items-center mb-4">
             <label className="block text-sm font-bold text-gray-700">사용 부대 (파티) *</label>
-            <button 
-              type="button" 
-              onClick={openImportModal}
-              className="flex items-center gap-2 bg-white/80 backdrop-blur border border-pink-100 hover:border-pink-200 hover:bg-pink-50 text-pink-300 px-4 py-2 rounded-lg text-sm shadow-sm transition-all font-bold"
-            >
-              <Users size={16} />
-              <span>모의 편성에서 불러오기</span>
-            </button>
           </div>
 
           {parties.length === 0 ? (
@@ -371,6 +485,67 @@ export function RaidWriteForm({ masterData }: Props) {
               accept="image/*" 
               className="hidden" 
             />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-bold text-gray-700">유튜브 롱폼 영상 링크 (선택, 최대 5개)</label>
+              {youtubeUrls.length < 5 && (
+                <button
+                  type="button"
+                  onClick={addYoutubeUrl}
+                  className="text-xs font-bold text-pink-500 hover:text-pink-600 bg-pink-50 hover:bg-pink-100 px-3 py-1.5 rounded-lg transition-colors border border-pink-100 shadow-sm"
+                >
+                  + 링크 추가
+                </button>
+              )}
+            </div>
+            {youtubeUrls.map((video, idx) => {
+              const videoId = extractYouTubeVideoId(video.url);
+              return (
+                <div key={idx} className="flex flex-col gap-2 p-4 border border-pink-100 rounded-xl bg-pink-50/30">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={video.url}
+                      onChange={(e) => handleYoutubeUrlChange(idx, 'url', e.target.value)}
+                      placeholder="유튜브 롱폼 영상 링크 (예: https://youtu.be/...)"
+                      className="flex-1 bg-white border border-pink-200 rounded-lg p-3 text-gray-800 focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-300 shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeYoutubeUrl(idx)}
+                      className="text-gray-400 hover:text-red-500 transition-colors px-3 py-3 rounded-lg border border-transparent hover:border-red-100 hover:bg-red-50"
+                      title="삭제"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                  {/* Title input field removed as per user request */}
+                  {video.url && !videoId && (
+                    <div className="text-xs text-red-500 font-semibold px-1">올바른 유튜브 롱폼 영상 링크가 아닙니다. (Shorts는 지원하지 않습니다)</div>
+                  )}
+                  {videoId && (
+                    <div className="flex items-center gap-4 bg-white p-3 rounded-lg border border-pink-100 shadow-sm">
+                      <div className="w-32 h-18 rounded overflow-hidden flex-shrink-0 bg-gray-100 border border-gray-200 relative pb-[18%]">
+                        <img 
+                          src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`} 
+                          alt="Thumbnail preview" 
+                          className="absolute inset-0 w-full h-full object-cover" 
+                        />
+                      </div>
+                      <div className="flex flex-col justify-center gap-0.5 min-w-0 flex-1">
+                        {video.title.trim() ? (
+                          <span className="text-sm font-bold text-gray-800 line-clamp-2">{video.title}</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-red-400 italic">⬆ 위에 영상 정보를 입력해주세요</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div>
@@ -434,7 +609,7 @@ export function RaidWriteForm({ masterData }: Props) {
               </button>
             </div>
             <div className="p-4 flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-              {teams.map((team, idx) => (
+              {getRelevantTeams().map((team, idx) => (
                 <label key={team.id} className="flex items-center gap-3 p-3 bg-white border border-pink-50 rounded-lg cursor-pointer hover:border-pink-100 hover:bg-pink-50/50 transition-colors shadow-sm">
                   <input 
                     type="checkbox" 
@@ -448,12 +623,14 @@ export function RaidWriteForm({ masterData }: Props) {
             </div>
             <div className="p-4 border-t border-pink-50 flex justify-end gap-3 bg-gray-50/50 rounded-b-xl">
               <button 
+                type="button"
                 onClick={() => setIsImportModalOpen(false)}
                 className="px-4 py-2 text-gray-500 hover:text-gray-800 font-semibold transition-colors bg-white border border-gray-200 rounded hover:bg-gray-50 shadow-sm"
               >
                 취소
               </button>
               <button 
+                type="button"
                 onClick={confirmImport}
                 className="px-4 py-2 bg-pink-300 hover:bg-pink-400 text-white font-bold rounded shadow-sm transition-colors"
               >

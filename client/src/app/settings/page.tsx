@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Database, Trash2, ShieldAlert, Settings as SettingsIcon, LogOut, AlertTriangle, UserMinus } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { deleteCollectionFromServer } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -13,7 +14,7 @@ export default function SettingsPage() {
   const handleClearItem = (key: string, name: string) => {
     if (confirm(`정말로 ${name} 데이터를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
       localStorage.removeItem(key);
-      alert(`${name} 데이터가 초기화되었습니다. 변경사항을 적용하기 위해 페이지를 새로고침합니다.`);
+      toast.success(`${name} 데이터가 초기화되었습니다. 변경사항을 적용하기 위해 페이지를 새로고침합니다.`);
       window.location.reload();
     }
   };
@@ -22,7 +23,7 @@ export default function SettingsPage() {
     if (confirm('모든 로컬 스토리지 데이터(편성, 플래너, 보유 학생, 로그인 정보 등)를 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다!')) {
       const keys = ['formation-storage', 'planner-storage', 'ba-personal-archive', 'auth_token'];
       keys.forEach(key => localStorage.removeItem(key));
-      alert('모든 로컬 데이터가 초기화되었습니다. 페이지를 새로고침합니다.');
+      toast.success('모든 로컬 데이터가 초기화되었습니다. 페이지를 새로고침합니다.');
       window.location.reload();
     }
   };
@@ -34,10 +35,10 @@ export default function SettingsPage() {
       setIsDeleting(true);
       try {
         await deleteCollectionFromServer();
-        alert('서버 컬렉션 데이터가 성공적으로 삭제되었습니다.');
+        toast.success('서버 컬렉션 데이터가 성공적으로 삭제되었습니다.');
       } catch (error) {
         console.error('Delete server collection error:', error);
-        alert('서버 데이터 삭제 중 오류가 발생했습니다.');
+        toast.error('잠시 후에 다시 시도해 주세요');
       } finally {
         setIsDeleting(false);
       }
@@ -144,7 +145,7 @@ export default function SettingsPage() {
                           <p className="font-medium text-slate-800">로그인 토큰</p>
                           <p className="text-sm text-slate-500 mt-0.5">현재 기기의 계정 연동 정보</p>
                         </div>
-                        <button onClick={() => { logout(); alert('로그아웃 되었습니다.'); }} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2">
+                        <button onClick={() => { logout(); toast.success('로그아웃 되었습니다.'); }} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2">
                           <LogOut className="w-4 h-4" /> 로그아웃
                         </button>
                       </div>

@@ -14,6 +14,7 @@ import { ArrowLeft, Calendar, Eye, User, Download, Loader2, Pencil, Trash2 } fro
 import { toPng } from 'html-to-image';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
 
 interface Notice {
   id: number;
@@ -52,7 +53,7 @@ export default function NoticeDetailPage() {
       setNotice(res.data);
     } catch (error) {
       console.error('Failed to fetch notice:', error);
-      alert('공지사항을 찾을 수 없습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
       router.push('/notices');
     } finally {
       setLoading(false);
@@ -77,7 +78,7 @@ export default function NoticeDetailPage() {
       link.click();
     } catch (err) {
       console.error('Failed to export image', err);
-      alert('이미지 추출에 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsDownloading(false);
     }
@@ -88,11 +89,11 @@ export default function NoticeDetailPage() {
     
     try {
       await api.delete(`/notices/${id}`);
-      alert('공지사항이 삭제되었습니다.');
+      toast.success('공지사항이 삭제되었습니다.');
       router.push('/notices');
     } catch (err) {
       console.error('Failed to delete notice:', err);
-      alert('공지사항 삭제에 실패했습니다.');
+      toast.error('잠시 후에 다시 시도해 주세요');
     }
   };
 

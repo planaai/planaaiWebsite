@@ -263,6 +263,7 @@ model SharedRaidParty {
   tactics      String   @db.Text
   clearTime    String?
   imagePath    String?
+  youtubeUrls  Json?    // ["https://youtu.be/..."] (max 5 long-form videos)
   authorId     Int
   author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likeCount    Int      @default(0)

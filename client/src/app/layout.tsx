@@ -17,13 +17,28 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+      </head>
       <body className="font-sans min-h-screen selection:bg-[var(--plana-primary-light)]">
         <AlertProvider>
           <Navbar />
           <div className="flex flex-col min-h-screen pt-16">
             <BetaNotice />
             <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
-              <Toaster position="bottom-right" richColors closeButton />
+              <Toaster 
+                position="bottom-right" 
+                toastOptions={{
+                  style: {
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(12px)',
+                    border: '2px solid var(--plana-primary)',
+                    color: 'var(--plana-text-main)',
+                    boxShadow: '0 10px 40px rgba(255,166,201,0.4)'
+                  },
+                  className: 'font-sans rounded-xl'
+                }}
+                closeButton 
+              />
               {children}
             </main>
             <footer className="w-full text-center py-8 text-xs text-gray-500 border-t border-gray-200 mt-auto">

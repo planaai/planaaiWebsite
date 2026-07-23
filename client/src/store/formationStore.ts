@@ -38,6 +38,7 @@ export interface FormationState {
   studentModes: Record<number, number>;
   setStudentMode: (studentId: number, modeIndex: number) => void;
   importTeam: (strikers: (number | null)[], specials: (number | null)[]) => void;
+  getAllFormations: () => Record<string, { teams: Team[], activeTeamId: string }>;
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -69,6 +70,15 @@ export const useFormationStore = create<FormationState>()(
         set((state) => ({
           studentModes: { ...state.studentModes, [studentId]: modeIndex }
         })),
+
+      getAllFormations: () => {
+        const state = get();
+        const currentKey = `${state.mode}_${state.rosterType}`;
+        return {
+          ...state.savedFormations,
+          [currentKey]: { teams: state.teams, activeTeamId: state.activeTeamId }
+        };
+      },
 
       setMode: (newMode) =>
         set((state) => {

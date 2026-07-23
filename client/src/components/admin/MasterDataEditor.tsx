@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import type { StudentMaster, SkillSet, Skill } from '@/types';
 import { Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   student: StudentMaster;
@@ -28,9 +29,9 @@ export function MasterDataEditor({ student, onSave }: Props) {
         dataToSave = JSON.parse(rawJson);
       }
       await onSave(dataToSave);
-      alert('저장되었습니다.');
+      toast.success('저장되었습니다.');
     } catch (e) {
-      alert('저장 실패: ' + (e as Error).message);
+      toast.error('잠시 후에 다시 시도해 주세요');
     } finally {
       setIsSaving(false);
     }
