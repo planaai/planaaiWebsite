@@ -21,7 +21,7 @@ const corsOptions = {
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-device-fingerprint']
 };
 app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false })); // 이미지 서빙 등을 위해 허용
