@@ -861,6 +861,22 @@ app.post('/api/master/gacha/update', (req, res) => {
   });
 });
 
+// 가챠 데이터 마이그레이션 로직 (서버 시작 시 1회 확인)
+const oldGachaPath = path.join(__dirname, '../client/src/data/gacha.json');
+const newGachaPath = path.join(__dirname, 'data', 'gacha.json');
+try {
+  if (!fs.existsSync(newGachaPath) && fs.existsSync(oldGachaPath)) {
+    const dataDir = path.join(__dirname, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    fs.copyFileSync(oldGachaPath, newGachaPath);
+    console.log('Migrated gacha.json to backend/data/');
+  }
+} catch (e) {
+  console.error('Failed to migrate gacha.json:', e);
+}
+
 // 가챠 데이터 캐시 (매 요청마다 파일 읽기/파싱 방지)
 let gachaCache = null;
 let gachaCacheTime = 0;
@@ -870,9 +886,8 @@ app.get('/api/master/gacha/status', (req, res) => {
   try {
     const now = Date.now();
     if (!gachaCache || (now - gachaCacheTime > GACHA_CACHE_TTL)) {
-      const dataPath = path.join(__dirname, '../client/src/data/gacha.json');
-      if (fs.existsSync(dataPath)) {
-        gachaCache = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+      if (fs.existsSync(newGachaPath)) {
+        gachaCache = JSON.parse(fs.readFileSync(newGachaPath, 'utf8'));
       } else {
         gachaCache = { urls: [], banners: [], pools: { "3_star": [], "2_star": [], "1_star": [] } };
       }

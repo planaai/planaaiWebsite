@@ -11,10 +11,20 @@ if (urls.length === 0) {
     process.exit(1);
 }
 
-const gachaJsonPath = path.join(__dirname, '../client/src/data/gacha.json');
+const gachaJsonPath = path.join(__dirname, '../backend/data/gacha.json');
 let gachaData;
 try {
-    gachaData = JSON.parse(fs.readFileSync(gachaJsonPath, 'utf8'));
+    if (fs.existsSync(gachaJsonPath)) {
+        gachaData = JSON.parse(fs.readFileSync(gachaJsonPath, 'utf8'));
+    } else {
+        // Fallback or initialize new
+        const oldGachaPath = path.join(__dirname, '../client/src/data/gacha.json');
+        if (fs.existsSync(oldGachaPath)) {
+            gachaData = JSON.parse(fs.readFileSync(oldGachaPath, 'utf8'));
+        } else {
+            gachaData = { urls: [], banners: [], rates: { normal: {}, guaranteed: {} }, pools: { "3_star": [], "2_star": [], "1_star": [] } };
+        }
+    }
 } catch (e) {
     console.error("Failed to read gacha.json:", e);
     process.exit(1);
