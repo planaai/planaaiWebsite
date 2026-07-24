@@ -349,7 +349,7 @@ router.post('/parties', requireAuth, uploadRaid.single('image'), async (req, res
 });
 
 // PUT /api/raids/parties/:id - Edit an existing raid party
-router.put('/parties/:id', requireAuth, upload.single('image'), async (req, res) => {
+router.put('/parties/:id', requireAuth, uploadRaid.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const authorId = req.user.id;
