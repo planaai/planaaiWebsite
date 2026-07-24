@@ -3,7 +3,7 @@
  * - PrismaClient와 pg Pool을 한 번만 생성하여 모든 라우터에서 공유
  * - 메모리 누수 방지: 여러 모듈에서 각각 new Pool / new PrismaClient 하던 것을 제거
  */
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
 const { PrismaClient } = require('@prisma/client');
 const { Pool } = require('pg');
 const { PrismaPg } = require('@prisma/adapter-pg');
