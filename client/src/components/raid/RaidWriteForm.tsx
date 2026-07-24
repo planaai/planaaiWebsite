@@ -63,20 +63,25 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
         const res = await api.get('/raids/meta');
         setBosses(res.data.bosses);
         setSeasons(res.data.seasons);
-        if (res.data.bosses.length > 0) {
-          const firstBossId = res.data.bosses[0].id;
-          const bossSeasons = res.data.seasons.filter((s: any) => s.bossId === firstBossId);
-          const terrains = Array.from(new Set(bossSeasons.map((s: any) => s.terrain))) as string[];
-          const firstTerrain = terrains.length > 0 ? terrains[0] : '';
-          const diffs = Array.from(new Set(bossSeasons.filter((s: any) => s.terrain === firstTerrain).map((s: any) => s.difficulty))) as string[];
-          const firstDiff = diffs.length > 0 ? diffs[0] : '';
+        if (!initialData && res.data.bosses.length > 0) {
+          const initialModeBosses = res.data.bosses.filter((b: any) => 
+            formData.mode === 'LimitBreakAssault' ? b.category === 'LimitBreak' : b.category !== 'LimitBreak'
+          );
+          if (initialModeBosses.length > 0) {
+            const firstBossId = initialModeBosses[0].id;
+            const bossSeasons = res.data.seasons.filter((s: any) => s.bossId === firstBossId);
+            const terrains = Array.from(new Set(bossSeasons.map((s: any) => s.terrain))) as string[];
+            const firstTerrain = terrains.length > 0 ? terrains[0] : '';
+            const diffs = Array.from(new Set(bossSeasons.filter((s: any) => s.terrain === firstTerrain).map((s: any) => s.difficulty))) as string[];
+            const firstDiff = diffs.length > 0 ? diffs[0] : '';
 
-          setFormData(prev => ({ 
-            ...prev, 
-            bossId: firstBossId,
-            terrain: firstTerrain,
-            difficulty: firstDiff
-          }));
+            setFormData(prev => ({ 
+              ...prev, 
+              bossId: firstBossId,
+              terrain: firstTerrain,
+              difficulty: firstDiff
+            }));
+          }
         }
       } catch (err) {
         console.error('Failed to fetch raid meta:', err);
@@ -147,10 +152,42 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
         difficulty: firstDiff
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
       if (name === 'mode') {
         setParties([]);
         setSelectedTeamIds([]);
+        
+        const newModeBosses = bosses.filter(boss => {
+          if (value === 'LimitBreakAssault') return boss.category === 'LimitBreak';
+          return boss.category !== 'LimitBreak';
+        });
+
+        if (newModeBosses.length > 0) {
+          const firstBossId = newModeBosses[0].id;
+          const bossSeasons = seasons.filter(s => s.bossId === firstBossId);
+          const terrains = Array.from(new Set(bossSeasons.map(s => s.terrain))) as string[];
+          const firstTerrain = terrains.length > 0 ? terrains[0] : '';
+          
+          const diffs = Array.from(new Set(bossSeasons.filter(s => s.terrain === firstTerrain).map(s => s.difficulty))) as string[];
+          const firstDiff = diffs.length > 0 ? diffs[0] : '';
+
+          setFormData(prev => ({
+            ...prev,
+            [name]: value,
+            bossId: firstBossId,
+            terrain: firstTerrain,
+            difficulty: firstDiff
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [name]: value,
+            bossId: '',
+            terrain: '',
+            difficulty: ''
+          }));
+        }
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
       }
     }
   };
