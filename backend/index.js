@@ -12,6 +12,8 @@ const port = 3000;
 const corsOptions = {
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     'https://localhost:3000',
@@ -19,11 +21,12 @@ const corsOptions = {
     'https://planaai.kro.kr',
     'https://www.planaai.kro.kr',
     'https://admin.planaai.kro.kr',
-    'https://api.planaai.kro.kr'
+    'https://api.planaai.kro.kr',
+    'https://planaai-admin.planaai.workers.dev'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'X-Requested-With', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'X-Requested-With', 'Accept', 'X-Device-Fingerprint']
 };
 app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -50,6 +53,7 @@ const importRouter = require('./routes/importRoute');
 const noticesRouter = require('./routes/notices');
 const inquiriesRouter = require('./routes/inquiries');
 const raidsRouter = require('./routes/raids');
+const pvpRouter = require('./routes/pvp');
 
 // 새로 분리된 라우터들
 const schemaRouter = require('./routes/schema');
@@ -81,6 +85,7 @@ app.use('/api/image-offsets', imageOffsetsRouter);
 app.use('/api/notices', noticesRouter);
 app.use('/api/inquiries', inquiriesRouter);
 app.use('/api/raids', raidsRouter);
+app.use('/api/pvp', pvpRouter);
 
 app.use('/api/schema', schemaRouter);
 app.use('/api/images', imagesRouter);
