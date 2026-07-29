@@ -61,7 +61,7 @@ const imagesRouter = require('./routes/images');
 const masterRouter = require('./routes/master');
 const archiveRouter = require('./routes/archive');
 
-const { verifyAdmin } = require('./middleware/auth');
+const { requireAdmin } = require('./middleware/auth');
 
 // 관리자 인증 미들웨어 일괄 적용 (마스터 DB 수정용 라우트)
 app.use((req, res, next) => {
@@ -71,7 +71,7 @@ app.use((req, res, next) => {
     '/api/master/students', '/api/master/gacha/update'
   ];
   if (req.method !== 'GET' && adminRoutes.some(route => req.path.startsWith(route))) {
-    return verifyAdmin(req, res, next);
+    return requireAdmin(req, res, next);
   }
   next();
 });
