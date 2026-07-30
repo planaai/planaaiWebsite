@@ -186,7 +186,7 @@ router.get('/parties', optionalAuth, async (req, res) => {
   try {
     const { bossId, terrain, difficulty, mode, q, sort, filters } = req.query;
     
-    const whereClause = {};
+    const whereClause = { isBlinded: false };
     if (mode) whereClause.mode = mode;
 
     if (q) {
@@ -582,6 +582,76 @@ router.post('/parties/:id/like', requireAuth, async (req, res) => {
     }
   } catch (err) {
     console.error('Like error:', err);
+    res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+  }
+});
+// POST /api/raids/parties/:id/reports - Report a shared party
+router.post('/parties/:id/reports', requireAuth, async (req, res) => {
+  try {
+    const partyId = parseInt(req.params.id);
+    if (isNaN(partyId)) {
+      return res.status(400).json({ error: '잘못된 파티 ID 입니다.' });
+    }
+
+    const { reason, description } = req.body;
+    if (!reason) {
+      return res.status(400).json({ error: '신고 사유를 선택해주세요.' });
+    }
+
+    const party = await prisma.sharedRaidParty.findUnique({
+      where: { id: partyId }
+    });
+
+    if (!party) {
+      return res.status(404).json({ error: '공략을 찾을 수 없습니다.' });
+    }
+
+    if (party.authorId === req.user.id) {
+      return res.status(400).json({ error: '본인의 공략은 신고할 수 없습니다.' });
+    }
+
+    // 중복 신고 체크
+    const existingReport = await prisma.report.findFirst({
+      where: {
+        reporterId: req.user.id,
+        reportedRaidId: partyId
+      }
+    });
+
+    if (existingReport) {
+      return res.status(400).json({ error: '이미 해당 공략을 신고하셨습니다.' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 신고 레코드 생성
+      await tx.report.create({
+        data: {
+          reporterId: req.user.id,
+          reportedRaidId: partyId,
+          reportedUserId: party.authorId,
+          reason,
+          description: description || null
+        }
+      });
+
+      // 공략의 신고 횟수 증가
+      const updatedParty = await tx.sharedRaidParty.update({
+        where: { id: partyId },
+        data: { reportCount: { increment: 1 } }
+      });
+
+      // 5회 이상 신고된 경우 자동 블라인드 처리
+      if (updatedParty.reportCount >= 5 && !updatedParty.isBlinded) {
+        await tx.sharedRaidParty.update({
+          where: { id: partyId },
+          data: { isBlinded: true }
+        });
+      }
+    });
+
+    res.json({ success: true, message: '신고가 접수되었습니다.' });
+  } catch (err) {
+    console.error('Report error:', err);
     res.status(500).json({ error: '서버 에러가 발생했습니다.' });
   }
 });

@@ -52,22 +52,30 @@ model StudentStats {
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  uid         Int          @unique @default(autoincrement())
-  username    String       @unique
-  password    String
-  role        Role         @default(USER)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  nickname         String?
-  isShadowBanned   Boolean      @default(false)
-  collections      Collection[]
-  growthPlans      GrowthPlan[]
-  notices          Notice[]
-  inquiries        Inquiry[]
-  inquiryResponses InquiryResponse[]
-  sharedParties    SharedRaidParty[]
-  likedParties     SharedRaidPartyLike[]
+  id                  Int                   @id @default(autoincrement())
+  uid                 Int                   @unique @default(autoincrement())
+  username            String                @unique
+  password            String
+  role                Role                  @default(USER)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  nickname            String?
+  isShadowBanned      Boolean               @default(false)
+  penaltyStatus       String?               @default("NONE")
+  bannedUntil         DateTime?
+  lastLoginIp         String?
+
+  collections         Collection[]
+  growthPlans         GrowthPlan[]
+  inquiries           Inquiry[]
+  inquiryResponses    InquiryResponse[]
+  notices             Notice[]
+  SharedPvpParty      SharedPvpParty[]
+  SharedPvpPartyLike  SharedPvpPartyLike[]
+  SharedRaidParty     SharedRaidParty[]
+  SharedRaidPartyLike SharedRaidPartyLike[]
+  reports             Report[]              @relation("Reporter")
+  reportedRaids       Report[]              @relation("ReportedUser")
 }
 
 model Collection {
@@ -116,6 +124,151 @@ model GrowthPlan {
   targetWeaponStar   Int      @default(0)
   student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notice {
+  id        Int            @id @default(autoincrement())
+  title     String
+  content   String
+  category  NoticeCategory @default(GENERAL)
+  viewCount Int            @default(0)
+  authorId  Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Inquiry {
+  id          Int                 @id @default(autoincrement())
+  userId      Int
+  category    InquiryCategory
+  subCategory InquirySubCategory?
+  title       String?
+  content     String?
+  status      InquiryStatus       @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images      InquiryImage[]
+  responses   InquiryResponse[]
+}
+
+model InquiryImage {
+  id        Int      @id @default(autoincrement())
+  inquiryId Int
+  imageUrl  String
+  createdAt DateTime @default(now())
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+}
+
+model InquiryResponse {
+  id        Int             @id @default(autoincrement())
+  inquiryId Int
+  adminId   Int
+  content   String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  admin     User            @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  inquiry   Inquiry         @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  images    ResponseImage[]
+}
+
+model ResponseImage {
+  id         Int             @id @default(autoincrement())
+  responseId Int
+  imageUrl   String
+  createdAt  DateTime        @default(now())
+  response   InquiryResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+}
+
+model RaidBoss {
+  id          String       @id
+  name        String
+  iconUrl     String
+  defenseType String
+  category    String       @default("Assault")
+  bannerUrl   String?
+  RaidSeason  RaidSeason[]
+}
+
+model RaidSeason {
+  id         Int      @id @default(autoincrement())
+  bossId     String
+  terrain    String
+  difficulty String
+  RaidBoss   RaidBoss @relation(fields: [bossId], references: [id], onDelete: Cascade)
+
+  @@unique([bossId, terrain, difficulty])
+}
+
+model SharedPvpParty {
+  id                 Int                  @id @default(autoincrement())
+  shortCode          String?              @unique
+  deckType           String
+  name               String
+  party              Json
+  tags               Json
+  tactics            String
+  imagePath          String?
+  youtubeUrls        Json?
+  authorId           Int
+  likeCount          Int                  @default(0)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  strategyCode       String?
+  User               User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  SharedPvpPartyLike SharedPvpPartyLike[]
+}
+
+model SharedPvpPartyLike {
+  id             Int            @id @default(autoincrement())
+  userId         Int
+  partyId        Int
+  deviceFp       String?
+  ipAddress      String?
+  createdAt      DateTime       @default(now())
+  SharedPvpParty SharedPvpParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  User           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, partyId])
+}
+
+model SharedRaidParty {
+  id                  Int                   @id @default(autoincrement())
+  bossId              String
+  terrain             String
+  difficulty          String
+  name                String
+  parties             Json
+  tags                Json
+  tactics             String
+  clearTime           String?
+  imagePath           String?
+  authorId            Int
+  likeCount           Int                   @default(0)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  shortCode           String?               @unique
+  mode                String                @default("TotalAssault")
+  youtubeUrls         Json?
+  User                User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  SharedRaidPartyLike SharedRaidPartyLike[]
+  reportCount         Int                   @default(0)
+  isBlinded           Boolean               @default(false)
+  reports             Report[]
+}
+
+model SharedRaidPartyLike {
+  id              Int             @id @default(autoincrement())
+  userId          Int
+  partyId         Int
+  deviceFp        String?
+  ipAddress       String?
+  createdAt       DateTime        @default(now())
+  SharedRaidParty SharedRaidParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  User            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, partyId])
 }
 
 enum SquadType {
@@ -178,18 +331,6 @@ enum NoticeCategory {
   GENERAL
 }
 
-model Notice {
-  id        Int            @id @default(autoincrement())
-  title     String
-  content   String
-  category  NoticeCategory @default(GENERAL)
-  viewCount Int            @default(0)
-  authorId  Int
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-}
-
 enum InquiryCategory {
   BUG_REPORT
   RESOURCE_SUPPORT
@@ -207,100 +348,26 @@ enum InquiryStatus {
   ANSWERED
 }
 
-model Inquiry {
-  id           Int                 @id @default(autoincrement())
-  userId       Int
-  category     InquiryCategory
-  subCategory  InquirySubCategory?
-  title        String?
-  content      String?
-  status       InquiryStatus       @default(PENDING)
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  images       InquiryImage[]
-  responses    InquiryResponse[]
+model Report {
+  id             Int             @id @default(autoincrement())
+  reporterId     Int
+  reportedRaidId Int
+  reportedUserId Int
+  reason         String
+  description    String?
+  status         String          @default("PENDING") // PENDING, REVIEWED, RESOLVED
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  reporter       User            @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser   User            @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reportedRaid   SharedRaidParty @relation(fields: [reportedRaidId], references: [id], onDelete: Cascade)
 }
 
-model InquiryImage {
-  id        Int      @id @default(autoincrement())
-  inquiryId Int
-  imageUrl  String
-  createdAt DateTime @default(now())
-  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-}
-
-model InquiryResponse {
-  id        Int               @id @default(autoincrement())
-  inquiryId Int
-  adminId   Int
-  content   String
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  inquiry   Inquiry           @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
-  admin     User              @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  images    ResponseImage[]
-}
-
-model ResponseImage {
-  id         Int             @id @default(autoincrement())
-  responseId Int
-  imageUrl   String
-  createdAt  DateTime        @default(now())
-  response   InquiryResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
-}
-
-model SharedRaidParty {
-  id           Int      @id @default(autoincrement())
-  shortCode    String?  @unique @default(cuid())
-  mode         String   @default("TotalAssault")
-  bossId       String
-  terrain      String
-  difficulty   String
-  name         String
-  parties      Json     // [{name: "1파티", strikers: [...], specials: [...]}]
-  tags         Json     // ["#1파티클", "#고점픽"]
-  tactics      String   @db.Text
-  clearTime    String?
-  imagePath    String?
-  youtubeUrls  Json?    // ["https://youtu.be/..."] (max 5 long-form videos)
-  authorId     Int
-  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likeCount    Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  likes        SharedRaidPartyLike[]
-}
-
-model SharedRaidPartyLike {
-  id               Int             @id @default(autoincrement())
-  userId           Int
-  partyId          Int
-  deviceFp         String?
-  ipAddress        String?
-  createdAt        DateTime        @default(now())
-  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  party            SharedRaidParty @relation(fields: [partyId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, partyId])
-}
-
-model RaidBoss {
-  id          String       @id
-  name        String
-  iconUrl     String
-  bannerUrl   String?
-  defenseType String
-  category    String       @default("Assault") // "Assault" (Total/Grand) or "LimitBreak"
-  seasons     RaidSeason[]
-}
-
-model RaidSeason {
-  id         Int      @id @default(autoincrement())
-  bossId     String
-  boss       RaidBoss @relation(fields: [bossId], references: [id], onDelete: Cascade)
-  terrain    String
-  difficulty String
-
-  @@unique([bossId, terrain, difficulty])
+model BannedIP {
+  id              Int      @id @default(autoincrement())
+  ipAddress       String   @unique
+  reason          String?
+  createdAt       DateTime @default(now())
+  bannedByAdminId Int?
 }

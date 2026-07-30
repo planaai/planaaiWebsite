@@ -4,12 +4,13 @@ import type { StudentMaster } from '@/types';
 import { useFormationStore } from '@/store/formationStore';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { Trash2, ThumbsUp, ChevronRight, FileText, MonitorPlay, Image as ImageIcon, Pencil } from 'lucide-react';
+import { Trash2, ThumbsUp, ChevronRight, FileText, MonitorPlay, Image as ImageIcon, Pencil, AlertTriangle } from 'lucide-react';
 import { getImageUrl } from '../planner/utils';
 import Link from 'next/link';
 import TurnstileWidget from '@/components/TurnstileWidget';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+import { RaidReportModal } from './RaidReportModal';
 
 export function extractYouTubeVideoId(url: string): string | null {
   const match = url.match(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -47,6 +48,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState(false);
   const [currentPartyIndex, setCurrentPartyIndex] = useState(0);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Sync state if party prop changes
   useEffect(() => {
@@ -254,15 +256,35 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
         <div className="flex flex-col gap-2 items-end flex-shrink-0">
           <div className="flex items-center gap-2">
             {isDetail ? (
-              <button 
-                onClick={handleLike}
-                disabled={isLiking}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all shadow-sm ${isLiked ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300'}`}
-                title="추천하기"
-              >
-                <ThumbsUp size={16} className={isLiked ? 'fill-blue-500 text-blue-500' : ''} />
-                <span className="text-sm font-extrabold">{likeCount}</span>
-              </button>
+              <>
+                <button 
+                  onClick={handleLike}
+                  disabled={isLiking}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all shadow-sm ${isLiked ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:border-gray-300'}`}
+                  title="추천하기"
+                >
+                  <ThumbsUp size={16} className={isLiked ? 'fill-blue-500 text-blue-500' : ''} />
+                  <span className="text-sm font-extrabold">{likeCount}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      toast.error('로그인이 필요합니다.');
+                      router.push('/login');
+                      return;
+                    }
+                    if (user.id === party.author?.id) {
+                      toast.error('본인의 공략은 신고할 수 없습니다.');
+                      return;
+                    }
+                    setIsReportModalOpen(true);
+                  }}
+                  className="flex items-center justify-center w-8 h-8 rounded-full border bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm"
+                  title="신고하기"
+                >
+                  <AlertTriangle size={15} />
+                </button>
+              </>
             ) : (
               <div 
                 className={`flex items-center gap-1.5 ${isLiked ? 'text-blue-600' : 'text-gray-500'}`}
@@ -427,6 +449,14 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
             ) : <div />}
           </div>
         </div>
+      )}
+
+      {isReportModalOpen && (
+        <RaidReportModal
+          partyId={party.id!}
+          partyName={party.name}
+          onClose={() => setIsReportModalOpen(false)}
+        />
       )}
     </div>
   );
