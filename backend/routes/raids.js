@@ -5,6 +5,8 @@ const { requireAuth, optionalAuth } = require('../middleware/auth');
 const { verifyRecaptcha } = require('../utils/recaptcha');
 const uploadRaid = require('../middleware/uploadRaid');
 const crypto = require('crypto');
+const fs = require('fs').promises;
+const path = require('path');
 
 // GET /api/raids/meta - Fetch bosses and seasons
 router.get('/meta', async (req, res) => {
@@ -484,6 +486,16 @@ router.delete('/parties/:id', requireAuth, async (req, res) => {
     await prisma.sharedRaidParty.delete({
       where: { id: partyId }
     });
+
+    // Delete image file, log error but proceed if fails
+    if (party.imagePath) {
+      try {
+        const fullPath = path.join(__dirname, '..', party.imagePath);
+        await fs.unlink(fullPath);
+      } catch (err) {
+        console.error(`Failed to delete image file: ${party.imagePath}`, err);
+      }
+    }
 
     res.json({ success: true });
   } catch (error) {
