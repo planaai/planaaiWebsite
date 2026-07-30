@@ -408,7 +408,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
                       <div className="rounded-2xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 relative pb-[56.25%] h-0 bg-black group transition-all duration-300 hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15)]">
                         <iframe
                           className="absolute top-0 left-0 w-full h-full"
-                          src={`https://www.youtube.com/embed/${videoId}`}
+                          src={`https://www.youtube-nocookie.com/embed/${videoId}`}
                           title={`YouTube video player ${idx + 1}`}
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
