@@ -24,7 +24,8 @@ const corsOptions = {
     'https://www.planaai.kro.kr',
     'https://admin.planaai.kro.kr',
     'https://api.planaai.kro.kr',
-    'https://planaai-admin.planaai.workers.dev'
+    'https://planaai-admin.planaai.workers.dev',
+    'https://pvp.planaai.kro.kr'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
