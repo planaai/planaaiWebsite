@@ -13,7 +13,16 @@ router.get('/students', (req, res) => res.json(getStudentMasterDB()));
 
 router.post('/students', (req, res) => {
   const studentMasterDB = getStudentMasterDB();
-  const newStudent = { ...req.body, id: Date.now() };
+  
+  // Find the maximum ID currently in the DB
+  const maxId = studentMasterDB.reduce((max, s) => {
+    // only consider safe integer IDs (avoid Date.now() values that might have been added previously)
+    return (s.id && s.id < 1000000) ? Math.max(max, s.id) : max;
+  }, 0);
+  
+  const newId = maxId + 1;
+
+  const newStudent = { ...req.body, id: newId };
   if (!newStudent.skills) newStudent.skills = [{ ex: {}, normal: {}, passive: {}, sub: {} }];
   if (!newStudent.portraitUrls) newStudent.portraitUrls = [];
   studentMasterDB.push(newStudent);
@@ -35,6 +44,32 @@ router.delete('/students/:id', (req, res) => {
   studentMasterDB = studentMasterDB.filter(s => s.id !== parseInt(req.params.id));
   setStudentMasterDB(studentMasterDB);
   res.json({ status: 'success' });
+});
+
+router.get('/students/fix-ids', (req, res) => {
+  const studentMasterDB = getStudentMasterDB();
+  let changed = 0;
+  
+  // Find the maximum valid ID
+  let maxId = studentMasterDB.reduce((max, s) => {
+    return (s.id && s.id < 1000000) ? Math.max(max, s.id) : max;
+  }, 0);
+  
+  // Fix broken IDs
+  studentMasterDB.forEach(s => {
+    if (s.id >= 1000000) {
+      maxId++;
+      s.id = maxId;
+      s.studentNumber = maxId;
+      changed++;
+    }
+  });
+  
+  if (changed > 0) {
+    saveMasterDB();
+  }
+  
+  res.json({ status: 'success', fixedCount: changed });
 });
 
 router.post('/gacha/update', (req, res) => {

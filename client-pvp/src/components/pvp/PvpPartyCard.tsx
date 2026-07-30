@@ -8,7 +8,8 @@ import Link from 'next/link';
 import { api, getImageUrl } from '@/lib/api';
 import { PvpReportModal } from './PvpReportModal';
 
-export function extractYouTubeVideoId(url: string): string | null {
+export function extractYouTubeVideoId(url: any): string | null {
+  if (typeof url !== 'string') return null;
   const match = url.match(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return match ? match[3] : null;
 }
@@ -49,8 +50,11 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
 
   const canDelete = user && typeof party.id === 'number' && (user.role === 'ADMIN' || user.id === party.author?.id);
 
-  const getStudent = (id: number | null) => {
+  const getStudent = (id: any) => {
     if (!id) return null;
+    if (typeof id === 'object') {
+       return masterData.find(s => String(s.id) === String(id.id)) || id;
+    }
     return masterData.find(s => s.id === id) || null;
   };
 
@@ -88,16 +92,16 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
     }
   };
 
-  const renderStudentIcon = (id: number | null, index: number, type: 'striker'|'special') => {
+  const renderStudentIcon = (id: any, index: number, type: 'striker'|'special') => {
     const student = getStudent(id);
     return (
       <div 
         key={`${type}-${index}`} 
         className="w-[3.25rem] h-[3.25rem] rounded-lg bg-slate-100 border border-gray-200/50 shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0 relative"
       >
-        {student && student.portraitUrls?.[0] ? (
+        {student && (student.portraitUrls?.[0] || student.portraitUrl) ? (
           <img 
-            src={getImageUrl(student.portraitUrls[0])} 
+            src={getImageUrl(student.portraitUrls?.[0] || student.portraitUrl)} 
             alt={student.name} 
             className="w-full h-full object-cover"
           />
@@ -181,17 +185,9 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="px-2 py-0.5 bg-pink-50 text-pink-500 border border-pink-100 text-[11px] font-bold rounded shadow-sm">
-              {party.deckType === "Attack" ? "공격" : party.deckType === "Defense" ? "방어" : "인/아웃"}
+              {party.deckType === "Attack" ? "공격" : party.deckType === "Defense" ? "방어" : party.deckType}
             </span>
-            <span className="px-2 py-0.5 bg-pink-50/50 text-pink-400 border border-pink-100/50 text-[11px] font-bold rounded shadow-sm">
-              {""}
-            </span>
-            <span className="px-2 py-0.5 bg-white text-pink-400 border border-pink-100/50 text-[11px] font-bold rounded shadow-sm">
-              {""}
-            </span>
-            <span className="px-2 py-0.5 bg-white text-pink-300 border border-pink-100/50 text-[11px] font-bold rounded shadow-sm">
-              {""}
-            </span>
+
             {party.tags.length > 0 && <div className="w-[1px] h-3 bg-pink-200 mx-1"></div>}
             {party.tags.map(tag => (
               <span key={tag} className="px-2 py-0.5 bg-gray-50 text-gray-500 text-[11px] font-semibold rounded-full border border-gray-200 shadow-sm">
@@ -251,7 +247,7 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
 
           {!isDetail && (
             <Link 
-              href={`/raids/${party.shortCode || party.id}`}
+              href={`/${party.shortCode || party.id}`}
               className="flex items-center gap-1 bg-pink-50 hover:bg-pink-100 text-pink-500 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm transition-all text-xs font-bold mt-1"
             >
               상세 보기 <ChevronRight size={14} />
@@ -306,9 +302,9 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
                 공략 영상
               </div>
               <div className="grid grid-cols-1 gap-8">
-                {party.youtubeUrls.map((videoData, idx) => {
-                  const url = videoData;
-                  const title = null;
+                {party.youtubeUrls.map((videoData: any, idx) => {
+                  const url = typeof videoData === 'string' ? videoData : (videoData?.url || '');
+                  const title = typeof videoData === 'object' ? videoData?.title : null;
                   const channel = null;
                   
                   const videoId = extractYouTubeVideoId(url);
@@ -342,7 +338,7 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
             {canDelete && onDelete ? (
               <div className="flex items-center gap-2">
                 <Link 
-                  href={`/raids/edit/${party.shortCode || party.id}`}
+                  href={`/edit/${party.shortCode || party.id}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold"
                 >
                   <Pencil size={16} />

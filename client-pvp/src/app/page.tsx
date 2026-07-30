@@ -84,7 +84,7 @@ export default function PvpPage() {
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </form>
-          <Link href="/pvp/write" className="flex items-center justify-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-bold rounded-lg shadow-sm transition-colors shrink-0">
+          <Link href="/write" className="flex items-center justify-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-bold rounded-lg shadow-sm transition-colors shrink-0">
             <Edit3 className="w-4 h-4" />
             <span className="hidden sm:inline">글쓰기</span>
           </Link>
@@ -92,13 +92,13 @@ export default function PvpPage() {
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {['', 'Attack', 'Defense', 'In/Out'].map((type) => (
+        {['', 'Attack', 'Defense'].map((type) => (
           <button
             key={type}
             onClick={() => setDeckType(type)}
             className={`px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-colors ${deckType === type ? 'bg-slate-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
           >
-            {type === '' ? '전체' : type === 'Attack' ? '공격 덱' : type === 'Defense' ? '방어 덱' : '인/아웃 덱'}
+            {type === '' ? '전체' : type === 'Attack' ? '공격 덱' : '방어 덱'}
           </button>
         ))}
       </div>

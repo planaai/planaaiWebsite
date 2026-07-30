@@ -138,48 +138,59 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
     setYoutubeUrls(newUrls);
   };
 
-  const getRelevantTeams = () => {
-    if (!isMounted) return [];
+  const getRelevantTeams = (): { validTeams: import('@/store/formationStore').Team[]; activeId: string | null } => {
+    if (!isMounted) return { validTeams: [], activeId: null };
     // PvP doesn't have a specific mode in formation store, usually users use normal or raid mode.
     // We will just look at 'normal' mode first.
     const allFormations = getAllFormations();
     const primaryKey = `normal_${rosterType}`;
     const primaryFormation = allFormations[primaryKey];
     
+    let teams: import('@/store/formationStore').Team[] = [];
+    let activeId: string | null = null;
+
     if (primaryFormation && primaryFormation.teams.some(t => 
       t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
     )) {
-      return primaryFormation.teams;
+      teams = primaryFormation.teams;
+      activeId = primaryFormation.activeTeamId;
+    } else {
+      const fallbackKey = `normal_${rosterType === 'collection' ? 'all' : 'collection'}`;
+      const fallbackFormation = allFormations[fallbackKey];
+      
+      if (fallbackFormation && fallbackFormation.teams.some(t => 
+        t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
+      )) {
+        teams = fallbackFormation.teams;
+        activeId = fallbackFormation.activeTeamId;
+      }
     }
     
-    const fallbackKey = `normal_${rosterType === 'collection' ? 'all' : 'collection'}`;
-    const fallbackFormation = allFormations[fallbackKey];
-    
-    if (fallbackFormation && fallbackFormation.teams.some(t => 
-      t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
-    )) {
-      return fallbackFormation.teams;
-    }
-    
-    return [];
+    // Filter out completely empty teams
+    const validTeams = teams.filter(t => !t.strikers.every(s => s === null) || !t.specials.every(s => s === null));
+    return { validTeams, activeId };
   };
 
   const openImportModal = () => {
-    const relevantTeams = getRelevantTeams();
-    if (relevantTeams.length === 0 || (relevantTeams.length === 1 && relevantTeams[0].strikers.every(s => s === null))) {
+    const { validTeams, activeId } = getRelevantTeams();
+    if (validTeams.length === 0) {
       toast.error('모의 편성에 구성된 부대가 없습니다.');
       return;
     }
-    if (!selectedTeamId && relevantTeams.length > 0) {
-      setSelectedTeamId(relevantTeams[0].id);
+    
+    if (activeId && validTeams.some(t => t.id === activeId)) {
+      setSelectedTeamId(activeId);
+    } else {
+      setSelectedTeamId(validTeams[0].id);
     }
     setIsImportModalOpen(true);
   };
 
   const confirmImport = () => {
-    const relevantTeams = getRelevantTeams();
-    const selectedTeam = relevantTeams.find(t => t.id === selectedTeamId);
+    const { validTeams } = getRelevantTeams();
+    const selectedTeam = validTeams.find(t => t.id === selectedTeamId);
     if (selectedTeam) {
+      console.log('[PVP DEBUG] confirmImport IDs:', selectedTeam.strikers);
       setParty({
         strikers: selectedTeam.strikers,
         specials: selectedTeam.specials
@@ -229,15 +240,11 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
 
     try {
       if (initialData) {
-        await api.put(`/pvp/parties/${initialData.id}`, payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await api.put(`/pvp/parties/${initialData.id}`, payload);
         toast.success('성공적으로 공략이 수정되었습니다!');
-        router.push(`/pvp/${initialData.shortCode || initialData.id}`);
+        router.push(`/${initialData.shortCode || initialData.id}`);
       } else {
-        await api.post('/pvp/parties', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await api.post('/pvp/parties', payload);
         toast.success('성공적으로 공략이 등록되었습니다!');
         router.push('/');
       }
@@ -249,20 +256,37 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
     }
   };
 
-  const getStudent = (id: number | null) => {
+  const getStudent = (id: any) => {
     if (!id) return null;
-    return masterData.find(s => s.id === id) || null;
+    let found = null;
+    if (typeof id === 'object') {
+       found = masterData.find(s => String(s.id) === String(id.id)) || id;
+    } else {
+       found = masterData.find(s => String(s.id) === String(id)) || null;
+    }
+    console.log('[PVP DEBUG] getStudent id:', id, 'Found:', found ? true : false, 'masterData size:', masterData.length, 'sample ID:', masterData[0]?.id);
+    return found;
   };
 
-  const renderStudentIcon = (id: number | null, index: number, type: 'striker'|'special') => {
+  const getSlotPortraitUrl = (student: any, type: 'striker' | 'special') => {
+    if (student.portraitUrls?.length > 0) return student.portraitUrls[0];
+    if (student.portraitUrl) return student.portraitUrl;
+    if (student.portraiturl) return student.portraiturl;
+    if (student.skills?.[0]?.portraitUrl) return student.skills[0].portraitUrl;
+    return null;
+  };
+
+  const renderStudentIcon = (id: any, index: number, type: 'striker'|'special') => {
     const student = getStudent(id);
+    const portraitUrl = student ? getSlotPortraitUrl(student, type) : null;
+    
     return (
       <div 
         key={`${type}-${index}`} 
         className="w-12 h-12 rounded-full bg-white border border-pink-100 flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-sm"
       >
-        {student && student.portraitUrls?.[0] ? (
-          <img src={getImageUrl(student.portraitUrls[0])} alt={student.name} className="w-full h-full object-cover scale-[1.3] pt-1.5" />
+        {student && portraitUrl ? (
+          <img src={getImageUrl(portraitUrl)} alt={student.name} className="w-full h-full object-cover scale-[1.3] pt-1.5" />
         ) : (
           <span className="text-[10px] text-gray-400">Empty</span>
         )}
@@ -486,7 +510,7 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
               </button>
             </div>
             <div className="p-4 flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-              {getRelevantTeams().map((team, idx) => (
+              {getRelevantTeams().validTeams.map((team, idx) => (
                 <label key={team.id} className="flex items-center gap-3 p-3 bg-white border border-pink-50 rounded-lg cursor-pointer hover:border-pink-100 hover:bg-pink-50/50 transition-colors shadow-sm">
                   <input 
                     type="radio" 

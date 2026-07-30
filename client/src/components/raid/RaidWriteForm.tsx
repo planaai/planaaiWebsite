@@ -218,10 +218,13 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
     setYoutubeUrls(newUrls);
   };
 
-  const getRelevantTeams = () => {
-    if (!isMounted) return [];
+  const getRelevantTeams = (): { validTeams: import('@/store/formationStore').Team[]; activeId: string | null } => {
+    if (!isMounted) return { validTeams: [], activeId: null };
     const targetMode = formData.mode === 'LimitBreakAssault' ? 'elimination' : 'raid';
     const allFormations = getAllFormations();
+    
+    let teams: import('@/store/formationStore').Team[] = [];
+    let activeId: string | null = null;
     
     // 1. primaryKey (현재 rosterType 매칭)
     const primaryKey = `${targetMode}_${rosterType}`;
@@ -230,30 +233,34 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
     if (primaryFormation && primaryFormation.teams.some(t => 
       t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
     )) {
-      return primaryFormation.teams;
+      teams = primaryFormation.teams;
+      activeId = primaryFormation.activeTeamId;
+    } else {
+      // 2. fallbackKey (다른 rosterType 매칭)
+      const fallbackKey = `${targetMode}_${rosterType === 'collection' ? 'all' : 'collection'}`;
+      const fallbackFormation = allFormations[fallbackKey];
+      
+      if (fallbackFormation && fallbackFormation.teams.some(t => 
+        t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
+      )) {
+        teams = fallbackFormation.teams;
+        activeId = fallbackFormation.activeTeamId;
+      }
     }
     
-    // 2. fallbackKey (다른 rosterType 매칭)
-    const fallbackKey = `${targetMode}_${rosterType === 'collection' ? 'all' : 'collection'}`;
-    const fallbackFormation = allFormations[fallbackKey];
-    
-    if (fallbackFormation && fallbackFormation.teams.some(t => 
-      t.strikers.some(s => s !== null) || t.specials.some(s => s !== null)
-    )) {
-      return fallbackFormation.teams;
-    }
-    
-    return [];
+    // Filter out completely empty teams
+    const validTeams = teams.filter(t => !t.strikers.every(s => s === null) || !t.specials.every(s => s === null));
+    return { validTeams, activeId };
   };
 
   const openImportModal = () => {
-    const relevantTeams = getRelevantTeams();
-    if (relevantTeams.length === 0 || (relevantTeams.length === 1 && relevantTeams[0].strikers.every(s => s === null))) {
+    const { validTeams } = getRelevantTeams();
+    if (validTeams.length === 0) {
       toast.error('모의 편성에 구성된 부대가 없습니다.');
       return;
     }
     // 기본적으로 모두 선택된 상태로 띄움
-    setSelectedTeamIds(relevantTeams.map(t => t.id));
+    setSelectedTeamIds(validTeams.map(t => t.id));
     setIsImportModalOpen(true);
   };
 
@@ -264,8 +271,8 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
   };
 
   const confirmImport = () => {
-    const relevantTeams = getRelevantTeams();
-    const selectedTeams = relevantTeams.filter(t => selectedTeamIds.includes(t.id));
+    const { validTeams } = getRelevantTeams();
+    const selectedTeams = validTeams.filter(t => selectedTeamIds.includes(t.id));
     const importedParties = selectedTeams.map((team, idx) => ({
       name: team.name || `${idx + 1}파티`,
       strikers: team.strikers,
@@ -343,12 +350,12 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
     }
   };
 
-  const getStudent = (id: number | null) => {
+  const getStudent = (id: number | string | null) => {
     if (!id) return null;
-    return masterData.find(s => s.id === id) || null;
+    return masterData.find(s => String(s.id) === String(id)) || null;
   };
 
-  const renderStudentIcon = (id: number | null, index: number, type: 'striker'|'special') => {
+  const renderStudentIcon = (id: number | string | null, index: number, type: 'striker'|'special') => {
     const student = getStudent(id);
     return (
       <div 
@@ -662,7 +669,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
               </button>
             </div>
             <div className="p-4 flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-              {getRelevantTeams().map((team, idx) => (
+              {getRelevantTeams().validTeams.map((team, idx) => (
                 <label key={team.id} className="flex items-center gap-3 p-3 bg-white border border-pink-50 rounded-lg cursor-pointer hover:border-pink-100 hover:bg-pink-50/50 transition-colors shadow-sm">
                   <input 
                     type="checkbox" 

@@ -72,6 +72,9 @@ router.get('/parties', optionalAuth, async (req, res) => {
 // POST /api/pvp/parties - Create a new shared party
 router.post('/parties', requireAuth, uploadPvp.single('image'), async (req, res) => {
   try {
+    if (!req.body) {
+      return res.status(400).json({ error: '요청 본문이 비어있습니다.' });
+    }
     const { name, party: subParty, deckType, tags, tactics, strategyCode, youtubeUrls } = req.body;
     const authorId = req.user.id;
 
@@ -155,6 +158,65 @@ router.get('/parties/code/:code', optionalAuth, async (req, res) => {
     res.json(party);
   } catch (error) {
     console.error('Error fetching pvp party by code:', error);
+    res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+  }
+});
+
+// PUT /api/pvp/parties/:id - Update an existing shared party
+router.put('/parties/:id', requireAuth, uploadPvp.single('image'), async (req, res) => {
+  try {
+    const partyId = parseInt(req.params.id);
+    const partyToUpdate = await prisma.sharedPvpParty.findUnique({ where: { id: partyId } });
+    if (!partyToUpdate) return res.status(404).json({ error: '조합을 찾을 수 없습니다.' });
+    if (req.user.role !== 'ADMIN' && partyToUpdate.authorId !== req.user.id) {
+      return res.status(403).json({ error: '권한이 없습니다.' });
+    }
+
+    if (!req.body) {
+      return res.status(400).json({ error: '요청 본문이 비어있습니다.' });
+    }
+    const { name, party: subParty, deckType, tags, tactics, strategyCode, youtubeUrls } = req.body;
+    
+    let parsedParty;
+    let parsedTags;
+    let parsedYoutubeUrls = [];
+    try {
+      if (subParty) parsedParty = JSON.parse(subParty);
+      if (tags) parsedTags = JSON.parse(tags);
+      if (youtubeUrls) parsedYoutubeUrls = JSON.parse(youtubeUrls);
+    } catch (e) {
+      return res.status(400).json({ error: '데이터 형식이 잘못되었습니다.' });
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (deckType) updateData.deckType = deckType;
+    if (parsedParty) updateData.party = parsedParty;
+    if (parsedTags) updateData.tags = parsedTags;
+    if (tactics !== undefined) updateData.tactics = tactics;
+    if (strategyCode !== undefined) updateData.strategyCode = strategyCode || null;
+    if (youtubeUrls !== undefined) updateData.youtubeUrls = parsedYoutubeUrls.length > 0 ? parsedYoutubeUrls : null;
+
+    if (req.file) {
+      updateData.imagePath = '/uploads/raids/' + req.file.filename;
+      // Note: We leave the old file to be manually cleaned up or overwritten,
+      // or we can delete it. For safety, we try to delete it.
+      if (partyToUpdate.imagePath) {
+        try {
+          const oldPath = path.join(__dirname, '..', partyToUpdate.imagePath);
+          await fs.unlink(oldPath);
+        } catch (err) {}
+      }
+    }
+
+    const updatedParty = await prisma.sharedPvpParty.update({
+      where: { id: partyId },
+      data: updateData
+    });
+
+    res.json(updatedParty);
+  } catch (error) {
+    console.error('Error updating pvp party:', error);
     res.status(500).json({ error: '서버 에러가 발생했습니다.' });
   }
 });
