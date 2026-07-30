@@ -24,10 +24,22 @@ interface Props {
   bossName?: string;
 }
 
-export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, bossName }: Props) {
+export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail = false, bossName }: Props) {
   const router = useRouter();
   const { importTeam } = useFormationStore();
   const { user } = useAuthStore();
+
+  // Normalize potentially undefined fields from API
+  const party = {
+    ...rawParty,
+    parties: (rawParty.parties || []).map(p => ({
+      ...p,
+      strikers: p.strikers || [],
+      specials: p.specials || [],
+    })),
+    tags: rawParty.tags || [],
+    youtubeUrls: rawParty.youtubeUrls || [],
+  };
   
   const [likeCount, setLikeCount] = useState(party.likeCount || 0);
   const [isLiked, setIsLiked] = useState(party.isLiked || false);
@@ -38,9 +50,9 @@ export function RaidPartyCard({ party, masterData, onDelete, isDetail = false, b
 
   // Sync state if party prop changes
   useEffect(() => {
-    setLikeCount(party.likeCount || 0);
-    setIsLiked(party.isLiked || false);
-  }, [party]);
+    setLikeCount(rawParty.likeCount || 0);
+    setIsLiked(rawParty.isLiked || false);
+  }, [rawParty]);
 
   // Slideshow for non-detail view
   useEffect(() => {
