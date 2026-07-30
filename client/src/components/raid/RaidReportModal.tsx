@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface Props {
-  partyId: number;
+  partyId: number | string;
   partyName: string;
   onClose: () => void;
 }
