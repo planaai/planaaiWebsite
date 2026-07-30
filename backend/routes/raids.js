@@ -203,7 +203,24 @@ router.get('/parties', optionalAuth, async (req, res) => {
           const filterConditions = parsedFilters.map(f => {
             const cond = { bossId: f.bossId };
             if (f.terrain) cond.terrain = f.terrain;
-            if (f.difficulty) cond.difficulty = f.difficulty;
+            if (f.difficulty) {
+              if (typeof f.difficulty === 'string' && f.difficulty.includes('-')) {
+                const [minStr, maxStr] = f.difficulty.split('-');
+                const min = parseInt(minStr, 10);
+                const max = parseInt(maxStr, 10);
+                if (!isNaN(min) && !isNaN(max)) {
+                  const validDifficulties = [];
+                  for (let i = min; i <= max; i++) {
+                    validDifficulties.push(i.toString());
+                  }
+                  cond.difficulty = { in: validDifficulties };
+                } else {
+                  cond.difficulty = f.difficulty;
+                }
+              } else {
+                cond.difficulty = f.difficulty;
+              }
+            }
             return cond;
           });
           

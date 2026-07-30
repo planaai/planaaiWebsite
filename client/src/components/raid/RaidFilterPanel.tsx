@@ -118,6 +118,19 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
               ? Array.from(new Set(seasons.filter(s => s.bossId === bossId && s.terrain === currentFilter.terrain).map(s => s.difficulty))).sort(sortDifficulties)
               : [];
               
+            const isLimitBreak = boss.category === 'LimitBreak';
+            const limitBreakDifficulties = ['1-24', '25-49', '50-74', '75-99', '100-125'];
+            const getLimitBreakLabel = (diff: string) => {
+              switch (diff) {
+                case '1-24': return '1구간 (1~24단계)';
+                case '25-49': return '2구간 (25~49단계)';
+                case '50-74': return '3구간 (50~74단계)';
+                case '75-99': return '4구간 (75~99단계)';
+                case '100-125': return '5구간 (100~125단계)';
+                default: return diff;
+              }
+            };
+
             return (
               <div key={bossId} className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm animate-in fade-in zoom-in-95 duration-200">
                 <div className="font-bold text-gray-700 w-32 shrink-0">{boss.name}</div>
@@ -145,7 +158,7 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
                     <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2">
                       <span className="text-xs text-gray-500 font-bold">난이도</span>
                       <div className="flex flex-wrap gap-2">
-                        {availableDifficulties.map((difficulty) => (
+                        {(isLimitBreak ? limitBreakDifficulties : availableDifficulties).map((difficulty) => (
                           <button
                             key={difficulty}
                             onClick={() => setBossDifficulty(bossId, currentFilter.difficulty === difficulty ? null : difficulty)}
@@ -155,7 +168,7 @@ export function RaidFilterPanel({ bosses, seasons }: Props) {
                                 : 'bg-white border-gray-200 text-gray-600 hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600'
                             }`}
                           >
-                            {difficulty}
+                            {isLimitBreak ? getLimitBreakLabel(difficulty) : difficulty}
                           </button>
                         ))}
                       </div>

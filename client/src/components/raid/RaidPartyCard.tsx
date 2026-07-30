@@ -235,7 +235,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
               {getTerrainName(party.terrain)}
             </span>
             <span className="px-2 py-0.5 bg-white text-pink-300 border border-pink-100/50 text-[11px] font-bold rounded shadow-sm">
-              {party.difficulty}
+              {party.mode === 'LimitBreakAssault' ? `${party.difficulty}단계` : party.difficulty}
             </span>
             {party.tags.length > 0 && <div className="w-[1px] h-3 bg-pink-200 mx-1"></div>}
             {party.tags.map(tag => (

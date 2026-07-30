@@ -73,7 +73,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
             const terrains = Array.from(new Set(bossSeasons.map((s: any) => s.terrain))) as string[];
             const firstTerrain = terrains.length > 0 ? terrains[0] : '';
             const diffs = Array.from(new Set(bossSeasons.filter((s: any) => s.terrain === firstTerrain).map((s: any) => s.difficulty))) as string[];
-            const firstDiff = diffs.length > 0 ? diffs[0] : '';
+            const firstDiff = formData.mode === 'LimitBreakAssault' ? '1' : (diffs.length > 0 ? diffs[0] : '');
 
             setFormData(prev => ({ 
               ...prev, 
@@ -134,7 +134,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
       const firstTerrain = terrains.length > 0 ? terrains[0] : '';
       
       const diffs = Array.from(new Set(bossSeasons.filter(s => s.terrain === firstTerrain).map(s => s.difficulty))) as string[];
-      const firstDiff = diffs.length > 0 ? diffs[0] : '';
+      const firstDiff = formData.mode === 'LimitBreakAssault' ? '1' : (diffs.length > 0 ? diffs[0] : '');
 
       setFormData(prev => ({ 
         ...prev, 
@@ -144,7 +144,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
       }));
     } else if (name === 'terrain') {
       const diffs = Array.from(new Set(seasons.filter(s => s.bossId === formData.bossId && s.terrain === value).map(s => s.difficulty))) as string[];
-      const firstDiff = diffs.length > 0 ? diffs[0] : '';
+      const firstDiff = formData.mode === 'LimitBreakAssault' ? '1' : (diffs.length > 0 ? diffs[0] : '');
       
       setFormData(prev => ({ 
         ...prev, 
@@ -168,7 +168,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
           const firstTerrain = terrains.length > 0 ? terrains[0] : '';
           
           const diffs = Array.from(new Set(bossSeasons.filter(s => s.terrain === firstTerrain).map(s => s.difficulty))) as string[];
-          const firstDiff = diffs.length > 0 ? diffs[0] : '';
+          const firstDiff = value === 'LimitBreakAssault' ? '1' : (diffs.length > 0 ? diffs[0] : '');
 
           setFormData(prev => ({
             ...prev,
@@ -455,11 +455,27 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">난이도 *</label>
-              <select name="difficulty" value={formData.difficulty} onChange={handleChange} className="w-full p-3 bg-white border border-pink-100 rounded-lg text-gray-800 focus:outline-none focus:border-pink-200 focus:ring-1 focus:ring-pink-200 shadow-sm">
-                {Array.from(new Set(seasons.filter((s: any) => s.bossId === formData.bossId && s.terrain === formData.terrain).map((s: any) => s.difficulty))).map((diff: any) => (
-                  <option key={diff} value={diff}>{diff}</option>
-                ))}
-              </select>
+              {formData.mode === 'LimitBreakAssault' ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    name="difficulty"
+                    min="1"
+                    max="125"
+                    value={formData.difficulty}
+                    onChange={handleChange}
+                    className="w-full p-3 bg-white border border-pink-100 rounded-lg text-gray-800 focus:outline-none focus:border-pink-200 focus:ring-1 focus:ring-pink-200 shadow-sm"
+                    placeholder="1~125"
+                  />
+                  <span className="text-sm font-bold text-gray-600 whitespace-nowrap">단계</span>
+                </div>
+              ) : (
+                <select name="difficulty" value={formData.difficulty} onChange={handleChange} className="w-full p-3 bg-white border border-pink-100 rounded-lg text-gray-800 focus:outline-none focus:border-pink-200 focus:ring-1 focus:ring-pink-200 shadow-sm">
+                  {Array.from(new Set(seasons.filter((s: any) => s.bossId === formData.bossId && s.terrain === formData.terrain).map((s: any) => s.difficulty))).map((diff: any) => (
+                    <option key={diff} value={diff}>{diff}</option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
         </div>
