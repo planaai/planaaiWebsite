@@ -21,10 +21,19 @@ interface RaidInfo {
   difficulty: string;
 }
 
+interface PvpPartyInfo {
+  id: number;
+  name: string;
+  isBlinded: boolean;
+  shortCode: string | null;
+  deckType: string;
+}
+
 interface Report {
   id: number;
   reporterId: number;
-  reportedRaidId: number;
+  reportedRaidId: number | null;
+  reportedPvpPartyId: number | null;
   reportedUserId: number;
   reason: string;
   description: string | null;
@@ -32,7 +41,8 @@ interface Report {
   createdAt: string;
   reporter: UserInfo;
   reportedUser: UserInfo;
-  reportedRaid: RaidInfo;
+  reportedRaid?: RaidInfo;
+  reportedPvpParty?: PvpPartyInfo;
 }
 
 export const ReportAdminManager: React.FC<{ showToast: (msg: string, type: 'success' | 'error') => void }> = ({ showToast }) => {
@@ -155,14 +165,26 @@ export const ReportAdminManager: React.FC<{ showToast: (msg: string, type: 'succ
                 <div className="flex flex-wrap gap-4 items-center justify-between border-t border-slate-700/50 pt-3 mt-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-400">대상 공략:</span>
-                    <a 
-                      href={`https://plana.ai/raids/${report.reportedRaid?.shortCode || report.reportedRaid?.id}`} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="text-blue-400 text-sm hover:underline font-bold"
-                    >
-                      {report.reportedRaid?.name} {report.reportedRaid?.isBlinded && '(블라인드 됨)'}
-                    </a>
+                    {report.reportedRaid && (
+                      <a 
+                        href={`https://plana.ai/raids/${report.reportedRaid.shortCode || report.reportedRaid.id}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-blue-400 text-sm hover:underline font-bold"
+                      >
+                        {report.reportedRaid.name} {report.reportedRaid.isBlinded && '(블라인드 됨)'}
+                      </a>
+                    )}
+                    {report.reportedPvpParty && (
+                      <a 
+                        href={`https://plana.ai/pvp/${report.reportedPvpParty.shortCode || report.reportedPvpParty.id}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-blue-400 text-sm hover:underline font-bold"
+                      >
+                        {report.reportedPvpParty.name} {report.reportedPvpParty.isBlinded && '(블라인드 됨)'} (PvP)
+                      </a>
+                    )}
                   </div>
 
                   <div className="flex gap-2">

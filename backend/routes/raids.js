@@ -684,7 +684,8 @@ router.get('/admin/reports', requireAdmin, async (req, res) => {
         include: {
           reporter: { select: { id: true, username: true, nickname: true } },
           reportedUser: { select: { id: true, username: true, nickname: true, penaltyStatus: true, bannedUntil: true } },
-          reportedRaid: { select: { id: true, name: true, isBlinded: true, shortCode: true, mode: true, bossId: true, difficulty: true } }
+          reportedRaid: { select: { id: true, name: true, isBlinded: true, shortCode: true, mode: true, bossId: true, difficulty: true } },
+          reportedPvpParty: { select: { id: true, name: true, isBlinded: true, shortCode: true, deckType: true } }
         },
         orderBy: { createdAt: 'desc' },
         skip: Number(skip),
