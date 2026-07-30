@@ -1,0 +1,75 @@
+'use client';
+
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
+
+export default function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const router = useRouter();
+  const login = useAuthStore((state) => state.login);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const res = await api.post('/auth/login', { username, password });
+      if (res.data.status === 'success') {
+        login(res.data.token, res.data.user);
+        router.push('/');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || '로그인에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-[70vh]">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg border border-slate-200">
+        <h2 className="text-2xl font-bold text-center text-slate-800">로그인</h2>
+        {error && <div className="p-3 text-sm text-red-500 bg-red-50 rounded">{error}</div>}
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-600">ID</label>
+            <input
+              type="text"
+              required
+              className="w-full px-3 py-2 mt-1 border border-slate-300 rounded-md shadow-sm bg-white text-pink-500 focus:outline-none focus:ring-[var(--plana-primary)] focus:border-[var(--plana-primary)]"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600">비밀번호</label>
+            <input
+              type="password"
+              required
+              className="w-full px-3 py-2 mt-1 border border-slate-300 rounded-md shadow-sm bg-white text-pink-500 focus:outline-none focus:ring-[var(--plana-primary)] focus:border-[var(--plana-primary)]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full px-4 py-2 text-white bg-[var(--plana-primary)] rounded-md hover:bg-pink-400 focus:outline-none focus:ring-2 focus:ring-[var(--plana-primary)] focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50"
+          >
+            {isLoading ? '로그인 중...' : '로그인'}
+          </button>
+        </form>
+        <div className="text-sm text-center text-slate-500">
+          계정이 없으신가요? <a href="http://localhost:3001/register" className="text-[var(--plana-primary)] hover:underline">메인에서 회원가입</a>
+        </div>
+      </div>
+    </div>
+  );
+}

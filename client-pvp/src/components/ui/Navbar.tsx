@@ -1,16 +1,17 @@
 'use client';
 
+import { ArrowLeft, Settings, LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
-import { Settings, LogOut, LogIn, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export function Navbar() {
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const router = useRouter();
-  const pathname = usePathname();
+  const MAIN_URL = 'http://localhost:3001';
+  const { user, isAuthenticated, logout, checkAuth } = useAuthStore();
 
-  if (pathname === '/') return null;
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <header className="fixed top-0 w-full z-40 bg-white/95 backdrop-blur-sm shadow-sm h-14 border-b border-gray-200">
@@ -18,56 +19,55 @@ export function Navbar() {
         
         {/* Left: Logo and Back */}
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white hover:bg-slate-600 transition-colors">
+          <button onClick={() => window.history.back()} className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white hover:bg-slate-600 transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <Link href="/" className="flex items-center">
+          <a href={`${MAIN_URL}/`} className="flex items-center">
             <img src="/images/logo.png" alt="PLANA.AI Logo" className="h-14 transform scale-[1.15] object-contain ml-1" />
-          </Link>
+          </a>
         </div>
 
         {/* Right: Menu Navigation */}
         <nav className="flex items-center">
           <ul className="flex items-center text-sm font-bold text-slate-800">
             <li>
-              <Link href="/" className="px-4 hover:text-[var(--plana-primary)] transition-colors">로비</Link>
+              <a href={`${MAIN_URL}/`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">로비</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/collection" className="px-4 hover:text-[var(--plana-primary)] transition-colors">컬렉션</Link>
+              <a href={`${MAIN_URL}/collection`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">컬렉션</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/archive" className="px-4 hover:text-[var(--plana-primary)] transition-colors">도감</Link>
+              <a href={`${MAIN_URL}/archive`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">도감</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/gifts" className="px-4 hover:text-[var(--plana-primary)] transition-colors">선물</Link>
+              <a href={`${MAIN_URL}/gifts`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">선물</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/gacha" className="px-4 hover:text-[var(--plana-primary)] transition-colors">모집</Link>
+              <a href={`${MAIN_URL}/gacha`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">모집</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/planner" className="px-4 hover:text-[var(--plana-primary)] transition-colors">플래너</Link>
+              <a href={`${MAIN_URL}/planner`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">플래너</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/formation" className="px-4 hover:text-[var(--plana-primary)] transition-colors">모의 편성</Link>
-            </li>
-
-            <li className="text-slate-300">/</li>
-            <li>
-              <Link href="/pyroxene" className="px-4 hover:text-[var(--plana-primary)] transition-colors">청휘석 계산기</Link>
+              <a href={`${MAIN_URL}/formation`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">모의 편성</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/ap-calculator" className="px-4 hover:text-[var(--plana-primary)] transition-colors">AP 존버 계산기</Link>
+              <a href={`${MAIN_URL}/pyroxene`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">청휘석 계산기</a>
             </li>
             <li className="text-slate-300">/</li>
             <li>
-              <Link href="/notices" className="px-4 hover:text-[var(--plana-primary)] transition-colors">공지사항</Link>
+              <a href={`${MAIN_URL}/ap-calculator`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">AP 존버 계산기</a>
+            </li>
+            <li className="text-slate-300">/</li>
+            <li>
+              <a href={`${MAIN_URL}/notices`} className="px-4 hover:text-[var(--plana-primary)] transition-colors">공지사항</a>
             </li>
           </ul>
 
@@ -77,9 +77,9 @@ export function Navbar() {
           <div className="flex items-center gap-4 text-slate-600">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                <Link href="/account" className="text-sm font-bold hover:text-[var(--plana-primary)] transition-colors">
+                <a href={`${MAIN_URL}/account`} className="text-sm font-bold hover:text-[var(--plana-primary)] transition-colors">
                   {user?.nickname || user?.username}님
-                </Link>
+                </a>
                 <button onClick={logout} className="text-sm font-bold hover:text-[var(--plana-primary)] transition-colors flex items-center gap-1">
                   <LogOut size={16} /> 로그아웃
                 </button>
@@ -89,9 +89,9 @@ export function Navbar() {
                 <LogIn size={16} /> 로그인
               </Link>
             )}
-            <Link href="/settings" className="hover:text-[var(--plana-primary)] transition-colors">
+            <a href={`${MAIN_URL}/settings`} className="hover:text-[var(--plana-primary)] transition-colors">
               <Settings size={18} />
-            </Link>
+            </a>
           </div>
         </nav>
 

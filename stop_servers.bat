@@ -8,7 +8,7 @@ echo ===================================
 taskkill /FI "WINDOWTITLE eq BA_Archive_Servers*" /T /F >nul 2>&1
 
 :: 2. Kill processes on specific ports
-for %%P in (3000 3001 5173 5555) do (
+for %%P in (3000 3001 3002 5173 5555) do (
     for /f "tokens=5" %%a in ('netstat -ano ^| findstr :%%P') do (
         if "%%a" NEQ "0" (
             taskkill /F /PID %%a >nul 2>&1
