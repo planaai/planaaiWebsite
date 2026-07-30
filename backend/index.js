@@ -8,6 +8,8 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
+const { ipBanMiddleware } = require('./middleware/ipBan');
+
 // 미들웨어
 const corsOptions = {
   origin: [
@@ -33,6 +35,9 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(hpp());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 전역 IP 밴 미들웨어 (모든 요청에 적용)
+app.use(ipBanMiddleware);
 
 // 정적 파일 서빙
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
