@@ -6,7 +6,8 @@
     "dev": "next dev --turbo -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:cf-pages": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
