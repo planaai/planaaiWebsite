@@ -13,7 +13,7 @@ router.get('/meta', async (req, res) => {
   try {
     const bosses = await prisma.raidBoss.findMany({
       include: {
-        seasons: true
+        RaidSeason: true
       }
     });
     
@@ -28,7 +28,7 @@ router.get('/meta', async (req, res) => {
       category: b.category
     }));
     
-    const allSeasons = bosses.flatMap(b => b.seasons.map(s => ({
+    const allSeasons = bosses.flatMap(b => (b.RaidSeason || []).map(s => ({
       id: s.id,
       bossId: s.bossId,
       terrain: s.terrain,
