@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { useAuthStore } from '@/store/authStore';
-import SyncPanel from '@/components/SyncPanel';
 import { RaidRecommendationView } from '@/components/raid/RaidRecommendationView';
 
 export default function RaidsPage() {
@@ -25,8 +24,6 @@ export default function RaidsPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const { isAuthenticated } = useAuthStore();
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -37,11 +34,8 @@ export default function RaidsPage() {
   }
 
   return (
-    <>
-      {isAuthenticated && <SyncPanel />}
-      <div className="flex-1 w-full h-full overflow-hidden">
-        <RaidRecommendationView masterData={masterData} />
-      </div>
-    </>
+    <div className="flex-1 w-full h-full overflow-hidden">
+      <RaidRecommendationView masterData={masterData} />
+    </div>
   );
 }
