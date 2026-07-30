@@ -253,15 +253,20 @@ router.get('/parties', optionalAuth, async (req, res) => {
       orderBy = { likeCount: 'desc' };
     }
 
-    const parties = await prisma.sharedRaidParty.findMany({
+    const partiesData = await prisma.sharedRaidParty.findMany({
       where: whereClause,
       include: {
-        author: {
+        User: {
           select: { id: true, nickname: true, username: true }
         }
       },
       orderBy,
       take: 50 // Limit for now
+    });
+
+    const parties = partiesData.map(p => {
+      const { User, ...rest } = p;
+      return { ...rest, author: User };
     });
 
     if (req.user && req.user.id && parties.length > 0) {
@@ -449,20 +454,23 @@ router.get('/parties/code/:code', optionalAuth, async (req, res) => {
       whereClause.push({ id: parseInt(code) });
     }
 
-    const party = await prisma.sharedRaidParty.findFirst({
+    const partyData = await prisma.sharedRaidParty.findFirst({
       where: { 
         OR: whereClause
       },
       include: {
-        author: {
+        User: {
           select: { id: true, nickname: true, username: true }
         }
       }
     });
 
-    if (!party) {
+    if (!partyData) {
       return res.status(404).json({ error: '공략을 찾을 수 없습니다.' });
     }
+
+    const { User, ...rest } = partyData;
+    const party = { ...rest, author: User };
 
     if (req.user) {
       const like = await prisma.sharedRaidPartyLike.findUnique({
