@@ -214,7 +214,7 @@ model SharedPvpParty {
   authorId           Int
   likeCount          Int                  @default(0)
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
+  updatedAt          DateTime             @updatedAt
   strategyCode       String?
   User               User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
   SharedPvpPartyLike SharedPvpPartyLike[]
@@ -247,7 +247,7 @@ model SharedRaidParty {
   authorId            Int
   likeCount           Int                   @default(0)
   createdAt           DateTime              @default(now())
-  updatedAt           DateTime
+  updatedAt           DateTime              @updatedAt
   shortCode           String?               @unique
   mode                String                @default("TotalAssault")
   youtubeUrls         Json?
