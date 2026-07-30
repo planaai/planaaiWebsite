@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { prisma } = require('../db');
-const { requireAuth, optionalAuth } = require('../middleware/auth');
+const { requireAuth, optionalAuth, requireAdmin } = require('../middleware/auth');
 const { verifyRecaptcha } = require('../utils/recaptcha');
 const uploadRaid = require('../middleware/uploadRaid');
 const crypto = require('crypto');
@@ -653,6 +653,148 @@ router.post('/parties/:id/reports', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Report error:', err);
     res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+  }
+});
+// ==========================================
+// Admin API for Reports & Bans
+// ==========================================
+
+// GET /api/raids/admin/reports - 전체 신고 목록 조회
+router.get('/admin/reports', requireAdmin, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {};
+    if (status) {
+      where.status = status;
+    }
+
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        where,
+        include: {
+          reporter: { select: { id: true, username: true, nickname: true } },
+          reportedUser: { select: { id: true, username: true, nickname: true, penaltyStatus: true, bannedUntil: true } },
+          reportedRaid: { select: { id: true, name: true, isBlinded: true, shortCode: true, mode: true, bossId: true, difficulty: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: Number(skip),
+        take: Number(limit)
+      }),
+      prisma.report.count({ where })
+    ]);
+
+    res.json({
+      reports,
+      pagination: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    console.error('Admin GET reports error:', err);
+    res.status(500).json({ error: '신고 목록 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// PUT /api/raids/admin/reports/:id - 신고 상태 변경 및 제재 적용
+router.put('/admin/reports/:id', requireAdmin, async (req, res) => {
+  try {
+    const reportId = parseInt(req.params.id);
+    const { status, action, penaltyDays } = req.body;
+    // action: 'none', 'blind', 'ban_temp', 'ban_permanent'
+
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      include: { reportedUser: true }
+    });
+
+    if (!report) {
+      return res.status(404).json({ error: '신고 내역을 찾을 수 없습니다.' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. 신고 상태 업데이트
+      if (status) {
+        await tx.report.update({
+          where: { id: reportId },
+          data: { status }
+        });
+      }
+
+      // 2. 제재 액션 적용
+      if (action === 'blind') {
+        await tx.sharedRaidParty.update({
+          where: { id: report.reportedRaidId },
+          data: { isBlinded: true }
+        });
+      } else if (action === 'ban_temp') {
+        const bannedUntil = new Date();
+        bannedUntil.setDate(bannedUntil.getDate() + (penaltyDays || 7));
+        
+        await tx.user.update({
+          where: { id: report.reportedUserId },
+          data: { 
+            penaltyStatus: 'TEMP_BANNED',
+            bannedUntil 
+          }
+        });
+      } else if (action === 'ban_permanent') {
+        await tx.user.update({
+          where: { id: report.reportedUserId },
+          data: { penaltyStatus: 'BANNED' }
+        });
+
+        // IP 밴 로직
+        if (report.reportedUser.lastLoginIp) {
+          const ipExists = await tx.bannedIP.findUnique({
+            where: { ipAddress: report.reportedUser.lastLoginIp }
+          });
+          if (!ipExists) {
+            await tx.bannedIP.create({
+              data: {
+                ipAddress: report.reportedUser.lastLoginIp,
+                reason: `영구정지된 유저(${report.reportedUser.username})의 IP`,
+                bannedByAdminId: req.user.id
+              }
+            });
+          }
+        }
+      }
+    });
+
+    res.json({ success: true, message: '처리가 완료되었습니다.' });
+  } catch (err) {
+    console.error('Admin update report error:', err);
+    res.status(500).json({ error: '신고 처리 중 오류가 발생했습니다.' });
+  }
+});
+
+// GET /api/raids/admin/banned-ips - 차단된 IP 목록
+router.get('/admin/banned-ips', requireAdmin, async (req, res) => {
+  try {
+    const ips = await prisma.bannedIP.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(ips);
+  } catch (err) {
+    console.error('Admin GET banned IPs error:', err);
+    res.status(500).json({ error: 'IP 목록 조회 실패' });
+  }
+});
+
+// DELETE /api/raids/admin/banned-ips/:id - IP 차단 해제
+router.delete('/admin/banned-ips/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await prisma.bannedIP.delete({ where: { id } });
+    res.json({ success: true, message: 'IP 차단이 해제되었습니다.' });
+  } catch (err) {
+    console.error('Admin DELETE banned IP error:', err);
+    res.status(500).json({ error: 'IP 차단 해제 실패' });
   }
 });
 

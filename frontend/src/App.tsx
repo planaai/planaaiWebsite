@@ -17,9 +17,10 @@ import { InquiryAdminManager } from './components/inquiries/InquiryAdminManager'
 import { RaidAdminManager } from './components/raids/RaidAdminManager';
 import { ShadowbanAdminManager } from './components/shadowban/ShadowbanAdminManager';
 import { AdminLogin } from './components/auth/AdminLogin';
+import { ReportAdminManager } from './components/reports/ReportAdminManager';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'shadowban'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'reports' | 'shadowban'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -190,6 +191,7 @@ export default function App() {
              { id: 'notices', icon: MessageSquare, label: '공지사항 관리', color: 'sky' },
              { id: 'inquiries', icon: MessageSquare, label: '문의사항 관리', color: 'rose' },
              { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' },
+             { id: 'reports', icon: ShieldAlert, label: '공략 신고 관리', color: 'red' },
              { id: 'shadowban', icon: ShieldAlert, label: '쉐도우밴', color: 'red' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -218,6 +220,7 @@ export default function App() {
           { activeTab === 'notices' && <NoticeManager /> }
           { activeTab === 'inquiries' && <InquiryAdminManager showToast={showToast} /> }
           { activeTab === 'raids' && <RaidAdminManager showToast={showToast} /> }
+          { activeTab === 'reports' && <ReportAdminManager showToast={showToast} /> }
           { activeTab === 'shadowban' && <ShadowbanAdminManager showToast={showToast} /> }
         </div>
       </main>
