@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/pvp',
+        destination: 'https://planaai-pvp.pages.dev/pvp',
+      },
+      {
+        source: '/pvp/:path*',
+        destination: 'https://planaai-pvp.pages.dev/pvp/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
