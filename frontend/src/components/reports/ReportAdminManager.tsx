@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ShieldAlert, RefreshCw, CheckCircle, Clock } from 'lucide-react';
+import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { API } from '../../constants';
 
 interface UserInfo {
