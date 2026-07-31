@@ -177,7 +177,7 @@ export const ReportAdminManager: React.FC<{ showToast: (msg: string, type: 'succ
                     )}
                     {report.reportedPvpParty && (
                       <a 
-                        href={`https://plana.ai/pvp/${report.reportedPvpParty.shortCode || report.reportedPvpParty.id}`} 
+                        href={`https://pvp.planaai.kro.kr/${report.reportedPvpParty.shortCode || report.reportedPvpParty.id}`} 
                         target="_blank" 
                         rel="noreferrer"
                         className="text-blue-400 text-sm hover:underline font-bold"

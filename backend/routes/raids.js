@@ -736,10 +736,18 @@ router.put('/admin/reports/:id', requireAdmin, async (req, res) => {
 
       // 2. 제재 액션 적용
       if (action === 'blind') {
-        await tx.sharedRaidParty.update({
-          where: { id: report.reportedRaidId },
-          data: { isBlinded: true }
-        });
+        if (report.reportedRaidId) {
+          await tx.sharedRaidParty.update({
+            where: { id: report.reportedRaidId },
+            data: { isBlinded: true }
+          });
+        }
+        if (report.reportedPvpPartyId) {
+          await tx.sharedPvpParty.update({
+            where: { id: report.reportedPvpPartyId },
+            data: { isBlinded: true }
+          });
+        }
       } else if (action === 'ban_temp') {
         const bannedUntil = new Date();
         bannedUntil.setDate(bannedUntil.getDate() + (penaltyDays || 7));
