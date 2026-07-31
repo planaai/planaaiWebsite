@@ -13,7 +13,7 @@ router.get('/parties', optionalAuth, async (req, res) => {
   try {
     const { deckType, q, sort } = req.query;
     
-    const whereClause = {};
+    const whereClause = { isBlinded: false };
     if (deckType) whereClause.deckType = deckType;
 
     if (q) {
@@ -131,7 +131,7 @@ router.get('/parties/code/:code', optionalAuth, async (req, res) => {
     }
 
     const partyData = await prisma.sharedPvpParty.findFirst({
-      where: { OR: whereClause },
+      where: { AND: [{ OR: whereClause }, { isBlinded: false }] },
       include: {
         User: {
           select: { id: true, nickname: true, username: true }
