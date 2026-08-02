@@ -8,8 +8,8 @@ import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
-import type { RaidParty } from '@/types/raid';
-import { RaidPartyCard } from '@/components/raid/RaidPartyCard';
+import type { PvpParty } from '@/types/pvp';
+import { PvpPartyCard } from '@/components/pvp/PvpPartyCard';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -19,8 +19,7 @@ export default function RaidDetailPage() {
   const router = useRouter();
 
   const [masterData, setMasterData] = useState<StudentMaster[]>([]);
-  const [party, setParty] = useState<RaidParty | null>(null);
-  const [bosses, setBosses] = useState<any[]>([]);
+  const [party, setParty] = useState<PvpParty | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -30,24 +29,17 @@ export default function RaidDetailPage() {
       const { masterData } = await getCachedServerData();
       if (cancelled) return;
       setMasterData(masterData);
-      
-      try {
-        const metaRes = await api.get('/raids/meta');
-        setBosses(metaRes.data.bosses);
-      } catch (err) {
-        console.error('Failed to fetch raid meta', err);
-      }
 
       try {
         // Try fetching from API first (by shortCode)
-        const res = await api.get(`/raids/parties/code/${code}`);
+        const res = await api.get(`/pvp/parties/code/${code}`);
         setParty(res.data);
       } catch (err: any) {
         // If not found by code, try by ID
         try {
-          const res2 = await api.get(`/raids/parties`); // Fetching all is inefficient but works as a quick fallback for dev
-          const allParties = res2.data as RaidParty[];
-          const found = allParties.find(p => p.id.toString() === code);
+          const res2 = await api.get(`/pvp/parties`); // Fetching all is inefficient but works as a quick fallback for dev
+          const allParties = res2.data as PvpParty[];
+          const found = allParties.find(p => p.id?.toString() === code);
           if (found) {
             setParty(found);
           } else {
@@ -74,9 +66,9 @@ export default function RaidDetailPage() {
     }
     if (!confirm('정말 이 공략을 삭제하시겠습니까?')) return;
     try {
-      await api.delete(`/raids/parties/${party.id}`);
+      await api.delete(`/pvp/parties/${party.id}`);
       toast.success('공략이 삭제되었습니다.');
-      router.push('/raids');
+      router.push('/tactics?mode=pvp');
     } catch (err: any) {
       toast.error('잠시 후에 다시 시도해 주세요');
     }
@@ -95,7 +87,7 @@ export default function RaidDetailPage() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
         <p className="mb-4">{error || '공략을 찾을 수 없습니다.'}</p>
-        <Link href="/raids" className="text-purple-600 underline">목록으로 돌아가기</Link>
+        <Link href="/tactics?mode=pvp" className="text-purple-600 underline">목록으로 돌아가기</Link>
       </div>
     );
   }
@@ -103,19 +95,18 @@ export default function RaidDetailPage() {
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 w-full h-full flex flex-col overflow-y-auto">
       <div className="mb-6">
-        <Link href="/raids" className="inline-flex items-center gap-2 text-gray-600 hover:text-purple-700 transition-colors font-bold">
+        <Link href="/tactics?mode=pvp" className="inline-flex items-center gap-2 text-gray-600 hover:text-purple-700 transition-colors font-bold">
           <ArrowLeft size={20} />
           <span>목록으로 돌아가기</span>
         </Link>
       </div>
 
       <div className="max-w-4xl mx-auto w-full pb-10">
-        <RaidPartyCard 
+        <PvpPartyCard 
           party={party}
           masterData={masterData}
           isDetail={true}
           onDelete={typeof party.id === 'number' ? handleDelete : undefined}
-          bossName={bosses.find(b => b.id === party.bossId)?.name}
         />
       </div>
     </div>

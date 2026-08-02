@@ -41,6 +41,16 @@ api.interceptors.response.use(
 
 export { api };
 
+export const getImageUrl = (url: string | undefined | null) => {
+  if (!url) return '';
+  try {
+    const baseUrl = new URL(API_BASE).origin;
+    return url.startsWith('http') ? url : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+  } catch (e) {
+    return url;
+  }
+};
+
 export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] }> => {
   for (let i = 0; i < retries; i++) {
     try {

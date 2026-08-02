@@ -6,7 +6,7 @@ import type { StudentMaster } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import { RaidRecommendationView } from '@/components/raid/RaidRecommendationView';
 
-export default function RaidsPage() {
+export default function PveList() {
   const [masterData, setMasterData] = useState<StudentMaster[]>([]);
   const [loading, setLoading] = useState(true);
 
