@@ -340,7 +340,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         alert('성공적으로 공략이 등록되었습니다!');
-        router.push('/raids');
+        router.push('/tactics?mode=pve');
       }
     } catch (err: any) {
       console.error(err);

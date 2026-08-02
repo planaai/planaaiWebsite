@@ -105,7 +105,7 @@ export function RaidRecommendationView({ masterData }: Props) {
             <button type="submit" className="hidden">검색</button>
           </form>
           <Link 
-            href="/raids/write"
+            href="/tactics/pve/write"
             className="flex items-center gap-2 bg-white/80 backdrop-blur border border-pink-200 hover:border-pink-300 hover:bg-pink-50 text-pink-400 px-4 py-2 rounded-lg font-bold shadow-sm transition-all whitespace-nowrap"
           >
             <Edit3 size={18} />

@@ -190,7 +190,6 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
     const { validTeams } = getRelevantTeams();
     const selectedTeam = validTeams.find(t => t.id === selectedTeamId);
     if (selectedTeam) {
-      console.log('[PVP DEBUG] confirmImport IDs:', selectedTeam.strikers);
       setParty({
         strikers: selectedTeam.strikers,
         specials: selectedTeam.specials
@@ -264,7 +263,6 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
     } else {
        found = masterData.find(s => String(s.id) === String(id)) || null;
     }
-    console.log('[PVP DEBUG] getStudent id:', id, 'Found:', found ? true : false, 'masterData size:', masterData.length, 'sample ID:', masterData[0]?.id);
     return found;
   };
 
