@@ -61,15 +61,18 @@ function NoticeDetailPageContent() {
     try {
       setIsDownloading(true);
       
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(captureRef.current, {
-        useCORS: true,
-        allowTaint: true,
-        scale: 2,
-        backgroundColor: null,
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(captureRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: 'transparent',
+        fetchRequest: (url) => {
+          if (url.startsWith('http') && !url.includes(window.location.host)) {
+            return fetch(`/api/proxy/image?url=${encodeURIComponent(url)}`);
+          }
+          return fetch(url);
+        }
       });
-      
-      const dataUrl = canvas.toDataURL('image/png');
       
       const link = document.createElement('a');
       link.download = `공지사항_${notice?.title || id}.png`;
