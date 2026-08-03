@@ -155,6 +155,7 @@ export function RaidRecommendationView({ masterData }: Props) {
                 masterData={masterData}
                 onDelete={typeof party.id === 'number' ? () => handleDeleteParty(party.id as number) : undefined}
                 bossName={bosses.find(b => b.id === party.bossId)?.name}
+                bossImageUrl={bosses.find(b => b.id === party.bossId)?.bannerUrl || bosses.find(b => b.id === party.bossId)?.iconUrl}
               />
             ))}
           </div>

@@ -5,27 +5,29 @@ node_modules/
 
 # Testing
 coverage/
-deploy/
 
-# Next.js
+# Frontend (Next.js / Vite)
 .next/
 out/
 build/
-
-# Vite / React / Frontend
 dist/
 dist-ssr/
 
-# Backend / Express / Node
-uploads/
+# Backend & Database
 /backend/uploads/
 /backend/data/
-*.log
-
-# Prisma
 /backend/generated/prisma
 /backend/prisma/*.db
 /backend/prisma/*.db-journal
+uploads/
+*.log
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Python
 __pycache__/
@@ -34,13 +36,6 @@ __pycache__/
 .venv/
 venv/
 env/
-
-# Environment Variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # Keys and Certificates
 *.pem
@@ -57,14 +52,13 @@ Thumbs.db
 *.swp
 *.swo
 
-# Scratch scripts
+# Project specific & Temporary
 scratch/
-
-# Excel temp files
-~$*.xlsx
-
-# Icons
+deploy/
+client-pvp/
 /ico/
+~$*.xlsx
+ip.txt
 
 # TypeScript
 *.tsbuildinfo
@@ -78,5 +72,3 @@ lint-results.txt
 *.tar.gz
 *.zip
 *.rar
-ip.txt
-client-pvp/

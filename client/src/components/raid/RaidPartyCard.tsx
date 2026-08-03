@@ -23,9 +23,10 @@ interface Props {
   onDelete?: () => void;
   isDetail?: boolean;
   bossName?: string;
+  bossImageUrl?: string;
 }
 
-export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail = false, bossName }: Props) {
+export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail = false, bossName, bossImageUrl }: Props) {
   const router = useRouter();
   const { importTeam } = useFormationStore();
   const { user } = useAuthStore();
@@ -163,34 +164,36 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
   };
 
   const renderPartyView = (p: any, pIdx: number) => (
-    <div className={`flex flex-col gap-2.5 ${isDetail ? 'bg-white p-4 rounded-xl border border-pink-50 shadow-sm h-full' : 'p-1 overflow-hidden'}`}>
-      <div className="flex items-center gap-2 mb-1">
-        <span className="px-2 py-0.5 bg-gray-800 text-white text-[10px] font-extrabold rounded-md shadow-sm">
-          {pIdx + 1}부대
-        </span>
-        {p.name && <span className="text-sm font-bold text-gray-700">{p.name}</span>}
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex text-[11px] font-black -skew-x-[15deg] w-[4.75rem] shrink-0">
-          <div className="px-2 py-1 text-white shadow-sm tracking-wider flex items-center justify-center bg-[#D33F4A] w-full">
-            <div className="skew-x-[15deg]">STRIKER</div>
+    <div className={`flex flex-col gap-2.5 relative ${isDetail ? 'bg-white p-4 rounded-xl border border-pink-50 shadow-sm h-full overflow-hidden' : 'p-1 overflow-hidden h-full'}`}>
+      <div className="relative z-10 flex flex-col gap-2.5 w-full">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 bg-gray-800 text-white text-[10px] font-extrabold rounded-md shadow-sm">
+            {pIdx + 1}부대
+          </span>
+          {p.name && <span className="text-sm font-bold text-gray-700">{p.name}</span>}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex text-[11px] font-black -skew-x-[15deg] w-[4.75rem] shrink-0">
+            <div className="px-2 py-1 text-white shadow-sm tracking-wider flex items-center justify-center bg-[#D33F4A] w-full">
+              <div className="skew-x-[15deg]">STRIKER</div>
+            </div>
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex gap-1.5 shrink-0 [&::-webkit-scrollbar]:hidden">
+              {p.strikers.map((id: number | null, idx: number) => renderStudentIcon(id, idx, 'striker'))}
+            </div>
           </div>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex gap-1.5 shrink-0 [&::-webkit-scrollbar]:hidden">
-            {p.strikers.map((id: number | null, idx: number) => renderStudentIcon(id, idx, 'striker'))}
+        <div className="flex items-center gap-3">
+          <div className="flex text-[11px] font-black -skew-x-[15deg] w-[4.75rem] shrink-0">
+            <div className="px-2 py-1 text-white shadow-sm tracking-wider flex items-center justify-center bg-[#315B9A] w-full">
+              <div className="skew-x-[15deg]">SPECIAL</div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex text-[11px] font-black -skew-x-[15deg] w-[4.75rem] shrink-0">
-          <div className="px-2 py-1 text-white shadow-sm tracking-wider flex items-center justify-center bg-[#315B9A] w-full">
-            <div className="skew-x-[15deg]">SPECIAL</div>
-          </div>
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="flex gap-1.5 shrink-0 [&::-webkit-scrollbar]:hidden">
-            {p.specials.map((id: number | null, idx: number) => renderStudentIcon(id, idx, 'special'))}
+          <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex gap-1.5 shrink-0 [&::-webkit-scrollbar]:hidden">
+              {p.specials.map((id: number | null, idx: number) => renderStudentIcon(id, idx, 'special'))}
+            </div>
           </div>
         </div>
       </div>
@@ -323,7 +326,20 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
       </div>
 
       {/* Party Render Area */}
-      <div className={`mt-2 ${!isDetail ? 'bg-gray-50/50 rounded-xl p-3 border border-gray-100/80 relative overflow-hidden h-[180px]' : 'bg-gray-50/80 rounded-xl p-5 border border-gray-100 shadow-inner'}`}>
+      <div className={`mt-2 relative overflow-hidden ${!isDetail ? 'bg-gray-50/50 rounded-xl p-3 border border-gray-100/80 h-[180px]' : 'bg-gray-50/80 rounded-xl p-5 border border-gray-100 shadow-inner'}`}>
+        {bossImageUrl && (
+          <div 
+            className="absolute top-0 right-0 bottom-0 w-[70%] z-0 pointer-events-none opacity-40 mix-blend-multiply transition-opacity duration-500 group-hover:opacity-50"
+            style={{
+              backgroundImage: `url(${getImageUrl(bossImageUrl)})`,
+              backgroundPosition: 'right center',
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              maskImage: 'linear-gradient(to right, transparent 0%, black 60%)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 60%)',
+            }}
+          />
+        )}
         {isDetail ? (
           <div className="flex flex-col gap-4">
             {party.parties.map((p, pIdx) => (
@@ -369,7 +385,10 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
                 </div>
                 택틱 요약
               </div>
-              <div className="whitespace-pre-wrap">{party.tactics}</div>
+              <div 
+                className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: party.tactics }}
+              />
             </div>
           )}
 

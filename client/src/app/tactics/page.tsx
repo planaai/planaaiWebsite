@@ -39,7 +39,7 @@ function TacticsContent() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            PVE (총력전)
+            PVE
           </button>
           <button
             onClick={() => handleModeChange('pvp')}
@@ -49,7 +49,7 @@ function TacticsContent() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            PVP (전술대항전)
+            PVP
           </button>
         </div>
       </div>

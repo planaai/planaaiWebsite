@@ -6,7 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Code, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface HtmlEditorProps {
   value: string;
@@ -16,6 +16,7 @@ interface HtmlEditorProps {
 }
 
 export default function HtmlEditor({ value, onChange, placeholder = '내용을 입력하세요...', minHeight = '300px' }: HtmlEditorProps) {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -66,8 +67,9 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
 
   return (
     <div className="border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm flex flex-col">
-      <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 bg-gray-50 items-center">
-        <ToolbarButton
+      <div className="flex p-2 border-b border-gray-200 bg-gray-50 items-center justify-between">
+        <div className={`flex flex-wrap gap-1 items-center flex-1 ${isHtmlMode ? 'opacity-50 pointer-events-none' : ''}`}>
+          <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
           icon={Bold}
@@ -142,11 +144,34 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
           icon={Code}
           title="코드 블록"
         />
+        </div>
+        
+        <div className="ml-2 flex items-center gap-2 pl-3 border-l border-gray-300 text-sm shrink-0">
+          <input 
+            type="checkbox" 
+            id="html-mode-toggle"
+            checked={isHtmlMode}
+            onChange={(e) => setIsHtmlMode(e.target.checked)}
+            className="rounded border-gray-300 text-pink-500 focus:ring-pink-500 cursor-pointer w-4 h-4"
+          />
+          <label htmlFor="html-mode-toggle" className="cursor-pointer select-none font-medium text-gray-700">HTML</label>
+        </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto cursor-text bg-white text-gray-900" onClick={() => editor.commands.focus()}>
-        <EditorContent editor={editor} />
-      </div>
+      {isHtmlMode ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ minHeight }}
+          className="w-full p-4 resize-y focus:outline-none text-gray-800 font-mono text-sm leading-relaxed bg-gray-50 border-none"
+          placeholder={placeholder}
+          spellCheck={false}
+        />
+      ) : (
+        <div className="flex-1 overflow-y-auto cursor-text bg-white text-gray-900" onClick={() => editor.commands.focus()}>
+          <EditorContent editor={editor} />
+        </div>
+      )}
     </div>
   );
 }
