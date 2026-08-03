@@ -30,10 +30,52 @@ export function FormationBuilder({ masterData, schema }: Props) {
       // Allow UI to settle
       await new Promise(res => setTimeout(res, 100));
       
+      const images = singleExportRef.current.querySelectorAll('img');
+      const originalSrcs = new Map<HTMLImageElement, string>();
+      
+      images.forEach(img => {
+        if (img.src.startsWith('http') && !img.src.includes(window.location.host)) {
+          originalSrcs.set(img, img.src);
+          img.crossOrigin = 'anonymous';
+          img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}&_t=${Date.now()}`;
+        }
+      });
+      
+      await Promise.all(Array.from(images).map(async (img) => {
+        if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
+        
+        try {
+          if (!img.complete || img.naturalWidth === 0) {
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            });
+          }
+          
+          if (img.src.startsWith('data:')) return;
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width || 1;
+          canvas.height = img.naturalHeight || img.height || 1;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            img.src = canvas.toDataURL('image/png');
+          }
+        } catch (e) {
+          img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        }
+      }));
+
       const dataUrl = await toPng(singleExportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         filter: (node) => true
+      });
+      
+      originalSrcs.forEach((src, img) => {
+        img.src = src;
+        img.removeAttribute('crossOrigin');
       });
       
       const activeTeam = teams.find(t => t.id === activeTeamId);
@@ -59,10 +101,52 @@ export function FormationBuilder({ masterData, schema }: Props) {
     try {
       await new Promise(res => setTimeout(res, 100));
       
+      const images = allExportRef.current.querySelectorAll('img');
+      const originalSrcs = new Map<HTMLImageElement, string>();
+      
+      images.forEach(img => {
+        if (img.src.startsWith('http') && !img.src.includes(window.location.host)) {
+          originalSrcs.set(img, img.src);
+          img.crossOrigin = 'anonymous';
+          img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}&_t=${Date.now()}`;
+        }
+      });
+      
+      await Promise.all(Array.from(images).map(async (img) => {
+        if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
+        
+        try {
+          if (!img.complete || img.naturalWidth === 0) {
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            });
+          }
+          
+          if (img.src.startsWith('data:')) return;
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width || 1;
+          canvas.height = img.naturalHeight || img.height || 1;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            img.src = canvas.toDataURL('image/png');
+          }
+        } catch (e) {
+          img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        }
+      }));
+
       const dataUrl = await toPng(allExportRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         filter: (node) => true
+      });
+      
+      originalSrcs.forEach((src, img) => {
+        img.src = src;
+        img.removeAttribute('crossOrigin');
       });
       
       const dateStr = format(new Date(), 'yyyyMMdd_HHmmss');

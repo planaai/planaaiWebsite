@@ -45,17 +45,60 @@ export function ApCalculator() {
     // Give it a tiny delay to ensure React state updates and font rendering if necessary
     setTimeout(async () => {
       try {
+        const images = exportRef.current!.querySelectorAll('img');
+        const originalSrcs = new Map<HTMLImageElement, string>();
+        
+        images.forEach(img => {
+          if (img.src.startsWith('http') && !img.src.includes(window.location.host)) {
+            originalSrcs.set(img, img.src);
+            img.crossOrigin = 'anonymous';
+            img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}&_t=${Date.now()}`;
+          }
+        });
+        
+        await Promise.all(Array.from(images).map(async (img) => {
+          if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
+          
+          try {
+            if (!img.complete || img.naturalWidth === 0) {
+              await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+              });
+            }
+            
+            if (img.src.startsWith('data:')) return;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || img.width || 1;
+            canvas.height = img.naturalHeight || img.height || 1;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              img.src = canvas.toDataURL('image/png');
+            }
+          } catch (e) {
+            img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+          }
+        }));
+
         const dataUrl = await toPng(exportRef.current!, { 
           cacheBust: true, 
           backgroundColor: '#f8fafc',
           pixelRatio: 2
         });
+        
+        originalSrcs.forEach((src, img) => {
+          img.src = src;
+          img.removeAttribute('crossOrigin');
+        });
+
         const link = document.createElement('a');
         link.download = `ap-schedule-${format(new Date(), 'yyyyMMdd-HHmm')}.png`;
         link.href = dataUrl;
         link.click();
       } catch (err) {
-        console.error('Failed to download image:', err);
+        console.error('Failed to export image:', err);
         toast.error('잠시 후에 다시 시도해 주세요');
       } finally {
         setIsExporting(false);
