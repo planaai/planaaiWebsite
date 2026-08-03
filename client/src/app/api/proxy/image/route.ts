@@ -17,8 +17,13 @@ export async function GET(req: NextRequest) {
     
     const buffer = await res.arrayBuffer();
     
+    let contentType = res.headers.get('Content-Type') || 'image/jpeg';
+    if (contentType.includes('octet-stream')) {
+      contentType = 'image/jpeg';
+    }
+    
     const headers = new Headers();
-    headers.set('Content-Type', res.headers.get('Content-Type') || 'image/jpeg');
+    headers.set('Content-Type', contentType);
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
     headers.set('Access-Control-Allow-Origin', '*');
     

@@ -61,17 +61,35 @@ function NoticeDetailPageContent() {
     try {
       setIsDownloading(true);
       
+      const images = captureRef.current.querySelectorAll('img');
+      const originalSrcs = new Map<HTMLImageElement, string>();
+      
+      images.forEach(img => {
+        if (img.src.startsWith('http') && !img.src.includes(window.location.host)) {
+          originalSrcs.set(img, img.src);
+          img.crossOrigin = 'anonymous';
+          img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}`;
+        }
+      });
+      
+      await Promise.all(Array.from(originalSrcs.keys()).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      }));
+      
       const { toPng } = await import('html-to-image');
       const dataUrl = await toPng(captureRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: 'transparent',
-        fetchRequest: (url) => {
-          if (url.startsWith('http') && !url.includes(window.location.host)) {
-            return fetch(`/api/proxy/image?url=${encodeURIComponent(url)}`);
-          }
-          return fetch(url);
-        }
+      });
+      
+      originalSrcs.forEach((src, img) => {
+        img.src = src;
+        img.removeAttribute('crossOrigin');
       });
       
       const link = document.createElement('a');
