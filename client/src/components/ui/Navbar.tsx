@@ -85,7 +85,7 @@ export function Navbar() {
                 </button>
               </div>
             ) : (
-              <Link href="/login" className="text-sm font-bold hover:text-[var(--plana-primary)] transition-colors flex items-center gap-1">
+              <Link href={`/login?redirect=${pathname}`} className="text-sm font-bold hover:text-[var(--plana-primary)] transition-colors flex items-center gap-1">
                 <LogIn size={16} /> 로그인
               </Link>
             )}

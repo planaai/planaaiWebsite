@@ -63,7 +63,7 @@ export function Sidebar() {
             </button>
           </div>
         ) : (
-          <Link href="/login" className="text-sm font-bold text-[var(--plana-primary-dark)] hover:text-[var(--plana-accent)] transition-colors px-2">
+          <Link href={`/login?redirect=${pathname}`} className="text-sm font-bold text-[var(--plana-primary-dark)] hover:text-[var(--plana-accent)] transition-colors px-2">
             로그인
           </Link>
         )}

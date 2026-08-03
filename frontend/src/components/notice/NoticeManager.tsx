@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Pencil, Trash2, Plus, X, Save } from 'lucide-react';
-import MDEditor from '@uiw/react-md-editor';
+import HtmlEditor from '../common/HtmlEditor';
 import { API } from '../../constants';
 import { format } from 'date-fns';
 
@@ -79,7 +79,7 @@ export function NoticeManager() {
 
   if (isEditing) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white p-6 rounded-lg shadow-sm text-gray-900">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">{currentNotice.id ? '공지사항 수정' : '새 공지사항 작성'}</h2>
           <div className="flex space-x-2">
@@ -118,20 +118,18 @@ export function NoticeManager() {
             />
           </div>
           
-          <div data-color-mode="light">
-            <MDEditor
-              value={currentNotice.content || ''}
-              onChange={(val) => setCurrentNotice({ ...currentNotice, content: val || '' })}
-              height={500}
-            />
-          </div>
+          <HtmlEditor
+            value={currentNotice.content || ''}
+            onChange={(val) => setCurrentNotice({ ...currentNotice, content: val || '' })}
+            minHeight="500px"
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="bg-white p-6 rounded-lg shadow-sm text-gray-900">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">공지사항 관리</h2>
         <button

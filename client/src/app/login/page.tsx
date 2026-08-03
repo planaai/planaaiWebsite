@@ -1,19 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useArchiveStore } from '@/store/archiveStore';
 
-export default function Login() {
+function LoginContent() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
   const records = useArchiveStore((state) => state.records);
 
@@ -26,7 +27,8 @@ export default function Login() {
       const res = await api.post('/auth/login', { username, password });
       if (res.data.status === 'success') {
         login(res.data.token, res.data.user);
-        router.push('/');
+        const redirect = searchParams.get('redirect') || '/';
+        router.push(redirect);
       }
     } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.response?.data?.error || '로그인에 실패했습니다.');
@@ -74,5 +76,13 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[70vh]">로딩중...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

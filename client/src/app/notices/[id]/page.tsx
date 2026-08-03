@@ -6,10 +6,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
-import rehypeRaw from 'rehype-raw';
 import { ArrowLeft, Calendar, Eye, User, Download, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { api } from '@/lib/api';
@@ -184,22 +180,10 @@ export default function NoticeDetailPage() {
 
         {/* Content */}
         <div className="p-8 md:p-10">
-          <div className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm, remarkBreaks]} 
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                a: ({ node, ...props }) => {
-                  if (typeof props.href === 'string' && props.href.includes('postimg.cc')) {
-                    return <img src={props.href} alt="postimage" className="max-w-full rounded-xl mt-4 mb-4" />;
-                  }
-                  return <a {...props} />;
-                }
-              }}
-            >
-              {notice.content}
-            </ReactMarkdown>
-          </div>
+          <div 
+            className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl"
+            dangerouslySetInnerHTML={{ __html: notice.content }}
+          />
         </div>
       </div>
 
@@ -243,23 +227,10 @@ export default function NoticeDetailPage() {
               </div>
 
               {/* Content */}
-              <div className="prose prose-xl prose-blue max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-2xl">
-                <ReactMarkdown 
-                  remarkPlugins={[remarkGfm, remarkBreaks]} 
-                  rehypePlugins={[rehypeRaw]}
-                  components={{
-                    a: ({ node, ...props }) => {
-                      if (typeof props.href === 'string' && props.href.includes('postimg.cc')) {
-                        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(props.href)}`;
-                        return <img src={proxyUrl} alt="postimage" className="max-w-full rounded-2xl mt-6 mb-6" />;
-                      }
-                      return <a {...props} />;
-                    }
-                  }}
-                >
-                  {exportContent}
-                </ReactMarkdown>
-              </div>
+              <div 
+                className="prose prose-xl prose-blue max-w-none prose-headings:font-bold prose-p:leading-relaxed prose-img:rounded-2xl"
+                dangerouslySetInnerHTML={{ __html: exportContent }}
+              />
 
               {/* Footer */}
               <div className="mt-20 pt-8 border-t border-gray-200 flex justify-end items-center">

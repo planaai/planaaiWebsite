@@ -11,15 +11,17 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.1",
-    "@uiw/react-md-editor": "^4.1.1",
+    "@tiptap/extension-placeholder": "^3.29.2",
+    "@tiptap/extension-text-align": "^3.29.2",
+    "@tiptap/extension-underline": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
     "axios": "^1.18.0",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.17.0",
-    "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {

@@ -6,6 +6,13 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useAlert } from '@/contexts/AlertContext';
 
+import dynamic from 'next/dynamic';
+
+const HtmlEditor = dynamic(() => import('@/components/common/HtmlEditor'), {
+  ssr: false,
+  loading: () => <div className="h-64 w-full border border-gray-300 rounded-md bg-gray-50 flex items-center justify-center text-gray-400">에디터 로딩 중...</div>
+});
+
 export default function WriteNoticePage() {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -83,12 +90,11 @@ export default function WriteNoticePage() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
-            <textarea
+            <HtmlEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="공지사항 내용을 입력하세요"
-              className="w-full border border-gray-300 rounded-md px-4 py-2 h-64 focus:outline-none focus:ring-2 focus:ring-[var(--plana-primary-light)] text-sm resize-none"
-              required
+              minHeight="400px"
             />
           </div>
           
