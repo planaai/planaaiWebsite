@@ -157,7 +157,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         const student = studentMap.get(id);
                         if (!student) return null;
                         return (
-                          <Link key={id} href={`/archive/student/${id}`} prefetch={false} className="group relative w-16 h-16 bg-white border border-[var(--plana-primary-light)] rounded-lg overflow-hidden flex items-center justify-center hover:border-[var(--plana-accent)] transition-colors shadow-sm">
+                          <Link key={id} href={`/archive/student/detail?id=${id}`} prefetch={false} className="group relative w-16 h-16 bg-white border border-[var(--plana-primary-light)] rounded-lg overflow-hidden flex items-center justify-center hover:border-[var(--plana-accent)] transition-colors shadow-sm">
                             {student.portraitUrls && student.portraitUrls.length > 0 ? <img src={`https://api.planaai.kro.kr${student.portraitUrls[0]}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-[var(--plana-primary)] text-[10px] font-bold text-center px-1 leading-tight">{student.name}</span>
@@ -184,7 +184,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         const student = studentMap.get(id);
                         if (!student) return null;
                         return (
-                          <Link key={id} href={`/archive/student/${id}`} prefetch={false} className="group relative w-14 h-14 bg-white border border-blue-200 rounded-lg overflow-hidden flex items-center justify-center hover:border-blue-400 transition-colors shadow-sm">
+                          <Link key={id} href={`/archive/student/detail?id=${id}`} prefetch={false} className="group relative w-14 h-14 bg-white border border-blue-200 rounded-lg overflow-hidden flex items-center justify-center hover:border-blue-400 transition-colors shadow-sm">
                             {student.portraitUrls && student.portraitUrls.length > 0 ? <img src={`https://api.planaai.kro.kr${student.portraitUrls[0]}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-blue-500 text-[10px] font-bold text-center px-1 leading-tight">{student.name}</span>
@@ -211,7 +211,7 @@ export function GiftsView({ initialMasterData, schema }: GiftsViewProps) {
                         const student = studentMap.get(id);
                         if (!student) return null;
                         return (
-                          <Link key={id} href={`/archive/student/${id}`} prefetch={false} className="group relative w-12 h-12 bg-white border border-emerald-200 rounded-md overflow-hidden flex items-center justify-center hover:border-emerald-400 transition-colors shadow-sm opacity-90 hover:opacity-100">
+                          <Link key={id} href={`/archive/student/detail?id=${id}`} prefetch={false} className="group relative w-12 h-12 bg-white border border-emerald-200 rounded-md overflow-hidden flex items-center justify-center hover:border-emerald-400 transition-colors shadow-sm opacity-90 hover:opacity-100">
                             {student.portraitUrls && student.portraitUrls.length > 0 ? <img src={`https://api.planaai.kro.kr${student.portraitUrls[0]}`} alt={student.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" /> : <span className="text-[8px] text-[var(--plana-text-muted)]">{student.name}</span>}
                             <div className="absolute inset-0 bg-white/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                               <span className="text-emerald-500 text-[9px] font-bold text-center leading-tight truncate">{student.name.substring(0, 4)}</span>

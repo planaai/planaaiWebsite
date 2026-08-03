@@ -136,7 +136,7 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
           const portraitUrl = master.portraitUrls?.[0] || '';
 
           return (
-            <Link key={master.id} href={mode === 'collection' ? `/student/${master.id}` : `/archive/student/${master.id}`} prefetch={false} className="block group">
+            <Link key={master.id} href={mode === 'collection' ? `/student/detail?id=${master.id}` : `/archive/student/detail?id=${master.id}`} prefetch={false} className="block group">
               <div className={`relative bg-white rounded-xl overflow-hidden border transition-all duration-300 clip-diagonal shadow-[0_4px_10px_rgba(188,163,240,0.1)] ${(mode === 'archive' || isOwned) ? 'border-[var(--plana-primary-light)] hover:border-[var(--plana-accent)] hover:shadow-[0_8px_20px_rgba(255,166,201,0.3)] hover:-translate-y-1' : 'border-slate-200 opacity-60 hover:opacity-100 grayscale hover:grayscale-0'}`}>
                 <div className="aspect-square bg-slate-50 relative flex items-end justify-center overflow-hidden">
                   <span className="absolute top-2 left-2 text-[10px] font-black text-white bg-[var(--plana-primary-dark)]/80 px-2 py-0.5 rounded backdrop-blur-sm z-10 shadow-sm">

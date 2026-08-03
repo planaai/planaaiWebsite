@@ -334,7 +334,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('수정되었습니다.');
-        router.push(`/tactics/pve/${initialData.shortCode || initialData.id}`);
+        router.push(`/tactics/pve/detail?code=${initialData.shortCode || initialData.id}`);
       } else {
         await api.post('/raids/parties', payload, {
           headers: { 'Content-Type': 'multipart/form-data' }

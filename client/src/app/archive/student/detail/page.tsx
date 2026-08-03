@@ -1,18 +1,18 @@
 'use client';
 
-export const runtime = 'edge';
+
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useSearchParams,  } from 'next/navigation';
 import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import dynamic from 'next/dynamic';
 
-const StudentDetailView = dynamic(() => import('@/components/archive/StudentDetailView').then(m => m.StudentDetailView), { ssr: false });
+const MasterDetailView = dynamic(() => import('@/components/archive/MasterDetailView').then(m => m.MasterDetailView), { ssr: false });
 
-export default function StudentPage() {
-  const params = useParams();
-  const id = Number(params.id);
+function ArchiveStudentPageContent() {
+  const searchParams = useSearchParams();
+  const id = Number(searchParams.get('id'));
 
   const [master, setMaster] = useState<StudentMaster | null>(null);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
@@ -21,14 +21,11 @@ export default function StudentPage() {
   useEffect(() => {
     let cancelled = false;
     async function loadData() {
-      const [{ masterData, archiveData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
+      const [{ masterData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
       if (cancelled) return;
       const student = masterData.find(m => m.id === id) || null;
       setMaster(student);
       setSchema(s);
-      
-
-      
       setLoading(false);
     }
     loadData();
@@ -51,5 +48,16 @@ export default function StudentPage() {
     );
   }
 
-  return <StudentDetailView master={master} schema={schema} />;
+  return <MasterDetailView master={master} schema={schema} />;
+}
+
+
+import { Suspense } from 'react';
+
+export default function ArchiveStudentPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading...</div>}>
+      <ArchiveStudentPageContent />
+    </Suspense>
+  );
 }

@@ -1,13 +1,12 @@
 'use client';
 
-export const runtime = 'edge';
+
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Eye, User, Download, Loader2, Pencil, Trash2 } from 'lucide-react';
-import { toPng } from 'html-to-image';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -22,10 +21,10 @@ interface Notice {
   author: { nickname: string; username: string };
 }
 
-export default function NoticeDetailPage() {
-  const params = useParams();
+function NoticeDetailPageContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const { id } = params as { id: string };
+  const id = searchParams.get('id') as string;
   
   const [notice, setNotice] = useState<Notice | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +60,8 @@ export default function NoticeDetailPage() {
     
     try {
       setIsDownloading(true);
+      
+      const { toPng } = await import('html-to-image');
       
       const dataUrl = await toPng(captureRef.current, {
         cacheBust: true,
@@ -129,7 +130,7 @@ export default function NoticeDetailPage() {
             {isAdmin && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => router.push(`/notices/${id}/edit`)}
+                  onClick={() => router.push(`/notices/edit?id=${id}`)}
                   className="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
                   <Pencil className="w-4 h-4 mr-2" />
@@ -243,5 +244,16 @@ export default function NoticeDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+import { Suspense } from 'react';
+
+export default function NoticeDetailPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading...</div>}>
+      <NoticeDetailPageContent />
+    </Suspense>
   );
 }

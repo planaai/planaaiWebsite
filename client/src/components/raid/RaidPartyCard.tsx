@@ -304,7 +304,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
 
           {!isDetail && (
             <Link 
-              href={`/tactics/pve/${party.shortCode || party.id}`}
+              href={`/tactics/pve/detail?code=${party.shortCode || party.id}`}
               className="flex items-center gap-1 bg-pink-50 hover:bg-pink-100 text-pink-500 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm transition-all text-xs font-bold mt-1"
             >
               상세 보기 <ChevronRight size={14} />
@@ -432,7 +432,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
             {canDelete && onDelete ? (
               <div className="flex items-center gap-2">
                 <Link 
-                  href={`/tactics/pve/edit/${party.shortCode || party.id}`}
+                  href={`/tactics/pve/edit?id=${party.shortCode || party.id}`}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-bold"
                 >
                   <Pencil size={16} />

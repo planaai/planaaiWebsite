@@ -1,9 +1,9 @@
 'use client';
 
-export const runtime = 'edge';
+
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useSearchParams,  } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { useAlert } from '@/contexts/AlertContext';
@@ -15,10 +15,10 @@ const HtmlEditor = dynamic(() => import('@/components/common/HtmlEditor'), {
   loading: () => <div className="h-64 w-full border border-gray-300 rounded-md bg-gray-50 flex items-center justify-center text-gray-400">에디터 로딩 중...</div>
 });
 
-export default function EditNoticePage() {
+function EditNoticePageContent() {
   const router = useRouter();
-  const params = useParams();
-  const { id } = params as { id: string };
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id') as string;
   const { user } = useAuthStore();
   const { showAlert } = useAlert();
   
@@ -67,7 +67,7 @@ export default function EditNoticePage() {
     try {
       await api.put(`/notices/${id}`, { title, category, content });
       showAlert('성공', '공지사항이 수정되었습니다.');
-      router.push(`/notices/${id}`);
+      router.push(`/notices/detail?id=${id}`);
     } catch (error) {
       console.error('Failed to update notice:', error);
       showAlert('오류', '공지사항 수정에 실패했습니다.');
@@ -151,5 +151,16 @@ export default function EditNoticePage() {
         </form>
       </div>
     </div>
+  );
+}
+
+
+import { Suspense } from 'react';
+
+export default function EditNoticePage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading...</div>}>
+      <EditNoticePageContent />
+    </Suspense>
   );
 }

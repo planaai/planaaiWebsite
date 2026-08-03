@@ -241,7 +241,7 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
       if (initialData) {
         await api.put(`/pvp/parties/${initialData.id}`, payload);
         toast.success('수정되었습니다.');
-        router.push(`/tactics/pvp/${initialData.shortCode || initialData.id}`);
+        router.push(`/tactics/pvp/detail?code=${initialData.shortCode || initialData.id}`);
       } else {
         await api.post('/pvp/parties', payload);
         toast.success('성공적으로 공략이 등록되었습니다!');

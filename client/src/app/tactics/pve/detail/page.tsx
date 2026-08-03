@@ -1,9 +1,9 @@
 'use client';
 
-export const runtime = 'edge';
+
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { useAuthStore } from '@/store/authStore';
@@ -13,9 +13,9 @@ import { RaidPartyCard } from '@/components/raid/RaidPartyCard';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-export default function RaidDetailPage() {
-  const params = useParams();
-  const code = params.code as string;
+function RaidDetailPageContent() {
+  const searchParams = useSearchParams();
+  const code = searchParams.get('code') as string;
   const router = useRouter();
 
   const [masterData, setMasterData] = useState<StudentMaster[]>([]);
@@ -119,5 +119,16 @@ export default function RaidDetailPage() {
         />
       </div>
     </div>
+  );
+}
+
+
+import { Suspense } from 'react';
+
+export default function RaidDetailPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading...</div>}>
+      <RaidDetailPageContent />
+    </Suspense>
   );
 }

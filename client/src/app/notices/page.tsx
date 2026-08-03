@@ -106,7 +106,7 @@ export default function NoticesPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <Link href={`/notices/${notice.id}`} className="text-[15px] text-gray-900 font-medium hover:text-[var(--plana-primary)] transition-colors line-clamp-1">
+                    <Link href={`/notices/detail?id=${notice.id}`} className="text-[15px] text-gray-900 font-medium hover:text-[var(--plana-primary)] transition-colors line-clamp-1">
                       {notice.title}
                     </Link>
                   </td>

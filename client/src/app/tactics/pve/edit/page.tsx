@@ -1,23 +1,23 @@
 'use client';
 
-export const runtime = 'edge';
+
 
 import React, { useEffect, useState } from 'react';
-import { PvpWriteForm } from '@/components/pvp/PvpWriteForm';
+import { RaidWriteForm } from '@/components/raid/RaidWriteForm';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
-import type { PvpParty } from '@/types/pvp';
+import type { RaidParty } from '@/types/raid';
 import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
-import { useParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function PvpEditPage() {
-  const params = useParams();
+function RaidEditPageContent() {
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [masterData, setMasterData] = useState<StudentMaster[]>([]);
-  const [partyData, setPartyData] = useState<PvpParty | null>(null);
+  const [partyData, setPartyData] = useState<RaidParty | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,9 +38,9 @@ export default function PvpEditPage() {
         if (cancelled) return;
         setMasterData(masterData);
 
-        const id = params?.id as string;
+        const id = searchParams.get('id') as string;
         if (id) {
-          const res = await api.get(`/pvp/parties/code/${id}`);
+          const res = await api.get(`/raids/parties/code/${id}`);
           if (cancelled) return;
           const data = res.data;
           
@@ -64,7 +64,7 @@ export default function PvpEditPage() {
     
     loadData();
     return () => { cancelled = true; };
-  }, [params?.id, router]);
+  }, [searchParams.get('id'), router]);
 
   if (loading) {
     return (
@@ -79,14 +79,25 @@ export default function PvpEditPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <p className="mt-4 text-red-500 font-bold">오류: 공략 데이터를 불러올 수 없습니다. (권한 혹은 네트워크 문제)</p>
-        <button onClick={() => router.push('/tactics?mode=pvp')} className="mt-4 px-4 py-2 bg-slate-200 rounded">홈으로 돌아가기</button>
+        <button onClick={() => router.push('/tactics?mode=pve')} className="mt-4 px-4 py-2 bg-slate-200 rounded">홈으로 돌아가기</button>
       </div>
     );
   }
 
   return (
     <div className="h-full overflow-hidden">
-      <PvpWriteForm masterData={masterData} initialData={partyData} />
+      <RaidWriteForm masterData={masterData} initialData={partyData} />
     </div>
+  );
+}
+
+
+import { Suspense } from 'react';
+
+export default function RaidEditPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-gray-500">Loading...</div>}>
+      <RaidEditPageContent />
+    </Suspense>
   );
 }
