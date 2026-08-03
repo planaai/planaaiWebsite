@@ -5,8 +5,36 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Code, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import Image from '@tiptap/extension-image';
+import TextStyle from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import { Extension } from '@tiptap/core';
+import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Code, AlignLeft, AlignCenter, AlignRight, ImageIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return { types: ['textStyle'] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+});
 
 interface HtmlEditorProps {
   value: string;
@@ -31,6 +59,13 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
       Placeholder.configure({
         placeholder,
       }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
+      TextStyle,
+      Color,
+      FontSize,
     ],
     content: value,
     onUpdate: ({ editor }) => {
@@ -143,6 +178,20 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
           isActive={editor.isActive('codeBlock')}
           icon={Code}
           title="코드 블록"
+        />
+        
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+        
+        <ToolbarButton
+          onClick={() => {
+            const url = window.prompt('이미지 URL을 입력하세요:');
+            if (url) {
+              editor.chain().focus().setImage({ src: url }).run();
+            }
+          }}
+          isActive={editor.isActive('image')}
+          icon={ImageIcon}
+          title="이미지 삽입"
         />
         </div>
         
