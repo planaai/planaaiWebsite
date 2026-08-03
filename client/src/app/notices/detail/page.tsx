@@ -68,7 +68,7 @@ function NoticeDetailPageContent() {
         if (img.src.startsWith('http') && !img.src.includes(window.location.host)) {
           originalSrcs.set(img, img.src);
           img.crossOrigin = 'anonymous';
-          img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}`;
+          img.src = `/api/proxy/image?url=${encodeURIComponent(img.src)}&_t=${Date.now()}`;
         }
       });
       
@@ -85,6 +85,7 @@ function NoticeDetailPageContent() {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: 'transparent',
+        skipFonts: true,
       });
       
       originalSrcs.forEach((src, img) => {
