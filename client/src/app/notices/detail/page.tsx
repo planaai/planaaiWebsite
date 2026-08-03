@@ -61,13 +61,15 @@ function NoticeDetailPageContent() {
     try {
       setIsDownloading(true);
       
-      const { toPng } = await import('html-to-image');
-      
-      const dataUrl = await toPng(captureRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: 'transparent',
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(captureRef.current, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        backgroundColor: null,
       });
+      
+      const dataUrl = canvas.toDataURL('image/png');
       
       const link = document.createElement('a');
       link.download = `공지사항_${notice?.title || id}.png`;
