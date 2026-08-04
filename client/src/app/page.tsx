@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal, Info, ChevronDown, ChevronRight, Folder, MessageSquare } from 'lucide-react';
+import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal, Info, ChevronDown, ChevronRight, Folder, MessageSquare, Compass } from 'lucide-react';
 import { useAlert } from '@/contexts/AlertContext';
 
 const menuGroups = [
@@ -22,15 +22,16 @@ const menuGroups = [
       { num: '06', title: '모의 편성', path: '/formation', icon: Layout },
       { num: '07', title: '청휘석 계산기', path: '/pyroxene', icon: Calculator },
       { num: '08', title: 'AP 존버 계산기', path: '/ap-calculator', icon: BatteryCharging },
+      { num: '09', title: '공략', path: '/tactics', icon: Compass },
     ]
   },
   {
     title: '시스템',
     items: [
-      { num: '09', title: '공지사항', path: '/notices', icon: Info },
-      { num: '10', title: '문의사항', path: '/inquiries', icon: MessageSquare },
-      { num: '11', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
-      { num: '12', title: '계정', path: '/account', icon: User },
+      { num: '10', title: '공지사항', path: '/notices', icon: Info },
+      { num: '11', title: '문의사항', path: '/inquiries', icon: MessageSquare },
+      { num: '12', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
+      { num: '13', title: '계정', path: '/account', icon: User },
     ]
   }
 ];

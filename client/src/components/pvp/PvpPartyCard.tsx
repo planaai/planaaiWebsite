@@ -276,7 +276,10 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
                 </div>
                 택틱 요약
               </div>
-              <div className="whitespace-pre-wrap">{party.tactics}</div>
+              <div 
+                className="prose prose-blue max-w-none prose-headings:font-bold prose-a:text-blue-600 hover:prose-a:text-blue-500 prose-img:rounded-xl whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: party.tactics }}
+              />
             </div>
           )}
 

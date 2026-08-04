@@ -61,18 +61,29 @@ function NoticeDetailPageContent() {
     try {
       setIsDownloading(true);
       
-      const images = captureRef.current.querySelectorAll('img');
+      const targetElement = captureRef.current;
+      const images = targetElement.querySelectorAll('img');
       const originalSrcs = new Map<HTMLImageElement, string>();
       
+      // 1. 모든 이미지에 대해 loading="eager" 적용 및 로드 완료 대기
       await Promise.all(Array.from(images).map(async (img) => {
+        // 강제로 eager 로딩 설정하여 lazy 로딩 방지 및 srcset 제거
+        img.setAttribute('loading', 'eager');
+        img.removeAttribute('srcset');
+        img.removeAttribute('sizes');
+        
         if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
         
         try {
-          if (!img.complete || img.naturalWidth === 0) {
+          if (!img.complete) {
             await new Promise((resolve, reject) => {
               img.onload = resolve;
               img.onerror = reject;
             });
+          }
+          
+          if (img.naturalWidth === 0) {
+            throw new Error('Broken image');
           }
           
           if (img.src.startsWith('data:')) return;
@@ -86,17 +97,26 @@ function NoticeDetailPageContent() {
             img.src = canvas.toDataURL('image/png');
           }
         } catch (e) {
+          // 이미지 로드 실패 시 투명 이미지로 대체
           img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         }
       }));
       
-      const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(captureRef.current, {
-        cacheBust: true,
+      // 2. html-to-image를 이용한 렌더링
+      const htmlToImage = await import('html-to-image');
+      const dataUrl = await htmlToImage.toPng(targetElement, {
         pixelRatio: 2,
         backgroundColor: 'transparent',
-        skipFonts: true,
+        filter: (node) => {
+          const tagName = (node as HTMLElement).tagName?.toUpperCase();
+          if (tagName && ['IFRAME', 'VIDEO', 'AUDIO', 'SCRIPT', 'PICTURE'].includes(tagName)) {
+            return false;
+          }
+          return true;
+        }
       });
+      
+      // 3. 파일 다운로드 및 원본 복구
       
       originalSrcs.forEach((src, img) => {
         img.src = src;
@@ -108,7 +128,7 @@ function NoticeDetailPageContent() {
       link.click();
     } catch (err) {
       console.error('Failed to export image', err);
-      toast.error('잠시 후에 다시 시도해 주세요');
+      toast.error('이미지 추출 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setIsDownloading(false);
     }
@@ -226,11 +246,12 @@ function NoticeDetailPageContent() {
         <div className="absolute left-[-9999px] top-[-9999px]">
           <div 
             ref={captureRef}
-            className="w-[1080px] bg-gradient-to-br from-gray-50 to-white p-16 rounded-[40px] shadow-2xl relative overflow-hidden"
+            className="w-[1080px] p-16 rounded-[40px] shadow-2xl relative overflow-hidden"
+            style={{ background: 'linear-gradient(to bottom right, #f9fafb, #ffffff)' }}
           >
             {/* Background Decorative Elements */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full blur-[100px] opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-50 rounded-full blur-[80px] opacity-60 translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50 rounded-full opacity-60 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-50 rounded-full opacity-60 translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
 
             <div className="relative z-10">
               {/* Header section (No Logo) */}

@@ -67,6 +67,10 @@ export function Navbar() {
             </li>
             <li className="text-slate-300">/</li>
             <li>
+              <Link href="/tactics" className="px-4 hover:text-[var(--plana-primary)] transition-colors">공략</Link>
+            </li>
+            <li className="text-slate-300">/</li>
+            <li>
               <Link href="/notices" className="px-4 hover:text-[var(--plana-primary)] transition-colors">공지사항</Link>
             </li>
           </ul>

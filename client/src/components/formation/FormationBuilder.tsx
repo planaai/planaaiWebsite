@@ -4,7 +4,7 @@ import { useFormationStore, FormationMode, RosterType } from '@/store/formationS
 import { RosterPanel } from './RosterPanel';
 import { ActiveTeamView } from './ActiveTeamView';
 import { TeamTabs } from './TeamTabs';
-import { toPng } from 'html-to-image';
+
 import { format } from 'date-fns';
 import { Camera, Loader2, ImagePlus } from 'lucide-react';
 import { SingleFormationExportView } from './SingleFormationExportView';
@@ -45,11 +45,15 @@ export function FormationBuilder({ masterData, schema }: Props) {
         if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
         
         try {
-          if (!img.complete || img.naturalWidth === 0) {
+          if (!img.complete) {
             await new Promise((resolve, reject) => {
               img.onload = resolve;
               img.onerror = reject;
             });
+          }
+          
+          if (img.naturalWidth === 0) {
+            throw new Error('Broken image');
           }
           
           if (img.src.startsWith('data:')) return;
@@ -67,10 +71,10 @@ export function FormationBuilder({ masterData, schema }: Props) {
         }
       }));
 
-      const dataUrl = await toPng(singleExportRef.current, {
-        cacheBust: true,
+      const htmlToImage = await import('html-to-image');
+      const dataUrl = await htmlToImage.toPng(singleExportRef.current, {
         pixelRatio: 2,
-        filter: (node) => true
+        backgroundColor: 'transparent'
       });
       
       originalSrcs.forEach((src, img) => {
@@ -116,11 +120,15 @@ export function FormationBuilder({ masterData, schema }: Props) {
         if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
         
         try {
-          if (!img.complete || img.naturalWidth === 0) {
+          if (!img.complete) {
             await new Promise((resolve, reject) => {
               img.onload = resolve;
               img.onerror = reject;
             });
+          }
+          
+          if (img.naturalWidth === 0) {
+            throw new Error('Broken image');
           }
           
           if (img.src.startsWith('data:')) return;
@@ -138,10 +146,10 @@ export function FormationBuilder({ masterData, schema }: Props) {
         }
       }));
 
-      const dataUrl = await toPng(allExportRef.current, {
-        cacheBust: true,
+      const htmlToImage = await import('html-to-image');
+      const dataUrl = await htmlToImage.toPng(allExportRef.current, {
         pixelRatio: 2,
-        filter: (node) => true
+        backgroundColor: 'transparent'
       });
       
       originalSrcs.forEach((src, img) => {

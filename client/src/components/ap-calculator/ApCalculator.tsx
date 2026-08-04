@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { calculateApSchedule, ApTimelineStep } from './apLogic';
 import { format } from 'date-fns';
-import { toPng } from 'html-to-image';
+
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -60,11 +60,15 @@ export function ApCalculator() {
           if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
           
           try {
-            if (!img.complete || img.naturalWidth === 0) {
+            if (!img.complete) {
               await new Promise((resolve, reject) => {
                 img.onload = resolve;
                 img.onerror = reject;
               });
+            }
+            
+            if (img.naturalWidth === 0) {
+              throw new Error('Broken image');
             }
             
             if (img.src.startsWith('data:')) return;
@@ -82,10 +86,10 @@ export function ApCalculator() {
           }
         }));
 
-        const dataUrl = await toPng(exportRef.current!, { 
-          cacheBust: true, 
-          backgroundColor: '#f8fafc',
-          pixelRatio: 2
+        const htmlToImage = await import('html-to-image');
+        const dataUrl = await htmlToImage.toPng(exportRef.current!, {
+          pixelRatio: 2,
+          backgroundColor: '#f8fafc'
         });
         
         originalSrcs.forEach((src, img) => {

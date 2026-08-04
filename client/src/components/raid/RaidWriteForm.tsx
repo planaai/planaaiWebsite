@@ -10,6 +10,12 @@ import type { StudentMaster } from '@/types';
 import type { SubParty, RaidBoss, RaidSeasonData, RaidParty } from '@/types/raid';
 import { toast } from 'sonner';
 import { getImageUrl } from '@/components/planner/utils';
+import dynamic from 'next/dynamic';
+
+const HtmlEditor = dynamic(() => import('@/components/common/HtmlEditor'), {
+  ssr: false,
+  loading: () => <div className="h-48 w-full border border-pink-200 rounded-lg bg-pink-50 flex items-center justify-center text-pink-400">에디터 로딩 중...</div>
+});
 
 export function extractYouTubeVideoId(url: string): string | null {
   const match = url.match(/^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
@@ -610,14 +616,11 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">택틱 요약 *</label>
-            <textarea 
-              required
-              name="tactics"
+            <HtmlEditor 
               value={formData.tactics}
-              onChange={handleChange}
-              rows={4}
+              onChange={(val) => setFormData(prev => ({ ...prev, tactics: val }))}
               placeholder="스킬 사용 순서나 주의사항 등을 적어주세요."
-              className="w-full bg-white border border-pink-200 rounded-lg p-3 text-gray-800 focus:outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-300 resize-none shadow-sm"
+              minHeight="200px"
             />
           </div>
 

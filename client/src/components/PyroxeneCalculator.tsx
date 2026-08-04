@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { PyroxeneData, ScheduledEvent } from '@/lib/pyroxeneParser';
 import { Calendar, Calculator, Sparkles, Settings, ListCollapse, ShoppingCart, Download } from 'lucide-react';
-import * as htmlToImage from 'html-to-image';
+
 import PyroxeneExportTemplate from './ap-calculator/PyroxeneExportTemplate';
 
 const ONE_TIME_PACKAGES = [
@@ -79,11 +79,15 @@ export default function PyroxeneCalculator({ data, events }: Props) {
         if (!originalSrcs.has(img)) originalSrcs.set(img, img.src);
         
         try {
-          if (!img.complete || img.naturalWidth === 0) {
+          if (!img.complete) {
             await new Promise((resolve, reject) => {
               img.onload = resolve;
               img.onerror = reject;
             });
+          }
+          
+          if (img.naturalWidth === 0) {
+            throw new Error('Broken image');
           }
           
           if (img.src.startsWith('data:')) return;
@@ -101,6 +105,7 @@ export default function PyroxeneCalculator({ data, events }: Props) {
         }
       }));
 
+      const htmlToImage = await import('html-to-image');
       const dataUrl = await htmlToImage.toPng(exportRef.current, {
         pixelRatio: 2,
         backgroundColor: '#ffffff'

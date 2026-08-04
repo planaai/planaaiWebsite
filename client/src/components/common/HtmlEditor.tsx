@@ -8,8 +8,10 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import { TextStyle, FontSize } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
-import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Code, AlignLeft, AlignCenter, AlignRight, ImageIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Code, AlignLeft, AlignCenter, AlignRight, ImageIcon, Loader2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { api, getImageUrl } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface HtmlEditorProps {
   value: string;
@@ -20,6 +22,30 @@ interface HtmlEditorProps {
 
 export default function HtmlEditor({ value, onChange, placeholder = '내용을 입력하세요...', minHeight = '300px' }: HtmlEditorProps) {
   const [isHtmlMode, setIsHtmlMode] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadAndInsertImage = async (file: File, view: any) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await api.post('/images/upload?folder=editor', formData);
+      if (res.data && res.data.urls && res.data.urls.length > 0) {
+        const url = getImageUrl(res.data.urls[0]);
+        const { schema } = view.state;
+        const node = schema.nodes.image.create({ src: url });
+        const transaction = view.state.tr.replaceSelectionWith(node);
+        view.dispatch(transaction);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('이미지 업로드 실패');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -50,6 +76,33 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
       attributes: {
         class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none w-full p-4 min-h-[${minHeight}] text-gray-900`,
       },
+      handlePaste: (view, event, slice) => {
+        const items = event.clipboardData?.items;
+        if (items) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+              const file = items[i].getAsFile();
+              if (file) {
+                event.preventDefault();
+                uploadAndInsertImage(file, view);
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith('image/')) {
+            event.preventDefault();
+            uploadAndInsertImage(file, view);
+            return true;
+          }
+        }
+        return false;
+      }
     },
   });
 
@@ -158,15 +211,22 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
         <div className="w-px h-6 bg-gray-300 mx-1" />
         
         <ToolbarButton
-          onClick={() => {
-            const url = window.prompt('이미지 URL을 입력하세요:');
-            if (url) {
-              editor.chain().focus().setImage({ src: url }).run();
-            }
-          }}
+          onClick={() => fileInputRef.current?.click()}
           isActive={editor.isActive('image')}
-          icon={ImageIcon}
-          title="이미지 삽입"
+          icon={isUploading ? Loader2 : ImageIcon}
+          title="이미지 업로드"
+        />
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0] && editor) {
+              uploadAndInsertImage(e.target.files[0], editor.view);
+            }
+            e.target.value = '';
+          }} 
+          accept="image/*" 
+          className="hidden" 
         />
         </div>
         
