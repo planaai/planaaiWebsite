@@ -6,6 +6,7 @@ import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIco
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { toast } from 'sonner';
+import { getEquipMaxLevel, getWeaponMaxLevel, SKILL_MAX } from '@/lib/equipmentUtils';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -227,20 +228,28 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                         <div>
                           <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">스킬 레벨 (EX / 기본 / 강화 / 서브)</label>
                           <div className="grid grid-cols-4 gap-4">
-                            {['ex', 'normal', 'passive', 'sub'].map((sk) => (
-                              <input 
-                                key={sk}
-                                type="number" 
-                                min={1} 
-                                max={sk === 'ex' ? 5 : 10} 
-                                placeholder={sk.toUpperCase()}
-                                value={form.skillLevels?.[sk as keyof typeof form.skillLevels] || ''} 
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  handleUpdateForm(form._localId, `skillLevels.${sk}`, isNaN(val) ? undefined : val);
-                                }} 
-                                className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] text-center focus:border-[var(--plana-accent)] focus:outline-none" 
-                              />
+                            {(['ex', 'normal', 'passive', 'sub'] as const).map((sk) => (
+                              <div key={sk} className="flex gap-1 items-center">
+                                <input 
+                                  type="number" 
+                                  min={1} 
+                                  max={sk === 'ex' ? 5 : 10} 
+                                  placeholder={sk.toUpperCase()}
+                                  value={form.skillLevels?.[sk] || ''} 
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    handleUpdateForm(form._localId, `skillLevels.${sk}`, isNaN(val) ? undefined : val);
+                                  }} 
+                                  className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-2 py-2 text-[var(--plana-text-main)] text-center focus:border-[var(--plana-accent)] focus:outline-none" 
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateForm(form._localId, `skillLevels.${sk}`, SKILL_MAX[sk])}
+                                  className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors"
+                                >
+                                  M
+                                </button>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -249,61 +258,108 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                         <div className="grid grid-cols-2 gap-6">
                           <div>
                             <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">장비 (티어 / 레벨)</label>
-                            <div className="grid grid-cols-1 gap-2">
-                              {['slot1', 'slot2', 'slot3'].map((eq, idx) => (
-                                <div key={eq} className="flex gap-2">
-                                  <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                    <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">T</span>
+                            <div className="grid grid-cols-1 gap-3">
+                              {['slot1', 'slot2', 'slot3'].map((eq) => {
+                                const isUnequipped = form.equipment?.[eq as keyof typeof form.equipment] === null;
+                                return (
+                                <div key={eq} className="space-y-1">
+                                  <label className="flex items-center gap-2 cursor-pointer w-max">
                                     <input 
-                                      type="number" min={1} max={9}
-                                      placeholder="티어"
-                                      value={form.equipment?.[eq as keyof typeof form.equipment]?.tier || ''}
+                                      type="checkbox" 
+                                      checked={isUnequipped} 
                                       onChange={(e) => {
-                                        const val = parseInt(e.target.value);
-                                        handleUpdateForm(form._localId, `equipment.${eq}`, { ...form.equipment?.[eq as keyof typeof form.equipment], tier: isNaN(val) ? undefined : val, level: form.equipment?.[eq as keyof typeof form.equipment]?.level || 1 })
+                                        handleUpdateForm(form._localId, `equipment.${eq}`, e.target.checked ? null : { tier: 1, level: 1 });
                                       }}
-                                      className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                      className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
                                     />
-                                  </div>
-                                  <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                    <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
-                                    <input 
-                                      type="number" min={1} max={90}
-                                      placeholder="레벨"
-                                      value={form.equipment?.[eq as keyof typeof form.equipment]?.level || ''}
-                                      onChange={(e) => {
-                                        const val = parseInt(e.target.value);
-                                        handleUpdateForm(form._localId, `equipment.${eq}`, { ...form.equipment?.[eq as keyof typeof form.equipment], tier: form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1, level: isNaN(val) ? undefined : val })
-                                      }}
-                                      className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
-                                    />
+                                    <span className="text-[10px] text-slate-500 font-bold">미착용</span>
+                                  </label>
+                                  <div className={`flex gap-2 items-center transition-opacity ${isUnequipped ? 'opacity-40 pointer-events-none' : ''}`}>
+                                    <div className="flex-[2] flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">T</span>
+                                      <input 
+                                        type="number" min={1} max={10}
+                                        placeholder="티어"
+                                        value={form.equipment?.[eq as keyof typeof form.equipment]?.tier || ''}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value);
+                                          const newTier = isNaN(val) ? 1 : val;
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: newTier, level: getEquipMaxLevel(newTier) });
+                                        }}
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                      />
+                                      <button type="button" onClick={() => handleUpdateForm(form._localId, `equipment.${eq}`, { tier: 10, level: getEquipMaxLevel(10) })} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                    </div>
+                                    <div className="flex-[2] flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                      <input 
+                                        type="number" min={1} max={90}
+                                        placeholder="레벨"
+                                        value={form.equipment?.[eq as keyof typeof form.equipment]?.level || ''}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value);
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1, level: isNaN(val) ? undefined : val });
+                                        }}
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                      />
+                                      <button type="button" onClick={() => {
+                                          const t = form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1;
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: t, level: getEquipMaxLevel(t) });
+                                      }} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                    </div>
                                   </div>
                                 </div>
-                              ))}
+                              )})}
                             </div>
                           </div>
                           <div>
                             <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">전용 무기 (성급 / 레벨)</label>
-                            <div className="flex gap-2">
-                              <select 
-                                value={form.uniqueWeapon?.stars || 1} 
-                                onChange={(e) => handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: parseInt(e.target.value), level: form.uniqueWeapon?.level || 1 })} 
-                                className="flex-1 bg-white border border-[var(--plana-border)] rounded-lg px-3 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none"
-                              >
-                                <option value={1}>1성</option>
-                                <option value={2}>2성</option>
-                                <option value={3}>3성</option>
-                                <option value={4}>4성</option>
-                              </select>
-                              <input 
-                                type="number" min={1} max={50} placeholder="무기 레벨"
-                                value={form.uniqueWeapon?.level || ''}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value);
-                                  handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: form.uniqueWeapon?.stars || 1, level: isNaN(val) ? undefined : val });
-                                }}
-                                className="flex-1 bg-white border border-[var(--plana-border)] rounded-lg px-3 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none"
-                              />
+                            <div className="space-y-1">
+                              <label className="flex items-center gap-2 cursor-pointer w-max">
+                                <input 
+                                  type="checkbox" 
+                                  checked={form.uniqueWeapon?.stars === 0} 
+                                  onChange={(e) => {
+                                    handleUpdateForm(form._localId, 'uniqueWeapon', e.target.checked ? { stars: 0, level: 1 } : { stars: 1, level: 1 });
+                                  }}
+                                  className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
+                                />
+                                <span className="text-[10px] text-slate-500 font-bold">미착용(미해금)</span>
+                              </label>
+                              <div className={`flex gap-2 items-center transition-opacity ${form.uniqueWeapon?.stars === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
+                                <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <select 
+                                    value={form.uniqueWeapon?.stars || 1} 
+                                    onChange={(e) => {
+                                      const star = parseInt(e.target.value);
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: star, level: form.uniqueWeapon?.level || 1 });
+                                    }} 
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                  >
+                                    <option value={1}>1성</option>
+                                    <option value={2}>2성</option>
+                                    <option value={3}>3성</option>
+                                    <option value={4}>4성</option>
+                                  </select>
+                                  <button type="button" onClick={() => handleUpdateForm(form._localId, 'uniqueWeapon', { stars: 4, level: getWeaponMaxLevel(4) })} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                </div>
+                                <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                  <input 
+                                    type="number" min={1} max={60} placeholder="레벨"
+                                    value={form.uniqueWeapon?.level || ''}
+                                    onChange={(e) => {
+                                      const val = parseInt(e.target.value);
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: form.uniqueWeapon?.stars || 1, level: isNaN(val) ? undefined : val });
+                                    }}
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                  />
+                                  <button type="button" onClick={() => {
+                                      const s = form.uniqueWeapon?.stars || 1;
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { stars: s, level: getWeaponMaxLevel(s) });
+                                  }} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>

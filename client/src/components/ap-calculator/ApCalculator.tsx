@@ -393,9 +393,9 @@ export function ApCalculator() {
                 {/* 날짜 구분 배너 */}
                 <div className="flex items-center gap-3 mb-4">
                   <div className="h-px flex-1 bg-[var(--plana-border)]"></div>
-                  <span className="text-sm font-bold text-[var(--plana-primary-dark)] bg-[var(--plana-primary-light)]/10 px-4 py-1 rounded-full border border-[var(--plana-primary-light)]/30">
+                  <div className="shrink-0 text-center text-sm font-bold text-[var(--plana-primary-dark)] bg-[var(--plana-primary-light)]/10 px-5 py-2 rounded-2xl border border-[var(--plana-primary-light)]/30 whitespace-nowrap">
                     {group.dayLabel}
-                  </span>
+                  </div>
                   <div className="h-px flex-1 bg-[var(--plana-border)]"></div>
                 </div>
 
@@ -547,9 +547,9 @@ export function ApCalculator() {
                   {/* 날짜 구분 배너 */}
                   <div className="flex items-center gap-3 my-4">
                     <div className="h-px flex-1 bg-slate-300"></div>
-                    <span className="text-sm font-bold text-[var(--plana-primary-dark)] bg-[var(--plana-primary-light)]/15 px-5 py-1.5 rounded-full border border-[var(--plana-primary-light)]/30">
+                    <div className="shrink-0 text-center text-sm font-bold text-[var(--plana-primary-dark)] bg-[var(--plana-primary-light)]/15 px-6 py-2 rounded-2xl border border-[var(--plana-primary-light)]/30 whitespace-nowrap">
                       {group.dayLabel}
-                    </span>
+                    </div>
                     <div className="h-px flex-1 bg-slate-300"></div>
                   </div>
 

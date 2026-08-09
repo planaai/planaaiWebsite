@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Check } from 'lucide-react';
+import { getEquipMaxLevel, getWeaponMaxLevel, SKILL_MAX } from '@/lib/equipmentUtils';
 
 interface PlannerEditFormProps {
   editingPlan: any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
@@ -59,19 +60,19 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                 <div className="grid grid-cols-2 gap-6">
                     <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1.5">EX 스킬 <span className="text-[10px] opacity-70 font-normal">(1~5)</span></label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="5" value={editingPlan.currentEx} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentEx} max="5" value={editingPlan.targetEx} onChange={e => setEditingPlan({...editingPlan, targetEx: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEx)})} className={activeInputClass} /></div>
+                        <div className="flex gap-1 items-center"><input type="number" min="1" max="5" value={editingPlan.currentEx} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold mx-1">➔</span><input type="number" min={editingPlan.currentEx} max="5" value={editingPlan.targetEx} onChange={e => setEditingPlan({...editingPlan, targetEx: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEx)})} className={activeInputClass} /><button type="button" onClick={() => setEditingPlan({...editingPlan, targetEx: Math.max(SKILL_MAX.ex, editingPlan.currentEx)})} className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors">M</button></div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1.5">기본 스킬 <span className="text-[10px] opacity-70 font-normal">(1~10)</span></label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentBasic} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentBasic} max="10" value={editingPlan.targetBasic} onChange={e => setEditingPlan({...editingPlan, targetBasic: Math.max((parseInt(e.target.value) || 0), editingPlan.currentBasic)})} className={activeInputClass} /></div>
+                        <div className="flex gap-1 items-center"><input type="number" min="1" max="10" value={editingPlan.currentBasic} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold mx-1">➔</span><input type="number" min={editingPlan.currentBasic} max="10" value={editingPlan.targetBasic} onChange={e => setEditingPlan({...editingPlan, targetBasic: Math.max((parseInt(e.target.value) || 0), editingPlan.currentBasic)})} className={activeInputClass} /><button type="button" onClick={() => setEditingPlan({...editingPlan, targetBasic: Math.max(SKILL_MAX.normal, editingPlan.currentBasic)})} className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors">M</button></div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1.5">강화 스킬 <span className="text-[10px] opacity-70 font-normal">(1~10)</span></label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentEnh} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentEnh} max="10" value={editingPlan.targetEnh} onChange={e => setEditingPlan({...editingPlan, targetEnh: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEnh)})} className={activeInputClass} /></div>
+                        <div className="flex gap-1 items-center"><input type="number" min="1" max="10" value={editingPlan.currentEnh} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold mx-1">➔</span><input type="number" min={editingPlan.currentEnh} max="10" value={editingPlan.targetEnh} onChange={e => setEditingPlan({...editingPlan, targetEnh: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEnh)})} className={activeInputClass} /><button type="button" onClick={() => setEditingPlan({...editingPlan, targetEnh: Math.max(SKILL_MAX.passive, editingPlan.currentEnh)})} className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors">M</button></div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1.5">서브 스킬 <span className="text-[10px] opacity-70 font-normal">(1~10)</span></label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentSub} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentSub} max="10" value={editingPlan.targetSub} onChange={e => setEditingPlan({...editingPlan, targetSub: Math.max((parseInt(e.target.value) || 0), editingPlan.currentSub)})} className={activeInputClass} /></div>
+                        <div className="flex gap-1 items-center"><input type="number" min="1" max="10" value={editingPlan.currentSub} disabled className={disabledInputClass} /><span className="text-slate-300 font-bold mx-1">➔</span><input type="number" min={editingPlan.currentSub} max="10" value={editingPlan.targetSub} onChange={e => setEditingPlan({...editingPlan, targetSub: Math.max((parseInt(e.target.value) || 0), editingPlan.currentSub)})} className={activeInputClass} /><button type="button" onClick={() => setEditingPlan({...editingPlan, targetSub: Math.max(SKILL_MAX.sub, editingPlan.currentSub)})} className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors">M</button></div>
                     </div>
                 </div>
             </div>
@@ -83,19 +84,59 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                 <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>장비 티어 <span className="text-[10px] font-normal text-slate-500">(1~10)</span>
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5">슬롯1 (모자/장갑...)</label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentEquip1} disabled className={disabledInputClass.replace('sm:w-16', 'flex-1')} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentEquip1} max="10" value={editingPlan.targetEquip1} onChange={e => setEditingPlan({...editingPlan, targetEquip1: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEquip1)})} className={activeInputClass.replace('sm:w-16', 'flex-1')} /></div>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5">슬롯2 (헤어핀...)</label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentEquip2} disabled className={disabledInputClass.replace('sm:w-16', 'flex-1')} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentEquip2} max="10" value={editingPlan.targetEquip2} onChange={e => setEditingPlan({...editingPlan, targetEquip2: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEquip2)})} className={activeInputClass.replace('sm:w-16', 'flex-1')} /></div>
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5">슬롯3 (시계/부적...)</label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max="10" value={editingPlan.currentEquip3} disabled className={disabledInputClass.replace('sm:w-16', 'flex-1')} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentEquip3} max="10" value={editingPlan.targetEquip3} onChange={e => setEditingPlan({...editingPlan, targetEquip3: Math.max((parseInt(e.target.value) || 0), editingPlan.currentEquip3)})} className={activeInputClass.replace('sm:w-16', 'flex-1')} /></div>
-                    </div>
+                <div className="grid grid-cols-1 gap-6">
+                    {[1, 2, 3].map((slot) => {
+                        const curT = editingPlan[`currentEquip${slot}`] || 0;
+                        const curL = editingPlan[`currentEquip${slot}Level`] || 1;
+                        const tgtT = editingPlan[`targetEquip${slot}`] || 0;
+                        const tgtL = editingPlan[`targetEquip${slot}Level`] || 1;
+                        const label = slot === 1 ? '슬롯1 (모자/장갑...)' : slot === 2 ? '슬롯2 (헤어핀...)' : '슬롯3 (시계/부적...)';
+                        
+                        return (
+                        <div key={slot} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-bold text-slate-500">{label}</label>
+                                <label className="flex items-center gap-2 cursor-pointer w-max">
+                                    <input type="checkbox" checked={tgtT === 0} onChange={(e) => setEditingPlan({...editingPlan, [`targetEquip${slot}`]: e.target.checked ? 0 : Math.max(1, curT), [`targetEquip${slot}Level`]: e.target.checked ? 1 : Math.max(1, curL)})} className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded" />
+                                    <span className="text-[10px] text-slate-500 font-bold">미착용 목표</span>
+                                </label>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                {/* 현재 */}
+                                <div className={`flex gap-1 ${curT === 0 ? 'opacity-50' : ''}`}>
+                                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg overflow-hidden">
+                                        <span className="text-[10px] font-bold px-1.5 text-slate-400">T</span>
+                                        <input type="number" value={curT === 0 ? '' : curT} disabled className="w-8 bg-transparent px-1 py-1.5 text-xs text-center text-slate-400 focus:outline-none" />
+                                    </div>
+                                    <div className="flex items-center bg-slate-100 border border-slate-200 rounded-lg overflow-hidden">
+                                        <span className="text-[10px] font-bold px-1.5 text-slate-400">Lv</span>
+                                        <input type="number" value={curT === 0 ? '' : curL} disabled className="w-10 bg-transparent px-1 py-1.5 text-xs text-center text-slate-400 focus:outline-none" />
+                                    </div>
+                                </div>
+                                <span className="text-slate-300 font-bold hidden sm:block">➔</span>
+                                {/* 목표 */}
+                                <div className={`flex gap-1 flex-1 ${tgtT === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
+                                    <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 h-full flex items-center">T</span>
+                                        <input type="number" min={Math.max(1, curT)} max={10} value={tgtT === 0 ? '' : tgtT} onChange={e => {
+                                            const val = Math.max(parseInt(e.target.value) || 1, curT);
+                                            setEditingPlan({...editingPlan, [`targetEquip${slot}`]: val, [`targetEquip${slot}Level`]: Math.max(getEquipMaxLevel(val), curL)});
+                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none" />
+                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}`]: 10, [`targetEquip${slot}Level`]: getEquipMaxLevel(10)})} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors">M</button>
+                                    </div>
+                                    <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                        <input type="number" min={curT === tgtT ? Math.max(1, curL) : 1} max={90} value={tgtT === 0 ? '' : tgtL} onChange={e => {
+                                            const val = Math.max(parseInt(e.target.value) || 1, curT === tgtT ? curL : 1);
+                                            setEditingPlan({...editingPlan, [`targetEquip${slot}Level`]: val});
+                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none" />
+                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}Level`]: Math.max(getEquipMaxLevel(tgtT), curL)})} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors">M</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>
@@ -106,14 +147,43 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                 <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>고유무기
                 </h4>
-                <div className="grid grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5">성급 <span className="font-normal opacity-70">(0~4)</span></label>
-                        <div className="flex gap-2 items-center"><input type="number" min="0" max="4" value={editingPlan.currentWeaponStar} disabled className={disabledInputClass.replace('sm:w-16', 'flex-1')} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentWeaponStar} max="4" value={editingPlan.targetWeaponStar} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentWeaponStar); const maxLvl = v ? v * 10 + 20 : 1; setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.min(editingPlan.targetWeaponLevel, maxLvl), targetStar: v >= 1 ? 5 : editingPlan.targetStar}); }} className={activeInputClass.replace('sm:w-16', 'flex-1')} /></div>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer w-max">
+                            <input type="checkbox" checked={editingPlan.targetWeaponStar === 0} onChange={(e) => {
+                                const checked = e.target.checked;
+                                setEditingPlan({
+                                    ...editingPlan, 
+                                    targetWeaponStar: checked ? 0 : Math.max(1, editingPlan.currentWeaponStar || 1),
+                                    targetWeaponLevel: checked ? 1 : Math.max(1, editingPlan.currentWeaponLevel || 1)
+                                });
+                            }} className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded" />
+                            <span className="text-[10px] text-slate-500 font-bold">미착용 목표</span>
+                        </label>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1.5">레벨</label>
-                        <div className="flex gap-2 items-center"><input type="number" min="1" max={editingPlan.currentWeaponStar ? editingPlan.currentWeaponStar * 10 + 20 : 1} value={editingPlan.currentWeaponLevel} disabled className={disabledInputClass.replace('sm:w-16', 'flex-1')} /><span className="text-slate-300 font-bold">➔</span><input type="number" min={editingPlan.currentWeaponLevel} max={editingPlan.targetWeaponStar ? editingPlan.targetWeaponStar * 10 + 20 : 1} value={editingPlan.targetWeaponLevel} onChange={e => { const maxLvl = editingPlan.targetWeaponStar ? editingPlan.targetWeaponStar * 10 + 20 : 1; setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(Math.min((parseInt(e.target.value) || 0), maxLvl), editingPlan.currentWeaponLevel)}); }} className={activeInputClass.replace('sm:w-16', 'flex-1')} /></div>
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 transition-opacity ${editingPlan.targetWeaponStar === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1.5">성급 <span className="font-normal opacity-70">(0~4)</span></label>
+                            <div className="flex gap-1 items-center">
+                                <input type="number" value={editingPlan.currentWeaponStar} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
+                                <span className="text-slate-300 font-bold mx-1">➔</span>
+                                <div className="flex-1 flex items-center bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
+                                    <input type="number" min={Math.max(1, editingPlan.currentWeaponStar)} max="4" value={editingPlan.targetWeaponStar === 0 ? '' : editingPlan.targetWeaponStar} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentWeaponStar); const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel, maxLvl), editingPlan.currentWeaponLevel), targetStar: v >= 1 ? 5 : editingPlan.targetStar}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none" />
+                                    <button type="button" onClick={() => { const v = 4; const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel, maxLvl), editingPlan.currentWeaponLevel), targetStar: 5}); }} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1.5">레벨</label>
+                            <div className="flex gap-1 items-center">
+                                <input type="number" value={editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : ''} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
+                                <span className="text-slate-300 font-bold mx-1">➔</span>
+                                <div className="flex-1 flex items-center bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
+                                    <input type="number" min={editingPlan.targetWeaponStar === editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : 1} max={getWeaponMaxLevel(editingPlan.targetWeaponStar)} value={editingPlan.targetWeaponStar === 0 ? '' : editingPlan.targetWeaponLevel} onChange={e => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(Math.min((parseInt(e.target.value) || 0), maxLvl), editingPlan.targetWeaponStar === editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : 1)}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none" />
+                                    <button type="button" onClick={() => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(maxLvl, editingPlan.currentWeaponLevel)}); }} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
