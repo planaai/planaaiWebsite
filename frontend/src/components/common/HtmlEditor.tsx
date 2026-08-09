@@ -45,7 +45,7 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
   // 1. Sync external value to editor (only if editor's content is different from external value)
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value, false);
+      editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [value, editor]);
 
