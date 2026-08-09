@@ -69,14 +69,14 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
       FontSize,
     ],
     content: value,
-    onUpdate: ({ editor }) => {
+    onUpdate: ({ editor }: any) => {
       onChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
         class: `prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none max-w-none w-full p-4 min-h-[${minHeight}] text-gray-900`,
       },
-      handlePaste: (view, event, slice) => {
+      handlePaste: (view: any, event: any, slice: any) => {
         const items = event.clipboardData?.items;
         if (items) {
           for (let i = 0; i < items.length; i++) {
@@ -92,7 +92,7 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
         }
         return false;
       },
-      handleDrop: (view, event, slice, moved) => {
+      handleDrop: (view: any, event: any, slice: any, moved: any) => {
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
           const file = event.dataTransfer.files[0];
           if (file.type.startsWith('image/')) {
