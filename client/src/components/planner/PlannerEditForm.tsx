@@ -240,7 +240,7 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
       </div>
 
       {/* Footer Actions */}
-      <div className="pt-4 mt-2 border-t border-slate-100 flex justify-end shrink-0 bg-white rounded-b-xl sticky bottom-0">
+      <div className="pt-4 mt-2 border-t border-slate-100 flex justify-end shrink-0 bg-transparent rounded-b-xl sticky bottom-0">
         <button 
           onClick={() => onSave(editingPlan)} 
           className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 bg-[var(--plana-primary)] hover:bg-[#d85e82] text-white rounded-xl font-bold transition-all shadow-md shadow-pink-500/20 hover:shadow-pink-500/40 hover:-translate-y-0.5"
