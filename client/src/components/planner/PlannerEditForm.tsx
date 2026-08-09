@@ -35,7 +35,7 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-[var(--plana-primary)] mb-1.5">목표 성급</label>
-                      <input type="number" min={editingPlan.currentStar || 3} max="5" value={editingPlan.targetStar || 5} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentStar || 3); setEditingPlan({...editingPlan, targetStar: v, targetWeaponStar: v < 5 ? 0 : editingPlan.targetWeaponStar, targetWeaponLevel: v < 5 ? 1 : editingPlan.targetWeaponLevel}); }} className="w-full bg-white border-2 border-pink-200 focus:border-[var(--plana-primary)] focus:outline-none rounded-lg px-3 py-2 text-slate-800 transition-colors" />
+                      <input type="number" min={editingPlan.currentStar || 3} max="5" value={editingPlan.targetStar || 5} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentStar || 3); setEditingPlan({...editingPlan, targetStar: v}); }} className="w-full bg-white border-2 border-pink-200 focus:border-[var(--plana-primary)] focus:outline-none rounded-lg px-3 py-2 text-slate-800 transition-colors" />
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -148,6 +148,11 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>고유무기
                 </h4>
                 <div className="space-y-4">
+                    {(editingPlan.targetStar || 5) < 5 && editingPlan.targetWeaponStar > 0 && (
+                      <div className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                        ⚠️ 고유무기 해금에는 5성이 필요합니다. (목표 성급 상향 필요)
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                         <label className="flex items-center gap-2 cursor-pointer w-max">
                             <input type="checkbox" checked={editingPlan.targetWeaponStar === 0} onChange={(e) => {
