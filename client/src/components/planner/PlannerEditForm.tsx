@@ -116,21 +116,21 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                                 <span className="text-slate-300 font-bold hidden sm:block">➔</span>
                                 {/* 목표 */}
                                 <div className={`flex gap-1 flex-1 ${tgtT === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
-                                    <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 h-full flex items-center">T</span>
+                                    <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 flex items-center">T</span>
                                         <input type="number" min={Math.max(1, curT)} max={10} value={tgtT === 0 ? '' : tgtT} onChange={e => {
                                             const val = Math.max(parseInt(e.target.value) || 1, curT);
                                             setEditingPlan({...editingPlan, [`targetEquip${slot}`]: val, [`targetEquip${slot}Level`]: Math.max(getEquipMaxLevel(val), curL)});
-                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none" />
-                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}`]: 10, [`targetEquip${slot}Level`]: getEquipMaxLevel(10)})} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors">M</button>
+                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none min-w-0" />
+                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}`]: 10, [`targetEquip${slot}Level`]: getEquipMaxLevel(10)})} className="px-2 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                     </div>
-                                    <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                    <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                        <span className="text-[10px] text-[var(--plana-primary-dark)] font-bold px-1.5 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
                                         <input type="number" min={curT === tgtT ? Math.max(1, curL) : 1} max={90} value={tgtT === 0 ? '' : tgtL} onChange={e => {
                                             const val = Math.max(parseInt(e.target.value) || 1, curT === tgtT ? curL : 1);
                                             setEditingPlan({...editingPlan, [`targetEquip${slot}Level`]: val});
-                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none" />
-                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}Level`]: Math.max(getEquipMaxLevel(tgtT), curL)})} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors">M</button>
+                                        }} className="w-full bg-transparent px-1 py-1.5 text-xs text-center focus:outline-none min-w-0" />
+                                        <button type="button" onClick={() => setEditingPlan({...editingPlan, [`targetEquip${slot}Level`]: Math.max(getEquipMaxLevel(tgtT), curL)})} className="px-2 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-[10px] font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                     </div>
                                 </div>
                             </div>
@@ -165,22 +165,22 @@ export function PlannerEditForm({ editingPlan, setEditingPlan, onSave }: Planner
                         <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1.5">성급 <span className="font-normal opacity-70">(0~4)</span></label>
                             <div className="flex gap-1 items-center">
-                                <input type="number" value={editingPlan.currentWeaponStar} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
+                                <input type="number" value={editingPlan.currentWeaponStar || 0} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
                                 <span className="text-slate-300 font-bold mx-1">➔</span>
-                                <div className="flex-1 flex items-center bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
-                                    <input type="number" min={Math.max(1, editingPlan.currentWeaponStar)} max="4" value={editingPlan.targetWeaponStar === 0 ? '' : editingPlan.targetWeaponStar} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentWeaponStar); const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel, maxLvl), editingPlan.currentWeaponLevel), targetStar: v >= 1 ? 5 : editingPlan.targetStar}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none" />
-                                    <button type="button" onClick={() => { const v = 4; const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel, maxLvl), editingPlan.currentWeaponLevel), targetStar: 5}); }} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                <div className="flex-1 flex items-stretch bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
+                                    <input type="number" min={Math.max(1, editingPlan.currentWeaponStar || 1)} max="4" value={editingPlan.targetWeaponStar === 0 ? '' : (editingPlan.targetWeaponStar || '')} onChange={e => { const v = Math.max((parseInt(e.target.value) || 0), editingPlan.currentWeaponStar || 0); const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel || 1, maxLvl), editingPlan.currentWeaponLevel || 1), targetStar: v >= 1 ? 5 : editingPlan.targetStar}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none min-w-0" />
+                                    <button type="button" onClick={() => { const v = 4; const maxLvl = getWeaponMaxLevel(v); setEditingPlan({...editingPlan, targetWeaponStar: v, targetWeaponLevel: Math.max(Math.min(editingPlan.targetWeaponLevel || 1, maxLvl), editingPlan.currentWeaponLevel || 1), targetStar: 5}); }} className="px-2 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1.5">레벨</label>
                             <div className="flex gap-1 items-center">
-                                <input type="number" value={editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : ''} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
+                                <input type="number" value={editingPlan.currentWeaponStar ? (editingPlan.currentWeaponLevel || 1) : ''} disabled className={disabledInputClass.replace('sm:w-16', 'w-12')} />
                                 <span className="text-slate-300 font-bold mx-1">➔</span>
-                                <div className="flex-1 flex items-center bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
-                                    <input type="number" min={editingPlan.targetWeaponStar === editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : 1} max={getWeaponMaxLevel(editingPlan.targetWeaponStar)} value={editingPlan.targetWeaponStar === 0 ? '' : editingPlan.targetWeaponLevel} onChange={e => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(Math.min((parseInt(e.target.value) || 0), maxLvl), editingPlan.targetWeaponStar === editingPlan.currentWeaponStar ? editingPlan.currentWeaponLevel : 1)}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none" />
-                                    <button type="button" onClick={() => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(maxLvl, editingPlan.currentWeaponLevel)}); }} className="px-2 h-full bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                <div className="flex-1 flex items-stretch bg-white border-2 border-pink-200 focus-within:border-[var(--plana-primary)] rounded-lg overflow-hidden transition-colors">
+                                    <input type="number" min={editingPlan.targetWeaponStar === (editingPlan.currentWeaponStar || 0) ? (editingPlan.currentWeaponLevel || 1) : 1} max={getWeaponMaxLevel(editingPlan.targetWeaponStar || 1)} value={editingPlan.targetWeaponStar === 0 ? '' : (editingPlan.targetWeaponLevel || '')} onChange={e => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar || 1); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(Math.min((parseInt(e.target.value) || 0), maxLvl), editingPlan.targetWeaponStar === (editingPlan.currentWeaponStar || 0) ? (editingPlan.currentWeaponLevel || 1) : 1)}); }} className="w-full bg-transparent px-2 py-1.5 text-center text-slate-800 focus:outline-none min-w-0" />
+                                    <button type="button" onClick={() => { const maxLvl = getWeaponMaxLevel(editingPlan.targetWeaponStar || 1); setEditingPlan({...editingPlan, targetWeaponLevel: Math.max(maxLvl, editingPlan.currentWeaponLevel || 1)}); }} className="px-2 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                 </div>
                             </div>
                         </div>

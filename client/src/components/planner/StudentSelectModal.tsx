@@ -22,7 +22,7 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-4">
       <div className="bg-white/95 rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
         
         {/* Header */}

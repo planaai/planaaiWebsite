@@ -116,7 +116,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
 
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 animate-fade-in">
       <div className="bg-white border border-[var(--plana-border)] w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-[var(--plana-border)] bg-slate-50">
@@ -275,8 +275,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                     <span className="text-[10px] text-slate-500 font-bold">미착용</span>
                                   </label>
                                   <div className={`flex gap-2 items-center transition-opacity ${isUnequipped ? 'opacity-40 pointer-events-none' : ''}`}>
-                                    <div className="flex-[2] flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">T</span>
+                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">T</span>
                                       <input 
                                         type="number" min={1} max={10}
                                         placeholder="티어"
@@ -286,12 +286,12 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                           const newTier = isNaN(val) ? 1 : val;
                                           handleUpdateForm(form._localId, `equipment.${eq}`, { tier: newTier, level: getEquipMaxLevel(newTier) });
                                         }}
-                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
                                       />
-                                      <button type="button" onClick={() => handleUpdateForm(form._localId, `equipment.${eq}`, { tier: 10, level: getEquipMaxLevel(10) })} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors">M</button>
+                                      <button type="button" onClick={() => handleUpdateForm(form._localId, `equipment.${eq}`, { tier: 10, level: getEquipMaxLevel(10) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                     </div>
-                                    <div className="flex-[2] flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
                                       <input 
                                         type="number" min={1} max={90}
                                         placeholder="레벨"
@@ -300,12 +300,12 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                           const val = parseInt(e.target.value);
                                           handleUpdateForm(form._localId, `equipment.${eq}`, { tier: form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1, level: isNaN(val) ? undefined : val });
                                         }}
-                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
                                       />
                                       <button type="button" onClick={() => {
                                           const t = form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1;
                                           handleUpdateForm(form._localId, `equipment.${eq}`, { tier: t, level: getEquipMaxLevel(t) });
-                                      }} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                      }} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
                                     </div>
                                   </div>
                                 </div>
@@ -327,24 +327,24 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                 <span className="text-[10px] text-slate-500 font-bold">미착용(미해금)</span>
                               </label>
                               <div className={`flex gap-2 items-center transition-opacity ${form.uniqueWeapon?.stars === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
-                                <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
                                   <select 
                                     value={form.uniqueWeapon?.stars || 1} 
                                     onChange={(e) => {
                                       const star = parseInt(e.target.value);
                                       handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: star, level: form.uniqueWeapon?.level || 1 });
                                     }} 
-                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
                                   >
                                     <option value={1}>1성</option>
                                     <option value={2}>2성</option>
                                     <option value={3}>3성</option>
                                     <option value={4}>4성</option>
                                   </select>
-                                  <button type="button" onClick={() => handleUpdateForm(form._localId, 'uniqueWeapon', { stars: 4, level: getWeaponMaxLevel(4) })} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                  <button type="button" onClick={() => handleUpdateForm(form._localId, 'uniqueWeapon', { stars: 4, level: getWeaponMaxLevel(4) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
                                 </div>
-                                <div className="flex-1 flex items-center bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
-                                  <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 h-full flex items-center">Lv</span>
+                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
                                   <input 
                                     type="number" min={1} max={60} placeholder="레벨"
                                     value={form.uniqueWeapon?.level || ''}
@@ -352,12 +352,12 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                       const val = parseInt(e.target.value);
                                       handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: form.uniqueWeapon?.stars || 1, level: isNaN(val) ? undefined : val });
                                     }}
-                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none"
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
                                   />
                                   <button type="button" onClick={() => {
                                       const s = form.uniqueWeapon?.stars || 1;
                                       handleUpdateForm(form._localId, 'uniqueWeapon', { stars: s, level: getWeaponMaxLevel(s) });
-                                  }} className="px-2 h-full bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200">M</button>
+                                  }} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
                                 </div>
                               </div>
                             </div>
