@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api, fetchServerData, getImageUrl } from '@/lib/api';
 import { Trophy, Star, Sparkles, Medal } from 'lucide-react';
 
 interface HofEntry {
@@ -22,18 +22,27 @@ export default function HallOfFamePage() {
   const [entries, setEntries] = useState<HofEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [masterMap, setMasterMap] = useState<Record<number, any>>({});
+
   useEffect(() => {
-    const fetchHof = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/hof');
+        const [res, { masterData }] = await Promise.all([
+          api.get('/hof'),
+          fetchServerData()
+        ]);
         setEntries(res.data);
+        
+        const map: Record<number, any> = {};
+        masterData.forEach(m => { map[m.id] = m; });
+        setMasterMap(map);
       } catch (err) {
         console.error('명예의 전당 데이터를 불러오지 못했습니다.', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchHof();
+    fetchData();
   }, []);
 
   return (
@@ -72,7 +81,12 @@ export default function HallOfFamePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {entries.map((entry, index) => (
+            {entries.map((entry, index) => {
+              const masterStudent = masterMap[entry.studentId];
+              const portraitUrl = masterStudent?.portraitUrls?.[0];
+              const imgSrc = portraitUrl ? getImageUrl(portraitUrl) : `https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.studentId}.webp`;
+
+              return (
               <div 
                 key={entry.id}
                 className="group relative flex flex-col bg-[var(--plana-bg-panel)]/95 backdrop-blur-xl border border-[var(--plana-primary-light)] shadow-lg transition-all duration-300 hover:-translate-y-2 hover:bg-white/95 hover:border-[var(--plana-primary)] hover:shadow-[0_10px_30px_rgba(255,166,201,0.4)] overflow-hidden slide-in-right-anim"
@@ -90,7 +104,7 @@ export default function HallOfFamePage() {
                   {/* Student Image */}
                   <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-[var(--plana-primary-light)] transition-colors duration-300 flex-shrink-0 bg-slate-100">
                     <img
-                      src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.studentId}.webp`}
+                      src={imgSrc}
                       alt={entry.student.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }}

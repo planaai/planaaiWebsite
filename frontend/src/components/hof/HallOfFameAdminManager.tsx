@@ -153,11 +153,18 @@ export function HallOfFameAdminManager({ showToast, data }: HallOfFameAdminManag
             ) : entries.length === 0 ? (
               <tr><td colSpan={5} className="p-8 text-center text-slate-400">등록된 항목이 없습니다.</td></tr>
             ) : (
-              entries.map(entry => (
+              entries.map(entry => {
+                const masterStudent = data.find(d => d.master.id === entry.student.id)?.master;
+                const portraitUrl = masterStudent?.portraitUrls?.[0];
+                const imgSrc = portraitUrl 
+                  ? (portraitUrl.startsWith('http') ? portraitUrl : `${API}${portraitUrl.startsWith('/') ? portraitUrl : '/' + portraitUrl}`) 
+                  : `https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.student.id}.webp`;
+
+                return (
                 <tr key={entry.id} className="border-b border-slate-700/50 hover:bg-slate-750 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <img src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.student.id}.webp`} alt={entry.student.name} className="w-10 h-10 rounded bg-slate-800 object-cover" onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }} />
+                      <img src={imgSrc} alt={entry.student.name} className="w-10 h-10 rounded bg-slate-800 object-cover" onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }} />
                       <span className="font-medium text-slate-200">{entry.student.name}</span>
                     </div>
                   </td>
@@ -191,7 +198,8 @@ export function HallOfFameAdminManager({ showToast, data }: HallOfFameAdminManag
                     </button>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
