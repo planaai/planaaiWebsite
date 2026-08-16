@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Trophy, Star, Sparkles, Medal } from 'lucide-react';
-import Image from 'next/image';
 
 interface HofEntry {
   id: number;
@@ -38,86 +37,95 @@ export default function HallOfFamePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-100 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
-
-      <main className="max-w-7xl mx-auto px-6 py-16 relative z-10">
+    <div className="relative w-full min-h-[calc(100vh-8rem)] flex flex-col items-center z-20 bg-transparent py-12 px-4 sm:px-8">
+      <main className="w-full max-w-[1200px] flex flex-col gap-10">
+        
         {/* Header Section */}
-        <div className="text-center mb-20 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700/50 backdrop-blur-md mb-4 text-blue-400 font-medium tracking-wide">
+        <div className="flex flex-col items-center justify-center text-center fade-in-anim">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--plana-bg-panel)]/80 border border-[var(--plana-primary-light)] backdrop-blur-md mb-4 text-[var(--plana-primary-dark)] font-bold tracking-wide shadow-sm">
             <Sparkles size={16} />
             <span>Hall of Fame</span>
             <Sparkles size={16} />
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-            명예의 전당
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-800 mb-4 drop-shadow-sm">
+            명예의 <span className="text-[var(--plana-primary)]">전당</span>
           </h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            블루아카이브 세계관 속 최고의 활약을 보여준 학생들을 기리는 공간입니다.
+          <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed font-medium">
+            Plana.AI 발전에 기여해 주신 선생님들을 기념하는 공간입니다.<br className="hidden md:block" />
+            <span className="text-sm text-slate-500 font-normal">(기여자는 선생님이 지정하신 대표 학생으로 표기됩니다.)</span>
           </p>
         </div>
 
         {/* Content Section */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-            <Trophy className="w-16 h-16 text-slate-600 mb-4 animate-bounce" />
-            <p className="text-slate-400 font-medium">기록을 불러오는 중...</p>
+            <Trophy className="w-16 h-16 text-[var(--plana-primary-light)] mb-4 animate-bounce" />
+            <p className="text-slate-500 font-bold">기록을 불러오는 중...</p>
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-center py-32 bg-slate-900/40 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
-            <Medal className="w-20 h-20 text-slate-700 mx-auto mb-6" />
-            <h3 className="text-2xl font-bold text-slate-300 mb-2">아직 등재된 학생이 없습니다</h3>
-            <p className="text-slate-500">곧 위대한 기록들이 이곳에 새겨질 것입니다.</p>
+          <div className="flex flex-col items-center justify-center py-24 bg-[var(--plana-bg-panel)]/80 backdrop-blur-xl border border-[var(--plana-primary-light)] rounded-2xl shadow-lg fade-in-anim">
+            <div className="w-20 h-20 rounded-full bg-[var(--plana-primary-light)]/20 border border-[var(--plana-primary)] flex items-center justify-center text-[var(--plana-primary-dark)] mb-6 shadow-sm">
+              <Medal size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-700 mb-2">아직 등재된 선생님이 없습니다</h3>
+            <p className="text-slate-500 font-medium">곧 위대한 기여 기록들이 이곳에 새겨질 것입니다.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {entries.map((entry, index) => (
               <div 
                 key={entry.id}
-                className="group relative bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 hover:bg-slate-800/60 hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(59,130,246,0.2)]"
+                className="group relative flex flex-col bg-[var(--plana-bg-panel)]/95 backdrop-blur-xl border border-[var(--plana-primary-light)] shadow-lg transition-all duration-300 hover:-translate-y-2 hover:bg-white/95 hover:border-[var(--plana-primary)] hover:shadow-[0_10px_30px_rgba(255,166,201,0.4)] overflow-hidden slide-in-right-anim"
+                style={{ animationDelay: `${index * 0.1}s`, borderRadius: '1rem' }}
               >
+                {/* Accent Top Bar */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-[var(--plana-primary)] opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+
                 {/* Ranking Badge */}
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center font-black text-xl shadow-lg border-2 border-[#0a0a0f] z-20 group-hover:scale-110 transition-transform duration-300">
-                  #{index + 1}
+                <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-gradient-to-br from-[var(--plana-primary-light)] to-[var(--plana-primary)] text-white flex items-center justify-center font-black text-lg shadow-md border-2 border-white z-20 group-hover:scale-110 transition-transform duration-300">
+                  {index + 1}
                 </div>
 
-                <div className="flex items-start gap-6 relative z-10">
+                <div className="p-6 pt-8 flex items-start gap-5 relative z-10">
                   {/* Student Image */}
-                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-700 group-hover:border-blue-400/50 transition-colors duration-300 shadow-xl flex-shrink-0 bg-slate-800">
+                  <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-[var(--plana-primary-light)] transition-colors duration-300 flex-shrink-0 bg-slate-100">
                     <img
-                      src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/collection/${entry.studentId}.webp`}
+                      src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.studentId}.webp`}
                       alt={entry.student.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent pointer-events-none" />
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0 py-1">
-                    <div className="text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider flex items-center gap-1">
+                  <div className="flex-1 min-w-0 flex flex-col justify-center h-20 md:h-24">
+                    <div className="text-xs font-bold text-[var(--plana-primary-dark)] mb-1 uppercase tracking-wider flex items-center gap-1">
                       <Star size={12} className="fill-current" />
                       {entry.student.school || 'KIVOTOS'}
                     </div>
-                    <h2 className="text-2xl font-black text-slate-100 mb-2 truncate group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all">
+                    <h2 className="text-xl md:text-2xl font-black text-slate-800 truncate group-hover:text-[var(--plana-primary-dark)] transition-colors">
                       {entry.student.name}
                     </h2>
-                    <p className="text-sm text-slate-400 leading-relaxed line-clamp-3">
-                      {entry.achievement || '특별한 업적을 남겼습니다.'}
-                    </p>
                   </div>
                 </div>
 
-                {/* Footer Data */}
-                <div className="mt-6 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-500 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Trophy size={14} className="text-amber-500" />
-                    명예의 전당 헌액
-                  </span>
-                  <span>{new Date(entry.createdAt).toLocaleDateString('ko-KR')}</span>
+                <div className="px-6 pb-6 flex-1 flex flex-col justify-between">
+                  <div className="bg-slate-50/80 border border-slate-100 rounded-lg p-4 mb-4 min-h-[4.5rem]">
+                    <p className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-3">
+                      {entry.achievement || 'Plana.AI 발전에 크게 기여하셨습니다.'}
+                    </p>
+                  </div>
+                  
+                  {/* Footer Data */}
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 border-t border-slate-100 pt-3">
+                    <span className="flex items-center gap-1.5 text-[var(--plana-primary-dark)]/70">
+                      <Trophy size={14} />
+                      명예의 전당 헌액
+                    </span>
+                    <span>{new Date(entry.createdAt).toLocaleDateString('ko-KR')}</span>
+                  </div>
                 </div>
+
               </div>
             ))}
           </div>

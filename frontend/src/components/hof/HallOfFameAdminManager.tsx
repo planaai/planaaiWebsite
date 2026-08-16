@@ -157,7 +157,7 @@ export function HallOfFameAdminManager({ showToast, data }: HallOfFameAdminManag
                 <tr key={entry.id} className="border-b border-slate-700/50 hover:bg-slate-750 transition-colors">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <img src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/collection/${entry.student.id}.webp`} alt={entry.student.name} className="w-10 h-10 rounded bg-slate-800 object-cover" onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }} />
+                      <img src={`https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/${entry.student.id}.webp`} alt={entry.student.name} className="w-10 h-10 rounded bg-slate-800 object-cover" onError={(e) => { e.currentTarget.src = 'https://raw.githubusercontent.com/SchaleDB/SchaleDB/main/images/student/icon/10000.webp'; }} />
                       <span className="font-medium text-slate-200">{entry.student.name}</span>
                     </div>
                   </td>

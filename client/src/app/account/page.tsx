@@ -157,7 +157,7 @@ export default function AccountPage() {
         </form>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-slate-800 mb-4">고객지원</h2>
+          <h2 className="text-xl font-bold text-slate-800 mb-4">문의사항</h2>
           <div className="flex flex-col gap-3">
             <Link href="/inquiries" className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-pink-50 hover:border-pink-200 hover:text-[var(--plana-primary)] transition-all group cursor-pointer">
               <div className="flex items-center gap-3">
