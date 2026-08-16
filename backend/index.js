@@ -66,6 +66,7 @@ const schemaRouter = require('./routes/schema');
 const imagesRouter = require('./routes/images');
 const masterRouter = require('./routes/master');
 const archiveRouter = require('./routes/archive');
+const hofRouter = require('./routes/hof');
 
 const { requireAdmin } = require('./middleware/auth');
 
@@ -97,6 +98,7 @@ app.use('/api/schema', schemaRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/master', masterRouter);
 app.use('/api/archive', archiveRouter);
+app.use('/api/hof', hofRouter);
 
 app.listen(port, () => console.log(`Backend Server running at http://localhost:${port}`));
 

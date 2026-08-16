@@ -59,6 +59,19 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
+  const isDirty = formData.name.trim() !== '' || formData.tactics.trim() !== '' || party !== null;
+
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fetchedUrls = useRef<Set<string>>(new Set());
 

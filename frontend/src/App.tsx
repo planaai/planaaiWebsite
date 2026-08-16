@@ -18,9 +18,11 @@ import { RaidAdminManager } from './components/raids/RaidAdminManager';
 import { ShadowbanAdminManager } from './components/shadowban/ShadowbanAdminManager';
 import { AdminLogin } from './components/auth/AdminLogin';
 import { ReportAdminManager } from './components/reports/ReportAdminManager';
+import { HallOfFameAdminManager } from './components/hof/HallOfFameAdminManager';
+import { Trophy } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'reports' | 'shadowban'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'reports' | 'shadowban' | 'hof'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -192,7 +194,8 @@ export default function App() {
              { id: 'inquiries', icon: MessageSquare, label: '문의사항 관리', color: 'rose' },
              { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' },
              { id: 'reports', icon: ShieldAlert, label: '공략 신고 관리', color: 'red' },
-             { id: 'shadowban', icon: ShieldAlert, label: '쉐도우밴', color: 'red' }
+             { id: 'shadowban', icon: ShieldAlert, label: '쉐도우밴', color: 'red' },
+             { id: 'hof', icon: Trophy, label: '명예의 전당', color: 'yellow' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
@@ -222,6 +225,7 @@ export default function App() {
           { activeTab === 'raids' && <RaidAdminManager showToast={showToast} /> }
           { activeTab === 'reports' && <ReportAdminManager showToast={showToast} /> }
           { activeTab === 'shadowban' && <ShadowbanAdminManager showToast={showToast} /> }
+          { activeTab === 'hof' && <HallOfFameAdminManager showToast={showToast} data={data} /> }
         </div>
       </main>
     </div>

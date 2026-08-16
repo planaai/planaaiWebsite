@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, KeyRound, Save, Loader2, Check } from 'lucide-react';
+import Link from 'next/link';
+import { User, KeyRound, Save, Loader2, Check, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { updateProfile } from '@/lib/api';
 
@@ -113,7 +114,7 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <form onSubmit={handleUpdate} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+        <form onSubmit={handleUpdate} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg mb-6">
           <h2 className="text-xl font-bold text-slate-800 mb-4">프로필 수정</h2>
           
           <div className="space-y-4">
@@ -154,6 +155,23 @@ export default function AccountPage() {
             </button>
           </div>
         </form>
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">고객지원</h2>
+          <div className="flex flex-col gap-3">
+            <Link href="/inquiries" className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl hover:bg-pink-50 hover:border-pink-200 hover:text-[var(--plana-primary)] transition-all group cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200 group-hover:border-pink-200 shadow-sm">
+                  <MessageSquare size={20} className="text-slate-500 group-hover:text-[var(--plana-primary)] transition-colors" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 group-hover:text-[var(--plana-primary)] transition-colors m-0 leading-none">문의사항 / 고객센터</h3>
+                  <p className="text-sm text-slate-500 mt-1 mb-0 leading-none">버그 제보, 건의사항, 리소스 지원</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

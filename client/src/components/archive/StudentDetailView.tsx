@@ -140,10 +140,10 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
         </Link>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 max-w-[1150px] mx-auto w-full">
+      <div className="flex flex-col lg:flex-row gap-8 max-w-[1150px] mx-auto w-full items-start">
         
         {/* Left Column (Illustration & Info) */}
-        <div className="lg:w-[440px] shrink-0 relative h-[820px] -translate-x-8">
+        <div className="lg:w-[440px] shrink-0 relative h-[820px] -translate-x-8 lg:sticky lg:top-8 z-10">
           {/* Skewed Background & Clipping Container */}
           <div className="absolute inset-0 bg-white/60 backdrop-blur-md border border-white shadow-lg -skew-x-[4deg] rounded-3xl overflow-hidden">
             
@@ -249,7 +249,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
         </div>
 
         {/* Right Column (Stats & Skills) */}
-        <div className="flex-1 flex flex-col pt-4 h-[820px] overflow-y-auto pr-4 pl-2 -ml-2 pb-10">
+        <div className="flex-1 flex flex-col pt-4 pr-4 pl-2 -ml-2 pb-10">
           
           {/* Header row: Level & Tabs */}
           <div className="flex justify-between items-end border-b border-[var(--plana-primary)]/20 pb-2 mb-6">

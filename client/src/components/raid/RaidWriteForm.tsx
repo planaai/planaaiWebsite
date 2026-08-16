@@ -58,6 +58,19 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
     initialData?.youtubeUrls?.map(u => typeof u === 'string' ? {url: u, title: '', channel: ''} : {url: u.url, title: u.title || '', channel: u.channel || ''}) || []
   );
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const isDirty = formData.name.trim() !== '' || formData.tactics.trim() !== '' || parties.length > 0;
+
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   
   const fileInputRef = useRef<HTMLInputElement>(null);

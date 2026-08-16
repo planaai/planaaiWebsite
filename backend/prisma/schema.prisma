@@ -30,6 +30,7 @@ model Student {
   collections     Collection[]
   growthPlans     GrowthPlan[]
   stats           StudentStats?
+  hallOfFames     HallOfFame[]
 }
 
 model StudentStats {
@@ -375,4 +376,15 @@ model BannedIP {
   reason          String?
   createdAt       DateTime @default(now())
   bannedByAdminId Int?
+}
+
+model HallOfFame {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  achievement String?  @db.Text
+  isVisible   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }

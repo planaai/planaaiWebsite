@@ -29,9 +29,24 @@ export default function InquiriesPage() {
   const [myInquiries, setMyInquiries] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
+  // 작성 중 변경사항 감지
+  const isDirty = title.trim() !== '' || content.trim() !== '' || images.length > 0;
+
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty && activeTab !== 'MY_INQUIRIES') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, activeTab]);
 
   useEffect(() => {
     if (activeTab === 'MY_INQUIRIES' && user) {
