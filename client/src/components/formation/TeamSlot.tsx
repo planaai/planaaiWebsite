@@ -161,7 +161,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
                   <img
                     src={getImageUrl(portraitUrl)}
                     alt={student.name}
-                    className="max-w-none object-cover drop-shadow-xl transition-transform"
+                    className="max-w-none object-cover drop-shadow-xl"
                     style={{ 
                       width: `${config.scale}%`,
                       transform: `translate(${config.offsetX}%, ${config.offsetY}%)`,

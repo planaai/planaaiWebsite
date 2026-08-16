@@ -165,7 +165,7 @@ export default function AccountPage() {
                   <MessageSquare size={20} className="text-slate-500 group-hover:text-[var(--plana-primary)] transition-colors" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-800 group-hover:text-[var(--plana-primary)] transition-colors m-0 leading-none">문의사항 / 고객센터</h3>
+                  <h3 className="font-semibold text-slate-800 group-hover:text-[var(--plana-primary)] transition-colors m-0 leading-none">문의사항</h3>
                   <p className="text-sm text-slate-500 mt-1 mb-0 leading-none">버그 제보, 건의사항, 리소스 지원</p>
                 </div>
               </div>
