@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'asc',
       },
     });
     res.json(hofList);
@@ -45,7 +45,7 @@ router.get('/admin', requireAdmin, async (req, res) => {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'asc',
       },
     });
     res.json(hofList);
