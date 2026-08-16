@@ -51,10 +51,8 @@ export default function HallOfFamePage() {
         
         {/* Header Section */}
         <div className="flex flex-col items-center justify-center text-center fade-in-anim">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--plana-bg-panel)]/80 border border-[var(--plana-primary-light)] backdrop-blur-md mb-4 text-[var(--plana-primary-dark)] font-bold tracking-wide shadow-sm">
-            <Sparkles size={16} />
-            <span>Hall of Fame</span>
-            <Sparkles size={16} />
+          <div className="text-[var(--plana-primary-dark)] font-bold tracking-widest uppercase mb-2">
+            Hall of Fame
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-800 mb-4 drop-shadow-sm">
             명예의 <span className="text-[var(--plana-primary)]">전당</span>
@@ -134,7 +132,7 @@ export default function HallOfFamePage() {
                   <div className="flex items-center justify-between text-xs font-bold text-slate-400 border-t border-slate-100 pt-3">
                     <span className="flex items-center gap-1.5 text-[var(--plana-primary-dark)]/70">
                       <Trophy size={14} />
-                      명예의 전당 헌액
+                      등재 날짜
                     </span>
                     <span>{new Date(entry.createdAt).toLocaleDateString('ko-KR')}</span>
                   </div>
