@@ -1,7 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { prisma } = require('../db');
+const { getStudentMasterDB } = require('../config/masterDB');
 
+// GET /api/students
+router.get('/', (req, res) => {
+  try {
+    const masterDB = getStudentMasterDB();
+    res.json(masterDB.map(s => s.name));
+  } catch (error) {
+    console.error('Error fetching student names from master DB:', error);
+    res.status(500).json({ error: 'Failed to fetch student names' });
+  }
+});
 // GET /api/students/names
 router.get('/names', async (req, res) => {
   try {
