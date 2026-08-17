@@ -7,8 +7,10 @@ export function BetaNotice() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const isHidden = localStorage.getItem('hideBetaNotice');
-    if (!isHidden) {
+    const hiddenDate = localStorage.getItem('hideBetaNoticeDate');
+    const today = new Date().toDateString();
+    
+    if (hiddenDate !== today) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
     }
@@ -16,7 +18,7 @@ export function BetaNotice() {
 
   const handleClose = () => {
     setIsVisible(false);
-    localStorage.setItem('hideBetaNotice', 'true');
+    localStorage.setItem('hideBetaNoticeDate', new Date().toDateString());
   };
 
   if (!isVisible) return null;

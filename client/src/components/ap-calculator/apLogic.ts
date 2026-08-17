@@ -24,6 +24,8 @@ export interface ApCalculationResult {
   totalHoardedAp: number;
   timeline: ApTimelineStep[];
   errorMessage?: string;
+  isRetroactive?: boolean;
+  warningMessage?: string;
   earliestMailboxExpiry?: Date;
   mailboxExpiryWarnings?: MailboxExpiryItem[];
 }
@@ -67,21 +69,26 @@ export function calculateApSchedule(
   useWeeklyQuest: boolean = true,
   useTr4DailyQuest: boolean = false
 ): ApCalculationResult {
-  const now = new Date();
+  let now = new Date();
+  let isRetroactive = false;
+  let warningMessage: string | undefined = undefined;
+
   if (targetDate <= now) {
-    return { isPossible: false, totalHoardedAp: 0, timeline: [], errorMessage: '목표 시간은 현재 시간보다 미래여야 합니다.' };
+    isRetroactive = true;
+    warningMessage = "⏪ 이 결과는 과거 시점 기준 시뮬레이션입니다. 실제 진행 상황과 다를 수 있습니다.";
+    // 가상 now 역산: 목표 시간 - (필요 존버 시간 + 버퍼 타임)
+    const totalHoursToSubtract = (hoardingDays * 24) + bufferHours;
+    now = subMinutes(targetDate, totalHoursToSubtract * 60);
   }
 
   // 최소 필요 시간 = hoardingDays * 24시간 정도
   const minHoursNeeded = hoardingDays * 24;
   const hoursUntilTarget = differenceInMinutes(targetDate, now) / 60;
-  if (hoursUntilTarget < minHoursNeeded) {
-    return {
-      isPossible: false,
-      totalHoardedAp: 0,
-      timeline: [],
-      errorMessage: `${hoardingDays}일 존버를 위해 최소 ${minHoursNeeded}시간 이상 남아야 합니다. (현재 ${Math.floor(hoursUntilTarget)}시간 남음)`
-    };
+  if (!isRetroactive && hoursUntilTarget < minHoursNeeded) {
+    warningMessage = `${hoardingDays}일 존버를 위해 최소 ${minHoursNeeded}시간 이상 남아야 하지만, 현재 ${Math.floor(hoursUntilTarget)}시간 남아있습니다. 참고용으로 계산되었습니다.`;
+    // 가상 now 역산 (시간이 부족하더라도 풀 스케줄을 재현하기 위함)
+    const totalHoursToSubtract = (hoardingDays * 24) + bufferHours;
+    now = subMinutes(targetDate, totalHoursToSubtract * 60);
   }
 
   // maxAp 계산
@@ -122,9 +129,12 @@ export function calculateApSchedule(
 
   if (hoardingDays === 1) {
     // ── 기존 1일 존버 로직 ──
-    return calculate1Day(targetDate, currentAp, cafeAp, useDailyQuest, pvpRefreshes,
+    const res = calculate1Day(targetDate, currentAp, cafeAp, useDailyQuest, pvpRefreshes,
       targetPyroxeneRefreshes, useApPackage, userLevel, maxAp, bufferHours,
       todayAttendance, useWeeklyQuest, now, allMailboxExpiry);
+    if (isRetroactive) res.isRetroactive = isRetroactive;
+    if (warningMessage) res.warningMessage = warningMessage;
+    return res;
   }
 
   // ── 2일/3일 존버 로직 ──
@@ -523,7 +533,9 @@ export function calculateApSchedule(
     totalHoardedAp: dDayTotal,
     timeline,
     earliestMailboxExpiry: earliestExpiry,
-    mailboxExpiryWarnings: expiryWarnings.length > 0 ? expiryWarnings : undefined
+    mailboxExpiryWarnings: expiryWarnings.length > 0 ? expiryWarnings : undefined,
+    isRetroactive,
+    warningMessage
   };
 }
 

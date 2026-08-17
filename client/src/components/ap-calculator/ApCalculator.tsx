@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { calculateApSchedule, ApTimelineStep, MailboxExpiryItem } from './apLogic';
 import { format } from 'date-fns';
 
@@ -38,6 +38,49 @@ export function ApCalculator() {
   const [isExporting, setIsExporting] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('apCalculatorState');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.targetDateStr) setTargetDateStr(parsed.targetDateStr);
+        if (parsed.currentAp !== undefined) setCurrentAp(parsed.currentAp);
+        if (parsed.cafeRank !== undefined) setCafeRank(parsed.cafeRank);
+        if (parsed.useDailyQuest !== undefined) setUseDailyQuest(parsed.useDailyQuest);
+        if (parsed.useWeeklyQuest !== undefined) setUseWeeklyQuest(parsed.useWeeklyQuest);
+        if (parsed.pvpRefreshes !== undefined) setPvpRefreshes(parsed.pvpRefreshes);
+        if (parsed.pyroxeneRefreshes !== undefined) setPyroxeneRefreshes(parsed.pyroxeneRefreshes);
+        if (parsed.useApPackage !== undefined) setUseApPackage(parsed.useApPackage);
+        if (parsed.userLevel !== undefined) setUserLevel(parsed.userLevel);
+        if (parsed.hoardingDays !== undefined) setHoardingDays(parsed.hoardingDays);
+        if (parsed.todayAttendance !== undefined) setTodayAttendance(parsed.todayAttendance);
+        if (parsed.useTr4DailyQuest !== undefined) setUseTr4DailyQuest(parsed.useTr4DailyQuest);
+        
+        // Only run calculation if targetDateStr exists
+        if (parsed.targetDateStr) {
+          const res = calculateApSchedule(
+            new Date(parsed.targetDateStr),
+            parsed.currentAp || 0,
+            CAFE_MAX_AP[parsed.cafeRank || 10] || 0,
+            parsed.useDailyQuest !== undefined ? parsed.useDailyQuest : true,
+            parsed.pvpRefreshes || 0,
+            parsed.pyroxeneRefreshes || 0,
+            parsed.useApPackage || false,
+            parsed.userLevel || 90,
+            23.5,
+            parsed.hoardingDays || 1,
+            parsed.todayAttendance || 0,
+            parsed.useWeeklyQuest !== undefined ? parsed.useWeeklyQuest : true,
+            parsed.useTr4DailyQuest || false
+          );
+          setResult(res);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved calculator state', e);
+      }
+    }
+  }, []);
 
   const handleDownloadImage = async () => {
     if (exportRef.current === null) return;
@@ -136,6 +179,22 @@ export function ApCalculator() {
     );
     
     setResult(res);
+
+    const stateToSave = {
+      targetDateStr,
+      currentAp,
+      cafeRank,
+      useDailyQuest,
+      useWeeklyQuest,
+      pvpRefreshes,
+      pyroxeneRefreshes,
+      useApPackage,
+      userLevel,
+      hoardingDays,
+      todayAttendance,
+      useTr4DailyQuest
+    };
+    localStorage.setItem('apCalculatorState', JSON.stringify(stateToSave));
   };
 
   // 타임라인을 dayLabel 기준으로 그룹핑
@@ -385,7 +444,19 @@ export function ApCalculator() {
             )}
           </div>
 
-          {result.isPossible && result.timeline.length > 0 && (
+          {result.warningMessage && (
+            <div className={`mb-6 p-4 rounded-xl border ${result.isRetroactive ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'}`}>
+              <h4 className={`font-bold flex items-center gap-2 mb-1 ${result.isRetroactive ? 'text-orange-600' : 'text-yellow-600'}`}>
+                <Info size={16} />
+                {result.isRetroactive ? '과거 시점 시뮬레이션' : '참고 안내'}
+              </h4>
+              <p className={`text-sm ${result.isRetroactive ? 'text-orange-600' : 'text-yellow-700'}`}>
+                {result.warningMessage}
+              </p>
+            </div>
+          )}
+
+          {result.timeline.length > 0 && (
             <>
             {/* 날짜별 그룹핑된 타임라인 */}
             {groupTimelineByDay(result.timeline).map((group, groupIdx) => (
