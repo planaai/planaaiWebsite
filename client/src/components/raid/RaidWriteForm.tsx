@@ -394,7 +394,19 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
     <div className="max-w-4xl mx-auto p-4 md:p-6 h-full overflow-y-auto">
       <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-gray-500 hover:text-pink-300 transition-colors">
+          <button 
+            type="button"
+            onClick={() => {
+              if (isDirty) {
+                if (window.confirm('작성 중인 내용이 있습니다. 정말 나가시겠습니까?')) {
+                  router.back();
+                }
+              } else {
+                router.back();
+              }
+            }} 
+            className="text-gray-500 hover:text-pink-300 transition-colors"
+          >
             <ArrowLeft size={28} strokeWidth={2.5} />
           </button>
           <h1 className="text-2xl font-bold text-gray-800">공략 작성하기</h1>
