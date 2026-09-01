@@ -32,7 +32,7 @@ export function performSinglePull(
     
     // Encore Pickup logic override
     let pickups = banner.pickups;
-    if (banner.name.includes("앙코르 모집") && encoreTarget) {
+    if (typeof banner?.name === 'string' && banner.name.includes("앙코르 모집") && encoreTarget) {
       pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
     }
 
@@ -44,14 +44,17 @@ export function performSinglePull(
       selectedName = pickups[0].name;
     } else {
       const pool = gachaData.pools["3_star"];
-      selectedName = pool[Math.floor(Math.random() * pool.length)];
+      const selected = pool[Math.floor(Math.random() * pool.length)];
+      selectedName = selected?.name || selected;
     }
   } else if (selectedRarity === 2) {
     const pool = gachaData.pools["2_star"];
-    selectedName = pool[Math.floor(Math.random() * pool.length)];
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    selectedName = selected?.name || selected;
   } else if (selectedRarity === 1) {
     const pool = gachaData.pools["1_star"];
-    selectedName = pool[Math.floor(Math.random() * pool.length)];
+    const selected = pool[Math.floor(Math.random() * pool.length)];
+    selectedName = selected?.name || selected;
   }
 
   results.push({
@@ -94,7 +97,7 @@ export function performTenPull(
       
       // Encore Pickup logic override
       let pickups = banner.pickups;
-      if (banner.name.includes("앙코르 모집") && encoreTarget) {
+      if (typeof banner?.name === 'string' && banner.name.includes("앙코르 모집") && encoreTarget) {
         pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
       }
 
@@ -106,14 +109,17 @@ export function performTenPull(
         selectedName = pickups[0].name;
       } else {
         const pool = gachaData.pools["3_star"];
-        selectedName = pool[Math.floor(Math.random() * pool.length)];
+        const selected = pool[Math.floor(Math.random() * pool.length)];
+        selectedName = typeof selected === 'string' ? selected : (selected?.name || '');
       }
     } else if (selectedRarity === 2) {
       const pool = gachaData.pools["2_star"];
-      selectedName = pool[Math.floor(Math.random() * pool.length)];
+      const selected = pool[Math.floor(Math.random() * pool.length)];
+      selectedName = typeof selected === 'string' ? selected : (selected?.name || '');
     } else if (selectedRarity === 1) {
       const pool = gachaData.pools["1_star"];
-      selectedName = pool[Math.floor(Math.random() * pool.length)];
+      const selected = pool[Math.floor(Math.random() * pool.length)];
+      selectedName = typeof selected === 'string' ? selected : (selected?.name || '');
     }
 
     results.push({

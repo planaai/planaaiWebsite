@@ -45,7 +45,7 @@ export function GachaAdminManager({ showToast }: GachaAdminManagerProps) {
   };
 
   const handleSubmit = async () => {
-    const validUrls = urls.filter(u => u.trim() !== '');
+    const validUrls = urls.filter(u => typeof u === 'string' && u.trim() !== '');
     if (validUrls.length === 0) {
       showToast('최소 한 개의 URL을 입력해주세요. (모두 지우면 픽업이 초기화됩니다)', 'error');
       return;

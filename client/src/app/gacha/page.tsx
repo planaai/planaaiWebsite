@@ -52,7 +52,10 @@ export default function GachaPage() {
         // 백엔드 캐시 오류 대응: 3성 풀에서 '앙코르 모집!' 등의 잘못된 이름 제거
         if (gachaStatus.pools && gachaStatus.pools["3_star"]) {
           gachaStatus.pools["3_star"] = gachaStatus.pools["3_star"].filter(
-            (name: string) => !name.includes('앙코르 모집')
+            (item: any) => {
+              const nameStr = typeof item === 'string' ? item : (item?.name || '');
+              return typeof nameStr === 'string' && !nameStr.includes('앙코르 모집');
+            }
           );
         }
         setGachaData(gachaStatus);
@@ -63,7 +66,7 @@ export default function GachaPage() {
   }, []);
 
   const banner = gachaData?.banners?.[activeBannerIndex] || gachaData?.banners?.[0];
-  const isEncore = banner?.name.includes('앙코르 모집');
+  const isEncore = banner?.name?.includes('앙코르 모집');
 
   const handlePull = (type: 'single' | 'ten') => {
     if (!gachaData || !banner) return;

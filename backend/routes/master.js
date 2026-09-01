@@ -78,16 +78,20 @@ router.post('/gacha/update', (req, res) => {
     return res.status(400).json({ error: 'urls array is required' });
   }
   
-  const scriptPath = path.join(__dirname, '../../scripts/update_gacha_from_url.js');
+  const scriptPath = path.join(__dirname, '..', 'scripts', 'update_gacha_from_url.js');
   
-  execFile('node', [scriptPath, ...urls], (error, stdout, stderr) => {
+  execFile('node', [scriptPath, ...urls], { timeout: 60000, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
     if (error) {
       console.error('execFile error:', error);
       return res.status(500).json({ error: 'Failed to update gacha data', details: stderr || error.message });
     }
+    // Invalidate cache so next status request shows fresh data
+    gachaCache = null;
+    gachaCacheTime = 0;
     res.json({ status: 'success', output: stdout });
   });
 });
+
 
 let gachaCache = null;
 let gachaCacheTime = 0;
