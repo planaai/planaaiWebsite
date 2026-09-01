@@ -58,6 +58,19 @@ router.post('/sync', requireAuth, async (req, res) => {
       isOwned = isOwned !== undefined && isOwned !== null ? Boolean(isOwned) : true;
 
       try {
+        const existing = await prisma.collection.findUnique({
+          where: { userId_studentId: { userId, studentId } }
+        });
+
+        let updatedDetails = item;
+        if (existing && existing.details) {
+          const existingDetails = typeof existing.details === 'string' 
+            ? JSON.parse(existing.details) 
+            : existing.details;
+          
+          updatedDetails = { ...existingDetails, ...item };
+        }
+
         await prisma.collection.upsert({
           where: {
             userId_studentId: {
@@ -68,7 +81,7 @@ router.post('/sync', requireAuth, async (req, res) => {
           update: {
             starGrade,
             isOwned,
-            details: item
+            details: updatedDetails
           },
           create: {
             userId,

@@ -198,9 +198,18 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       ))}
                     </div>
                   </div>
-                  <div className="flex gap-2 text-sm font-bold -skew-x-[15deg]">
-                    <div className={`px-6 py-2 text-white shadow-sm whitespace-nowrap tracking-wider flex items-center ${master.fieldType === 'Striker' ? 'bg-[#D33F4A]' : 'bg-[#315B9A]'}`}>
-                      <div className="skew-x-[15deg]">{getLabel('FieldType', master.fieldType)}</div>
+                  <div className="flex flex-col items-end gap-2">
+                    {record.bondRank ? (
+                      <div className="flex items-center gap-1.5 -skew-x-[15deg] bg-pink-50 border border-pink-200 px-3 py-1 rounded shadow-sm">
+                         <div className="skew-x-[15deg] text-xs font-black text-pink-600">
+                           인연랭크 {record.bondRank}
+                         </div>
+                      </div>
+                    ) : null}
+                    <div className="flex gap-2 text-sm font-bold -skew-x-[15deg]">
+                      <div className={`px-6 py-2 text-white shadow-sm whitespace-nowrap tracking-wider flex items-center ${master.fieldType === 'Striker' ? 'bg-[#D33F4A]' : 'bg-[#315B9A]'}`}>
+                        <div className="skew-x-[15deg]">{getLabel('FieldType', master.fieldType)}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
