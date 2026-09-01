@@ -218,6 +218,18 @@ async function updateGachaFromUrls(urls) {
 
   const result = {
     urls: urls,
+    rates: {
+      normal: {
+        "3_star": 0.03,
+        "2_star": 0.185,
+        "1_star": 0.785
+      },
+      guaranteed: {
+        "3_star": 0.03,
+        "2_star": 0.97,
+        "1_star": 0
+      }
+    },
     banners: banners.map(b => ({
       name: b.name,
       url: b.url,

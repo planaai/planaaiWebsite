@@ -11,7 +11,11 @@ export function performSinglePull(
 ): GachaResult[] {
   const results: GachaResult[] = [];
   const banner = gachaData.banners[bannerIndex] || gachaData.banners[0];
-  const rates = gachaData.rates.normal;
+  const rates = gachaData.rates?.normal || {
+    "3_star": 0.03,
+    "2_star": 0.185,
+    "1_star": 0.785
+  };
 
   const roll = Math.random();
   let selectedRarity: 1 | 2 | 3 = 1;
@@ -76,7 +80,12 @@ export function performTenPull(
 
   for (let i = 0; i < 10; i++) {
     const isGuaranteed = i === 9; // 10th pull
-    const rates = isGuaranteed ? gachaData.rates.guaranteed : gachaData.rates.normal;
+    const defaultRates = isGuaranteed 
+      ? { "3_star": 0.03, "2_star": 0.97, "1_star": 0 }
+      : { "3_star": 0.03, "2_star": 0.185, "1_star": 0.785 };
+    const rates = isGuaranteed 
+      ? (gachaData.rates?.guaranteed || defaultRates) 
+      : (gachaData.rates?.normal || defaultRates);
 
     const roll = Math.random();
     let selectedRarity: 1 | 2 | 3 = 1;
