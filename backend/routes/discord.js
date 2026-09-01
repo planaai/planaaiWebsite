@@ -62,9 +62,7 @@ router.post('/callback', requireAuth, async (req, res) => {
       metadata.tactics_shared = tacticsShared;
     }
 
-    if (customData.favorite_student) {
-      metadata.favorite_student = customData.favorite_student;
-    }
+    // (favorite_student is not supported by Discord linked role metadata as it only accepts numbers/booleans)
 
     if (customData.bond_level) {
       metadata.bond_level = parseInt(customData.bond_level, 10);
@@ -93,9 +91,11 @@ router.post('/callback', requireAuth, async (req, res) => {
     if (!putResponse.ok) {
         throw new Error(await putResponse.text());
     }
+    const responseJson = await putResponse.json();
+    console.log("Discord PUT response:", JSON.stringify(responseJson));
 
     // 성공적으로 전송 완료 (discordAccessToken은 여기서 스코프가 종료되며 파기됨)
-    return res.json({ success: true, message: '디스코드 프로필이 성공적으로 갱신되었습니다.' });
+    return res.json({ success: true, message: '디스코드 프로필이 성공적으로 갱신되었습니다.', data: responseJson });
 
   } catch (error) {
     console.error('Discord sync error:', error.message || error);

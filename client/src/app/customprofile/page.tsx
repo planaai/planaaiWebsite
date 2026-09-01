@@ -167,7 +167,7 @@ function CustomProfileContent() {
     const binaryStr = Array.from(utf8Bytes, (b) => String.fromCharCode(b)).join('');
     const state = encodeURIComponent(btoa(binaryStr));
     
-    const oauthUrl = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=role_connections.write&state=${state}`;
+    const oauthUrl = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=identify%20role_connections.write&state=${state}`;
     
     window.location.href = oauthUrl;
   };
