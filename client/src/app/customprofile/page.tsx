@@ -49,7 +49,7 @@ function CustomProfileContent() {
         setOwnedStudents(owned);
         if (owned.length > 0) {
           setFavoriteStudent(owned[0].name);
-          setFavoriteStudentImage(getImageUrl(owned[0].imagePath || owned[0].portraitUrl));
+          setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
         }
       } catch (error) {
         console.error('학생 데이터를 불러오는데 실패했습니다.', error);
@@ -204,7 +204,7 @@ function CustomProfileContent() {
                         setFavoriteStudent(selectedName);
                         const student = ownedStudents.find(s => s.name === selectedName);
                         if (student) {
-                          setFavoriteStudentImage(getImageUrl(student.imagePath || student.portraitUrl));
+                          setFavoriteStudentImage(getImageUrl(student.portraitUrls?.[0]));
                         } else {
                           setFavoriteStudentImage('');
                         }
