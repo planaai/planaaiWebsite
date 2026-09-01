@@ -105,6 +105,14 @@ function CustomProfileContent() {
     try {
       const customData = JSON.parse(atob(state));
       
+      // OAuth 리다이렉트 시 초기화된 상태 복원 (선택한 인연레벨 유지)
+      if (customData.show_students !== undefined) setShowStudents(customData.show_students);
+      if (customData.show_tactics !== undefined) setShowTactics(customData.show_tactics);
+      if (customData.favorite_student) setFavoriteStudent(customData.favorite_student);
+      if (customData.favorite_student_image) setFavoriteStudentImage(customData.favorite_student_image);
+      if (customData.bond_level) setBondLevel(customData.bond_level);
+      if (customData.teacher_level) setTeacherLevel(customData.teacher_level);
+      
       const redirectUri = window.location.origin + '/customprofile';
       
       const response = await axios.post('http://localhost:3000/api/discord/callback', { // 서버 URL은 환경변수로 처리하는 것이 좋습니다
