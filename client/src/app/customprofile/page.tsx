@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Head from 'next/head';
 import Image from 'next/image';
 import axios from 'axios';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { useAuthStore } from '@/store/authStore';
+import { fetchServerData, getImageUrl } from '@/lib/api';
 
 function CustomProfileContent() {
   const router = useRouter();
@@ -18,16 +19,50 @@ function CustomProfileContent() {
   // 폼 상태
   const [showStudents, setShowStudents] = useState(true);
   const [showTactics, setShowTactics] = useState(true);
-  const [favoriteStudent, setFavoriteStudent] = useState('아로나');
+  const [favoriteStudent, setFavoriteStudent] = useState('');
+  const [favoriteStudentImage, setFavoriteStudentImage] = useState('');
   const [bondLevel, setBondLevel] = useState<number>(10);
+  const [teacherLevel, setTeacherLevel] = useState<number>(1);
   
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
+
+  // 학생 리스트 상태
+  const [ownedStudents, setOwnedStudents] = useState<any[]>([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
+    
+    // 학생 데이터 불러오기
+    const loadStudents = async () => {
+      try {
+        const { masterData, archiveData } = await fetchServerData();
+        const owned = [];
+        for (let i = 0; i < masterData.length; i++) {
+          if (archiveData[i]) {
+            owned.push(masterData[i]);
+          }
+        }
+        setOwnedStudents(owned);
+        if (owned.length > 0) {
+          setFavoriteStudent(owned[0].name);
+          setFavoriteStudentImage(getImageUrl(owned[0].imagePath || owned[0].portraitUrl));
+        }
+      } catch (error) {
+        console.error('학생 데이터를 불러오는데 실패했습니다.', error);
+      } finally {
+        setIsLoadingStudents(false);
+      }
+    };
+    
+    if (user) {
+      loadStudents();
+    } else {
+      setIsLoadingStudents(false);
+    }
     
     // OAuth2 콜백 처리
     const code = searchParams.get('code');
@@ -37,7 +72,7 @@ function CustomProfileContent() {
     if (code && state && token) {
       handleDiscordCallback(code, state, token);
     }
-  }, [searchParams]);
+  }, [searchParams, user]);
 
   const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
@@ -86,7 +121,9 @@ function CustomProfileContent() {
       show_students: showStudents,
       show_tactics: showTactics,
       favorite_student: favoriteStudent,
-      bond_level: bondLevel
+      favorite_student_image: favoriteStudentImage,
+      bond_level: bondLevel,
+      teacher_level: teacherLevel
     };
     
     const state = encodeURIComponent(btoa(JSON.stringify(stateData)));
@@ -99,8 +136,7 @@ function CustomProfileContent() {
   const handleDownloadImage = async () => {
     if (cardRef.current) {
       try {
-        const canvas = await html2canvas(cardRef.current, { backgroundColor: null });
-        const dataUrl = canvas.toDataURL('image/png');
+        const dataUrl = await toPng(cardRef.current, { cacheBust: true, style: { background: 'transparent' } });
         const link = document.createElement('a');
         link.href = dataUrl;
         link.download = 'planaai_profile.png';
@@ -160,14 +196,34 @@ function CustomProfileContent() {
                 <h3 className="text-sm font-medium text-[var(--plana-text-muted)] mb-3">최애 학생 전시</h3>
                 <div className="flex flex-col gap-3">
                   <div>
-                    <label className="block text-sm mb-1">최애 학생 이름</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-sm mb-1">최애 학생</label>
+                    <select 
                       value={favoriteStudent} 
-                      onChange={(e) => setFavoriteStudent(e.target.value)}
+                      onChange={(e) => {
+                        const selectedName = e.target.value;
+                        setFavoriteStudent(selectedName);
+                        const student = ownedStudents.find(s => s.name === selectedName);
+                        if (student) {
+                          setFavoriteStudentImage(getImageUrl(student.imagePath || student.portraitUrl));
+                        } else {
+                          setFavoriteStudentImage('');
+                        }
+                      }}
                       className="w-full px-3 py-2 border rounded-xl bg-white/50 border-plana-border focus:ring-2 focus:ring-plana-primary outline-none text-[var(--plana-text-main)]"
-                      placeholder="예: 시로코"
-                    />
+                      disabled={isLoadingStudents || ownedStudents.length === 0}
+                    >
+                      {isLoadingStudents ? (
+                        <option value="">불러오는 중...</option>
+                      ) : ownedStudents.length === 0 ? (
+                        <option value="">보유한 학생이 없습니다</option>
+                      ) : (
+                        ownedStudents.map((student) => (
+                          <option key={student.id} value={student.name}>
+                            {student.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm mb-1">인연 레벨</label>
@@ -175,6 +231,17 @@ function CustomProfileContent() {
                       type="number" 
                       value={bondLevel} 
                       onChange={(e) => setBondLevel(Number(e.target.value))}
+                      min="1"
+                      max="100"
+                      className="w-full px-3 py-2 border rounded-xl bg-white/50 border-plana-border focus:ring-2 focus:ring-plana-primary outline-none text-[var(--plana-text-main)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm mb-1">선생님 레벨</label>
+                    <input 
+                      type="number" 
+                      value={teacherLevel} 
+                      onChange={(e) => setTeacherLevel(Number(e.target.value))}
                       min="1"
                       max="100"
                       className="w-full px-3 py-2 border rounded-xl bg-white/50 border-plana-border focus:ring-2 focus:ring-plana-primary outline-none text-[var(--plana-text-main)]"
@@ -224,7 +291,7 @@ function CustomProfileContent() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-[var(--plana-text-main)]">
-                    {user?.nickname || user?.username || '선생님'}
+                    {user?.nickname || user?.username || '선생님'} <span className="text-lg font-medium text-[var(--plana-text-muted)]">Lv.{teacherLevel}</span>
                   </h2>
                   <p className="text-plana-primary-dark text-sm font-medium">PlanaAI 샬레 오피스</p>
                 </div>
@@ -234,8 +301,12 @@ function CustomProfileContent() {
                 {favoriteStudent && (
                   <div className="bg-white/60 rounded-2xl p-4 flex items-center justify-between shadow-sm border border-plana-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-plana-primary-light/30 flex items-center justify-center text-plana-primary-dark">
-                        💖
+                      <div className="w-10 h-10 rounded-full bg-plana-primary-light/30 flex items-center justify-center text-plana-primary-dark overflow-hidden">
+                        {favoriteStudentImage ? (
+                          <img src={favoriteStudentImage} alt={favoriteStudent} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                        ) : (
+                          <span>💖</span>
+                        )}
                       </div>
                       <span className="font-medium text-[var(--plana-text-main)]">최애 학생</span>
                     </div>

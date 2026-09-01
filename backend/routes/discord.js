@@ -69,6 +69,10 @@ router.post('/callback', requireAuth, async (req, res) => {
     if (customData.bond_level) {
       metadata.bond_level = parseInt(customData.bond_level, 10);
     }
+    
+    if (customData.teacher_level) {
+      metadata.teacher_level = parseInt(customData.teacher_level, 10);
+    }
 
     // 3. 디스코드 프로필 메타데이터(Role Connections) 업데이트
     const userPlatformName = req.user.nickname || req.user.username || '선생님';
