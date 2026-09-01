@@ -7,6 +7,7 @@ import Image from 'next/image';
 import axios from 'axios';
 import { toPng } from 'html-to-image';
 import { useAuthStore } from '@/store/authStore';
+import { useArchiveStore } from '@/store/archiveStore';
 import { fetchServerData, getImageUrl } from '@/lib/api';
 
 function CustomProfileContent() {
@@ -39,17 +40,28 @@ function CustomProfileContent() {
     // 학생 데이터 불러오기
     const loadStudents = async () => {
       try {
-        const { masterData, archiveData } = await fetchServerData();
+        const { masterData } = await fetchServerData();
+        const records = useArchiveStore.getState().records;
+        
         const owned = [];
         for (let i = 0; i < masterData.length; i++) {
-          if (archiveData[i]) {
-            owned.push(masterData[i]);
+          const student = masterData[i];
+          // 브라우저 로컬 데이터(records)에 해당 학생이 있는지 확인
+          if (records[student.id]) {
+            owned.push(student);
           }
         }
+        
         setOwnedStudents(owned);
         if (owned.length > 0) {
           setFavoriteStudent(owned[0].name);
           setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
+          
+          // 초기 bondLevel 설정 (브라우저 데이터에 bondRank가 있다면)
+          const record = records[owned[0].id];
+          if (record && record.bondRank) {
+            setBondLevel(record.bondRank);
+          }
         }
       } catch (error) {
         console.error('학생 데이터를 불러오는데 실패했습니다.', error);
@@ -205,6 +217,10 @@ function CustomProfileContent() {
                         const student = ownedStudents.find(s => s.name === selectedName);
                         if (student) {
                           setFavoriteStudentImage(getImageUrl(student.portraitUrls?.[0]));
+                          const records = useArchiveStore.getState().records;
+                          if (records[student.id]?.bondRank) {
+                            setBondLevel(records[student.id].bondRank!);
+                          }
                         } else {
                           setFavoriteStudentImage('');
                         }
