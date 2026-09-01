@@ -32,6 +32,7 @@ function CustomProfileContent() {
   const [ownedStudents, setOwnedStudents] = useState<any[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   
+  const records = useArchiveStore(state => state.records);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,25 +41,29 @@ function CustomProfileContent() {
     // 학생 데이터 불러오기
     const loadStudents = async () => {
       try {
-        const { masterData } = await fetchServerData();
-        const records = useArchiveStore.getState().records;
+        const { masterData, archiveData } = await fetchServerData();
+        
+        const archiveMap = new Map();
+        archiveData.forEach(record => {
+          if (record && record.studentId) {
+            archiveMap.set(record.studentId, record);
+          }
+        });
         
         const owned = [];
         for (let i = 0; i < masterData.length; i++) {
           const student = masterData[i];
-          // 브라우저 로컬 데이터(records)에 해당 학생이 있는지 확인
-          if (records[student.id]) {
+          if (archiveMap.has(student.id)) {
             owned.push(student);
           }
         }
         
         setOwnedStudents(owned);
-        if (owned.length > 0) {
+        if (owned.length > 0 && !favoriteStudent) {
           setFavoriteStudent(owned[0].name);
           setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
           
-          // 초기 bondLevel 설정 (브라우저 데이터에 bondRank가 있다면)
-          const record = records[owned[0].id];
+          const record = archiveMap.get(owned[0].id);
           if (record && record.bondRank) {
             setBondLevel(record.bondRank);
           }
@@ -75,7 +80,8 @@ function CustomProfileContent() {
     } else {
       setIsLoadingStudents(false);
     }
-    
+  }, [user]);
+
     // OAuth2 콜백 처리
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -84,7 +90,7 @@ function CustomProfileContent() {
     if (code && state && token) {
       handleDiscordCallback(code, state, token);
     }
-  }, [searchParams, user]);
+  }, [searchParams]);
 
   const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
@@ -217,9 +223,14 @@ function CustomProfileContent() {
                         const student = ownedStudents.find(s => s.name === selectedName);
                         if (student) {
                           setFavoriteStudentImage(getImageUrl(student.portraitUrls?.[0]));
-                          const records = useArchiveStore.getState().records;
-                          if (records[student.id]?.bondRank) {
-                            setBondLevel(records[student.id].bondRank!);
+                          
+                          // 선택 시 archiveStore 대신 서버에서 받아온 archiveData를 쓸 수 있도록,
+                          // 이미 bondLevel은 기본값 10을 주거나 사용자가 수정하도록 둡니다.
+                          // 만약 여기서도 bondRank를 넣고 싶다면 archiveMap을 state로 빼야 합니다.
+                          // 현재로선 로컬 archiveStore를 fallback으로 사용해 봅니다.
+                          const record = records[student.id];
+                          if (record && record.bondRank) {
+                            setBondLevel(record.bondRank);
                           }
                         } else {
                           setFavoriteStudentImage('');
