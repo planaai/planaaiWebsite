@@ -6,12 +6,12 @@ import Head from 'next/head';
 import Image from 'next/image';
 import axios from 'axios';
 import html2canvas from 'html2canvas';
-import { useAuth } from '@/context/AuthContext'; // 가정: AuthContext가 있다고 가정
+import { useAuthStore } from '@/store/authStore';
 
 export default function CustomProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, token } = useAuth() || {}; // 인증 토큰 및 유저 정보
+  const { user, token } = useAuthStore(); // 인증 토큰 및 유저 정보
   
   const [isClient, setIsClient] = useState(false);
   
