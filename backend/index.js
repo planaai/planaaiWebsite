@@ -67,6 +67,7 @@ const imagesRouter = require('./routes/images');
 const masterRouter = require('./routes/master');
 const archiveRouter = require('./routes/archive');
 const hofRouter = require('./routes/hof');
+const discordRouter = require('./routes/discord');
 
 const { requireAdmin } = require('./middleware/auth');
 
@@ -99,6 +100,7 @@ app.use('/api/images', imagesRouter);
 app.use('/api/master', masterRouter);
 app.use('/api/archive', archiveRouter);
 app.use('/api/hof', hofRouter);
+app.use('/api/discord', discordRouter);
 
 app.listen(port, () => console.log(`Backend Server running at http://localhost:${port}`));
 
