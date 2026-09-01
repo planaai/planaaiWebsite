@@ -47,29 +47,29 @@ router.post('/callback', requireAuth, async (req, res) => {
       const studentsOwned = await prisma.collection.count({
         where: { userId: userId, isOwned: true }
       });
-      metadata.students_owned = studentsOwned;
+      metadata.students_owned = String(studentsOwned);
       
       const ue50Students = await prisma.growthPlan.count({
         where: { userId: userId, currentWeaponStar: 3 }
       });
-      metadata.ue50_students = ue50Students;
+      metadata.ue50_students = String(ue50Students);
     }
 
     if (customData.show_tactics) {
       const tacticsShared = await prisma.sharedRaidParty.count({
         where: { authorId: userId }
       });
-      metadata.tactics_shared = tacticsShared;
+      metadata.tactics_shared = String(tacticsShared);
     }
 
-    // (favorite_student is not supported by Discord linked role metadata as it only accepts numbers/booleans)
+    // (favorite_student is not supported by Discord linked role metadata as it only accepts numbers/booleans/dates)
 
-    if (customData.bond_level) {
-      metadata.bond_level = parseInt(customData.bond_level, 10);
+    if (customData.bond_level !== undefined && customData.bond_level !== null) {
+      metadata.bond_level = String(parseInt(customData.bond_level, 10) || 1);
     }
     
-    if (customData.teacher_level) {
-      metadata.teacher_level = parseInt(customData.teacher_level, 10);
+    if (customData.teacher_level !== undefined && customData.teacher_level !== null) {
+      metadata.teacher_level = String(parseInt(customData.teacher_level, 10) || 1);
     }
 
     // 3. 디스코드 프로필 메타데이터(Role Connections) 업데이트
