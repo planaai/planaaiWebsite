@@ -29,52 +29,67 @@ function CustomProfileContent() {
   const [syncMessage, setSyncMessage] = useState('');
 
   // 학생 리스트 상태
+  const [masterData, setMasterData] = useState<any[]>([]);
   const [ownedStudents, setOwnedStudents] = useState<any[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
   
   const records = useArchiveStore(state => state.records);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // 1. 서버에서 마스터 데이터(전체 학생 목록) 한 번만 가져오기
   useEffect(() => {
     setIsClient(true);
     
-    // 학생 데이터 불러오기
-    const loadStudents = async () => {
+    let isMounted = true;
+    const fetchMaster = async () => {
       try {
-        const { masterData } = await fetchServerData();
-        
-        const owned = [];
-        for (let i = 0; i < masterData.length; i++) {
-          const student = masterData[i];
-          if (records[student.id]) {
-            owned.push(student);
-          }
-        }
-        
-        setOwnedStudents(owned);
-        if (owned.length > 0 && !favoriteStudent) {
-          setFavoriteStudent(owned[0].name);
-          setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
-          
-          const record = records[owned[0].id];
-          if (record && record.bondRank) {
-            setBondLevel(record.bondRank);
-          }
+        const { masterData: data } = await fetchServerData();
+        if (isMounted) {
+          setMasterData(data || []);
         }
       } catch (error) {
-        console.error('학생 데이터를 불러오는데 실패했습니다.', error);
+        console.error('마스터 데이터를 불러오는데 실패했습니다.', error);
+        if (isMounted) setMasterData([]);
       } finally {
-        setIsLoadingStudents(false);
+        if (isMounted) {
+          setIsLoadingStudents(false);
+        }
       }
     };
     
-    if (user && Object.keys(records).length > 0) {
-      loadStudents();
-    } else if (!user) {
-      setIsLoadingStudents(false);
-    }
+    fetchMaster();
+    
+    return () => { isMounted = false; };
+  }, []);
 
-    // OAuth2 콜백 처리
+  // 2. 마스터 데이터와 로컬 records(브라우저 저장소)를 조합하여 보유 학생 목록 계산
+  useEffect(() => {
+    if (!masterData || masterData.length === 0) return;
+    
+    const owned = [];
+    for (let i = 0; i < masterData.length; i++) {
+      const student = masterData[i];
+      if (records[student.id]) {
+        owned.push(student);
+      }
+    }
+    
+    setOwnedStudents(owned);
+    
+    // 초기 선택값이 없고, 보유 학생이 존재하면 첫 번째 학생을 기본 선택
+    if (owned.length > 0 && !favoriteStudent) {
+      setFavoriteStudent(owned[0].name);
+      setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
+      
+      const record = records[owned[0].id];
+      if (record && record.bondRank) {
+        setBondLevel(record.bondRank);
+      }
+    }
+  }, [masterData, records, favoriteStudent]);
+
+  // OAuth2 콜백 처리
+  useEffect(() => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
@@ -82,7 +97,7 @@ function CustomProfileContent() {
     if (code && state && token) {
       handleDiscordCallback(code, state, token);
     }
-  }, [searchParams, user, records]);
+  }, [searchParams]);
 
   const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
