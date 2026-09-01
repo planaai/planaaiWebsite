@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -8,10 +8,10 @@ import axios from 'axios';
 import html2canvas from 'html2canvas';
 import { useAuthStore } from '@/store/authStore';
 
-export default function CustomProfilePage() {
+function CustomProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, token } = useAuthStore(); // 인증 토큰 및 유저 정보
+  const { user } = useAuthStore(); // 인증 토큰 및 유저 정보
   
   const [isClient, setIsClient] = useState(false);
   
@@ -32,13 +32,14 @@ export default function CustomProfilePage() {
     // OAuth2 콜백 처리
     const code = searchParams.get('code');
     const state = searchParams.get('state');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     
     if (code && state && token) {
-      handleDiscordCallback(code, state);
+      handleDiscordCallback(code, state, token);
     }
-  }, [searchParams, token]);
+  }, [searchParams]);
 
-  const handleDiscordCallback = async (code: string, state: string) => {
+  const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
     setSyncMessage('디스코드와 연동 중입니다...');
     try {
@@ -287,5 +288,13 @@ export default function CustomProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CustomProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CustomProfileContent />
+    </Suspense>
   );
 }
