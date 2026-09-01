@@ -200,10 +200,13 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {record.bondRank ? (
-                      <div className="flex items-center gap-1.5 -skew-x-[15deg] bg-pink-50 border border-pink-200 px-3 py-1 rounded shadow-sm">
-                         <div className="skew-x-[15deg] text-xs font-black text-pink-600">
-                           인연랭크 {record.bondRank}
-                         </div>
+                      <div className="relative flex justify-center items-center w-14 h-14 -mr-1">
+                        <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full drop-shadow-sm -skew-x-[5deg]">
+                          <path fill="#FFD1E3" stroke="#FF8CB8" strokeWidth="2.5" strokeLinejoin="round" d="M20 34.5l-2.4-2.18C9 22.5 3.3 17.4 3.3 11.2 3.3 6 7.4 2 12.5 2c2.9 0 5.7 1.3 7.5 3.5C21.8 3.3 24.6 2 27.5 2c5.1 0 9.2 4 9.2 9.2 0 6.2-5.7 11.3-14.3 19.1L20 34.5z"/>
+                          <text x="20" y="19" textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="900" fill="#334155" stroke="white" strokeWidth="3.5" paintOrder="stroke fill" className="font-sans">
+                            {record.bondRank}
+                          </text>
+                        </svg>
                       </div>
                     ) : null}
                     <div className="flex gap-2 text-sm font-bold -skew-x-[15deg]">
