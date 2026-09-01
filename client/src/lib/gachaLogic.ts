@@ -40,7 +40,7 @@ export function performSinglePull(
       pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
     }
 
-    const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + p.rate, 0);
+    const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (p.rate !== undefined ? p.rate : (p.probability !== undefined ? p.probability / 100 : 0)), 0);
     const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
     if (pickupRoll < normalizedPickupChance && pickups.length > 0) {
@@ -110,7 +110,7 @@ export function performTenPull(
         pickups = [{ name: encoreTarget, rarity: 3, rate: 0.007 }];
       }
 
-      const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + p.rate, 0);
+      const totalPickupRate = pickups.reduce((sum: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => sum + (p.rate !== undefined ? p.rate : (p.probability !== undefined ? p.probability / 100 : 0)), 0);
       const normalizedPickupChance = totalPickupRate / rates["3_star"];
 
       if (pickupRoll < normalizedPickupChance && pickups.length > 0) {

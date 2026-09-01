@@ -72,3 +72,8 @@ lint-results.txt
 *.tar.gz
 *.zip
 *.rar
+
+# AI Agent
+docs-vault/
+.agents/
+.agentignore

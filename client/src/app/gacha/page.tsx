@@ -183,7 +183,7 @@ export default function GachaPage() {
               {isEncore ? (
                 <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (선택 픽업 0.7%) | 2★: 18.5% | 1★: 78.5%</p>
               ) : (
-                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {(banner?.pickups?.reduce((s: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => s + p.rate * 100, 0) || 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
+                <p className="text-slate-500 text-sm">확률 - 3★: 3.0% (픽업 {(banner?.pickups?.reduce((s: number, p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => s + (p.rate !== undefined ? p.rate * 100 : (p.probability || 0)), 0) || 0).toFixed(1)}%) | 2★: 18.5% | 1★: 78.5%</p>
               )}
             </div>
 
