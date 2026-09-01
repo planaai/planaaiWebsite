@@ -88,6 +88,7 @@ function CustomProfileContent() {
       }
     }
   }, [masterData, records, favoriteStudent]);
+  const isProcessingOAuth = useRef(false);
 
   // OAuth2 콜백 처리
   useEffect(() => {
@@ -95,7 +96,8 @@ function CustomProfileContent() {
     const state = searchParams.get('state');
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
     
-    if (code && state && token) {
+    if (code && state && token && !isProcessingOAuth.current) {
+      isProcessingOAuth.current = true;
       handleDiscordCallback(code, state, token);
     }
   }, [searchParams]);
