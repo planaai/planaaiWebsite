@@ -84,6 +84,8 @@ function CustomProfileContent() {
       const record = records[owned[0].id];
       if (record && record.bondRank) {
         setBondLevel(record.bondRank);
+      } else {
+        setBondLevel(1);
       }
     }
   }, [masterData, records, favoriteStudent]);
@@ -246,6 +248,8 @@ function CustomProfileContent() {
                           const record = records[student.id];
                           if (record && record.bondRank) {
                             setBondLevel(record.bondRank);
+                          } else {
+                            setBondLevel(1);
                           }
                         } else {
                           setFavoriteStudentImage('');
