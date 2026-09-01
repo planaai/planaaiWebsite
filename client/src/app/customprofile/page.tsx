@@ -41,19 +41,12 @@ function CustomProfileContent() {
     // 학생 데이터 불러오기
     const loadStudents = async () => {
       try {
-        const { masterData, archiveData } = await fetchServerData();
-        
-        const archiveMap = new Map();
-        archiveData.forEach(record => {
-          if (record && record.studentId) {
-            archiveMap.set(record.studentId, record);
-          }
-        });
+        const { masterData } = await fetchServerData();
         
         const owned = [];
         for (let i = 0; i < masterData.length; i++) {
           const student = masterData[i];
-          if (archiveMap.has(student.id)) {
+          if (records[student.id]) {
             owned.push(student);
           }
         }
@@ -63,7 +56,7 @@ function CustomProfileContent() {
           setFavoriteStudent(owned[0].name);
           setFavoriteStudentImage(getImageUrl(owned[0].portraitUrls?.[0]));
           
-          const record = archiveMap.get(owned[0].id);
+          const record = records[owned[0].id];
           if (record && record.bondRank) {
             setBondLevel(record.bondRank);
           }
@@ -75,12 +68,12 @@ function CustomProfileContent() {
       }
     };
     
-    if (user) {
+    if (user && Object.keys(records).length > 0) {
       loadStudents();
-    } else {
+    } else if (!user) {
       setIsLoadingStudents(false);
     }
-    
+
     // OAuth2 콜백 처리
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -89,7 +82,7 @@ function CustomProfileContent() {
     if (code && state && token) {
       handleDiscordCallback(code, state, token);
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, records]);
 
   const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
