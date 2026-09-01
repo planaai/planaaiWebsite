@@ -105,7 +105,9 @@ function CustomProfileContent() {
     setIsSyncing(true);
     setSyncMessage('디스코드와 연동 중입니다...');
     try {
-      const customData = JSON.parse(atob(state));
+      const binaryStr = atob(state);
+      const utf8Bytes = Uint8Array.from(binaryStr, (c) => c.charCodeAt(0));
+      const customData = JSON.parse(new TextDecoder().decode(utf8Bytes));
       
       // OAuth 리다이렉트 시 초기화된 상태 복원 (선택한 인연레벨 유지)
       if (customData.show_students !== undefined) setShowStudents(customData.show_students);
@@ -161,7 +163,10 @@ function CustomProfileContent() {
       teacher_level: teacherLevel
     };
     
-    const state = encodeURIComponent(btoa(JSON.stringify(stateData)));
+    const jsonStr = JSON.stringify(stateData);
+    const utf8Bytes = new TextEncoder().encode(jsonStr);
+    const binaryStr = Array.from(utf8Bytes, (b) => String.fromCharCode(b)).join('');
+    const state = encodeURIComponent(btoa(binaryStr));
     
     const oauthUrl = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=code&scope=role_connections.write&state=${state}`;
     
