@@ -4,11 +4,10 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Head from 'next/head';
 import Image from 'next/image';
-import axios from 'axios';
 import { toPng } from 'html-to-image';
 import { useAuthStore } from '@/store/authStore';
 import { useArchiveStore } from '@/store/archiveStore';
-import { fetchServerData, getImageUrl } from '@/lib/api';
+import { api, fetchServerData, getImageUrl } from '@/lib/api';
 
 function CustomProfileContent() {
   const router = useRouter();
@@ -119,12 +118,10 @@ function CustomProfileContent() {
       
       const redirectUri = window.location.origin + '/customprofile';
       
-      const response = await axios.post('http://localhost:3000/api/discord/callback', { // 서버 URL은 환경변수로 처리하는 것이 좋습니다
+      const response = await api.post('/discord/callback', {
         code,
         redirectUri,
         customData
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       if (response.data.success) {
