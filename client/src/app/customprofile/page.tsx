@@ -80,8 +80,7 @@ function CustomProfileContent() {
     } else {
       setIsLoadingStudents(false);
     }
-  }, [user]);
-
+    
     // OAuth2 콜백 처리
     const code = searchParams.get('code');
     const state = searchParams.get('state');
@@ -90,7 +89,7 @@ function CustomProfileContent() {
     if (code && state && token) {
       handleDiscordCallback(code, state, token);
     }
-  }, [searchParams]);
+  }, [searchParams, user]);
 
   const handleDiscordCallback = async (code: string, state: string, token: string) => {
     setIsSyncing(true);
