@@ -2,8 +2,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const { baseDir } = require('../config/multer');
+
 // 업로드 디렉토리 설정
-const uploadDir = path.join(__dirname, '../uploads/inquiries');
+const uploadDir = path.join(baseDir, 'inquiries');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

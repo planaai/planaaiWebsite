@@ -5,8 +5,8 @@ const os = require('os');
 
 const FILE_SIZE_LIMIT = 100 * 1024 * 1024; // 100MB
 
-// 기본 디렉토리 설정
-const baseDir = path.join(__dirname, '..', 'uploads');
+// 기본 디렉토리 설정 (UPLOADS_DIR 환경변수가 있으면 우선 사용)
+const baseDir = process.env.UPLOADS_DIR ? path.resolve(process.env.UPLOADS_DIR) : path.join(__dirname, '..', 'uploads');
 const skillsDir = path.join(baseDir, 'skills');
 const portraitsDir = path.join(baseDir, 'portraits');
 const illustsDir = path.join(baseDir, 'illusts');

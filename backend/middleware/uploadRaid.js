@@ -1,8 +1,12 @@
+
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const uploadDir = path.join(__dirname, '../uploads/raids');
+const { baseDir } = require('../config/multer');
+
+const uploadDir = path.join(baseDir, 'raids');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -25,7 +29,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const uploadRaid = multer({ 
+const uploadRaid = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }
