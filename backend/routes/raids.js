@@ -50,6 +50,11 @@ router.get('/youtube-meta', async (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
+
+    const isYouTube = /^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/i.test(url);
+    if (!isYouTube) {
+      return res.status(400).json({ error: '유효한 유튜브 동영상 URL이 아닙니다.' });
+    }
     
     const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
     const data = await response.json();
@@ -69,9 +74,8 @@ router.get('/youtube-meta', async (req, res) => {
 });
 
 // POST /api/raids/bosses - Add a new boss (Admin)
-router.post('/bosses', requireAuth, async (req, res) => {
+router.post('/bosses', requireAdmin, async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
     const { id, name, iconUrl, bannerUrl, defenseType, category } = req.body;
     
     const boss = await prisma.raidBoss.create({
@@ -85,9 +89,8 @@ router.post('/bosses', requireAuth, async (req, res) => {
 });
 
 // PUT /api/raids/bosses/:id - Update a boss (Admin)
-router.put('/bosses/:id', requireAuth, async (req, res) => {
+router.put('/bosses/:id', requireAdmin, async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
     const { name, iconUrl, bannerUrl, defenseType, category } = req.body;
     
     const boss = await prisma.raidBoss.update({
@@ -102,10 +105,8 @@ router.put('/bosses/:id', requireAuth, async (req, res) => {
 });
 
 // DELETE /api/raids/bosses/:id - Delete a boss (Admin)
-router.delete('/bosses/:id', requireAuth, async (req, res) => {
+router.delete('/bosses/:id', requireAdmin, async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
-    
     await prisma.raidBoss.delete({
       where: { id: req.params.id }
     });
@@ -117,9 +118,8 @@ router.delete('/bosses/:id', requireAuth, async (req, res) => {
 });
 
 // POST /api/raids/seasons - Add a new season (Admin)
-router.post('/seasons', requireAuth, async (req, res) => {
+router.post('/seasons', requireAdmin, async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
     const { bossId, terrain } = req.body;
     
     const difficulties = ['Normal', 'Hard', 'VeryHard', 'Hardcore', 'Extreme', 'Insane', 'Torment', 'Lunatic'];
@@ -142,9 +142,8 @@ router.post('/seasons', requireAuth, async (req, res) => {
 });
 
 // POST /api/raids/seasons/sync - Sync all difficulties for all existing bosses/terrains (Admin)
-router.post('/seasons/sync', requireAuth, async (req, res) => {
+router.post('/seasons/sync', requireAdmin, async (req, res) => {
   try {
-    if (req.user.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
     
     // Find all unique (bossId, terrain) combinations currently existing
     const existingSeasons = await prisma.raidSeason.findMany({

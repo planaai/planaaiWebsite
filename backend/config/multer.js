@@ -58,11 +58,28 @@ const folderUploadStorage = multer.diskStorage({
 });
 const uploadFolderDynamic = multer({ storage: folderUploadStorage, limits: { fileSize: FILE_SIZE_LIMIT } });
 
+const createUploader = (subDir, prefix, limitMb = 10) => {
+  const destDir = path.join(baseDir, subDir);
+  if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+  return multer({
+    storage: createDiskStorage(destDir, prefix),
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
+      }
+    },
+    limits: { fileSize: limitMb * 1024 * 1024 }
+  });
+};
+
 module.exports = {
   uploadSkill,
   uploadPortrait,
   uploadIllust,
   uploadDynamic,
   uploadFolderDynamic,
+  createUploader,
   baseDir
 };

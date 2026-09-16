@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_here'; // In production, use a secure secret from env
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: JWT_SECRET must be defined in production environment.');
+  process.exit(1);
+}
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_' + (process.env.NODE_ENV === 'test' ? 'static_for_test' : crypto.randomBytes(16).toString('hex'));
 
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;

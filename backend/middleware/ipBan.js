@@ -7,10 +7,9 @@ const CACHE_TTL = 60 * 1000; // 1분
 
 async function ipBanMiddleware(req, res, next) {
   try {
-    // 클라이언트 IP 추출 (프록시 환경 고려)
-    let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    // 클라이언트 IP 추출 (Cloudflare 및 리버스 프록시 대응)
+    let clientIp = req.headers['cf-connecting-ip'] || req.ip || req.socket.remoteAddress;
     
-    // x-forwarded-for가 여러 IP를 쉼표로 구분해서 보낼 경우 첫 번째 IP 사용
     if (clientIp && clientIp.includes(',')) {
       clientIp = clientIp.split(',')[0].trim();
     }

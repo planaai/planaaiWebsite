@@ -1,6 +1,6 @@
 const express = require('express');
 const { prisma } = require('../db');
-const { optionalAuth } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 
 function levenshtein(a, b) {
   if (a.length === 0) return b.length;
@@ -31,7 +31,7 @@ const router = express.Router();
 
 // POST /api/import/screenshot
 // 파이썬 스크린샷 추출기에서 전송한 JSON 데이터를 받아 DB(Collection, GrowthPlan) 갱신
-router.post('/screenshot', optionalAuth, async (req, res) => {
+router.post('/screenshot', requireAuth, async (req, res) => {
   try {
     const {
       studentName,
@@ -83,14 +83,10 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
       return res.status(404).json({ error: `Student not found: ${studentName}` });
     }
 
-    // 기본적으로 로그인한 유저, 없으면 첫번째 유저를 가져온다 (테스트용)
-    let userId = req.user ? req.user.id : null;
+    // 로그인한 유저 필수 확인
+    const userId = req.user ? req.user.id : null;
     if (!userId) {
-      const firstUser = await prisma.user.findFirst();
-      if (!firstUser) {
-         return res.status(500).json({ error: 'No user exists to map data to' });
-      }
-      userId = firstUser.id;
+      return res.status(401).json({ error: '인증이 필요합니다. 로그인 후 이용해 주세요.' });
     }
 
     // 1. Collection (보유 여부 및 성급) 업데이트
@@ -275,7 +271,7 @@ router.post('/screenshot', optionalAuth, async (req, res) => {
     return res.json({ success: true, message: `Updated data for ${student.name}` });
   } catch (error) {
     console.error('Import Error:', error);
-    return res.status(500).json({ error: 'Internal Server Error', details: error.message, stack: error.stack });
+    return res.status(500).json({ error: '데이터 가져오기 처리 중 서버 오류가 발생했습니다.' });
   }
 });
 

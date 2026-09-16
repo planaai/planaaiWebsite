@@ -4,21 +4,45 @@ const path = require('path');
 const fs = require('fs');
 const { uploadDynamic, uploadFolderDynamic, baseDir } = require('../config/multer');
 const { updateImageReferences } = require('../utils/imageRefUpdater');
+const { requireAdmin } = require('../middleware/auth');
+
+// All file and folder operations require admin privilege
+router.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return requireAdmin(req, res, next);
+  }
+  next();
+});
+
+function resolveSafePath(base, userPath) {
+  if (!userPath || typeof userPath !== 'string') return null;
+  let clean = userPath.startsWith('/uploads/') ? userPath.slice(9) : userPath;
+  clean = clean.replace(/^[/\\]+/, '');
+  const resolvedBase = path.resolve(base);
+  const resolvedTarget = path.resolve(base, clean);
+  if (!resolvedTarget.startsWith(resolvedBase)) {
+    return null;
+  }
+  return resolvedTarget;
+}
 
 router.post('/upload', uploadDynamic.any(), (req, res) => {
   if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
   let folder = req.query.folder || 'misc';
-  folder = folder.replace(/\.\./g, '');
-  const urls = req.files.map(file => `/uploads/${folder === '' ? '' : folder + '/'}${file.filename}`.replace('//', '/'));
+  const targetDir = resolveSafePath(baseDir, folder);
+  if (!targetDir) return res.status(400).json({ error: 'Invalid folder' });
+  
+  const relFolder = path.relative(baseDir, targetDir).replace(/\\/g, '/');
+  const urls = req.files.map(file => `/uploads/${relFolder ? relFolder + '/' : ''}${file.filename}`);
   res.json({ status: 'success', urls });
 });
 
 router.post('/upload_folder', uploadFolderDynamic.any(), (req, res) => {
   if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
   let folder = req.query.folder || '';
-  folder = folder.replace(/\.\./g, '');
+  const uploadDir = resolveSafePath(baseDir, folder);
+  if (!uploadDir) return res.status(400).json({ error: 'Invalid folder' });
   
-  const uploadDir = path.join(baseDir, folder);
   const paths = req.body.paths;
   const urls = [];
   
@@ -33,8 +57,10 @@ router.post('/upload_folder', uploadFolderDynamic.any(), (req, res) => {
       }
     }
     
-    const safeRelPath = relPath.replace(/\.\./g, '');
-    const destPath = path.join(uploadDir, safeRelPath);
+    const destPath = resolveSafePath(uploadDir, relPath);
+    if (!destPath) {
+      continue;
+    }
     const destDir = path.dirname(destPath);
     
     if (!fs.existsSync(destDir)) {
@@ -43,8 +69,8 @@ router.post('/upload_folder', uploadFolderDynamic.any(), (req, res) => {
     
     fs.renameSync(file.path, destPath);
     
-    const url = `/uploads/${folder === '' ? '' : folder + '/'}${safeRelPath}`.replace(/\/\//g, '/');
-    urls.push(url);
+    const relToUploads = path.relative(baseDir, destPath).replace(/\\/g, '/');
+    urls.push(`/uploads/${relToUploads}`);
   }
   
   if (req.tempUploadDir) {
@@ -103,8 +129,10 @@ router.delete('/file', (req, res) => {
   const urlPath = req.query.path;
   if (!urlPath) return res.status(400).json({ error: 'path required' });
   
-  const safePath = urlPath.replace(/\.\./g, '');
-  const fullPath = path.join(baseDir, safePath);
+  const fullPath = resolveSafePath(baseDir, urlPath);
+  if (!fullPath || fullPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Invalid or unsafe path' });
+  }
   
   if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
     fs.unlinkSync(fullPath);
@@ -119,11 +147,9 @@ router.post('/files/delete', (req, res) => {
   if (!paths || !Array.isArray(paths)) return res.status(400).json({ error: 'paths array required' });
   
   let deletedCount = 0;
-  
   paths.forEach(urlPath => {
-    const safePath = urlPath.replace(/\.\./g, '');
-    const fullPath = path.join(baseDir, safePath);
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+    const fullPath = resolveSafePath(baseDir, urlPath);
+    if (fullPath && fullPath !== path.resolve(baseDir) && fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
       fs.unlinkSync(fullPath);
       deletedCount++;
     }
@@ -137,17 +163,23 @@ router.put('/file/rename', (req, res) => {
   const urlPath = req.query.path;
   if (!newName || !urlPath) return res.status(400).json({ error: 'newName and path required' });
   
-  const safePath = urlPath.replace(/\.\./g, '');
-  const fullPath = path.join(baseDir, safePath);
+  const fullPath = resolveSafePath(baseDir, urlPath);
+  if (!fullPath || fullPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Invalid or unsafe path' });
+  }
+
+  const sanitizedNewName = path.basename(newName);
+  if (!sanitizedNewName || sanitizedNewName === '.' || sanitizedNewName.includes('..')) {
+    return res.status(400).json({ error: 'Invalid new name' });
+  }
   
   if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
     const dir = path.dirname(fullPath);
-    const newFullPath = path.join(dir, newName);
+    const newFullPath = path.join(dir, sanitizedNewName);
     fs.renameSync(fullPath, newFullPath);
     
-    const basePath = path.dirname(safePath);
-    const oldUrl = `/uploads/${safePath}`.replace(/\\/g, '/');
-    const newUrl = `/uploads/${basePath === '.' ? '' : basePath + '/'}${newName}`.replace(/\\/g, '/');
+    const oldUrl = `/uploads/${path.relative(baseDir, fullPath).replace(/\\/g, '/')}`;
+    const newUrl = `/uploads/${path.relative(baseDir, newFullPath).replace(/\\/g, '/')}`;
     
     updateImageReferences(oldUrl, newUrl);
     res.json({ success: true, oldUrl, newUrl });
@@ -161,13 +193,19 @@ router.put('/file/move', (req, res) => {
   const urlPath = req.query.path;
   if (targetFolder === undefined || !urlPath) return res.status(400).json({ error: 'targetFolder and path required' });
 
-  const safePath = urlPath.replace(/\.\./g, '');
-  const fullPath = path.join(baseDir, safePath);
+  const fullPath = resolveSafePath(baseDir, urlPath);
+  if (!fullPath || fullPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Invalid file path' });
+  }
+
+  const safeTarget = targetFolder === 'root' || targetFolder === '' ? '' : targetFolder;
+  const destDir = resolveSafePath(baseDir, safeTarget);
+  if (!destDir) {
+    return res.status(400).json({ error: 'Invalid target folder' });
+  }
 
   if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
     const filename = path.basename(fullPath);
-    const safeTarget = targetFolder.replace(/\.\./g, '');
-    const destDir = safeTarget === 'root' || safeTarget === '' ? baseDir : path.join(baseDir, safeTarget);
     if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
     
     const destPath = path.join(destDir, filename);
@@ -175,8 +213,8 @@ router.put('/file/move', (req, res) => {
       fs.renameSync(fullPath, destPath);
     }
     
-    const oldUrl = `/uploads/${safePath}`.replace(/\\/g, '/');
-    const newUrl = (safeTarget === 'root' || safeTarget === '' ? `/uploads/${filename}` : `/uploads/${safeTarget}/${filename}`).replace(/\\/g, '/');
+    const oldUrl = `/uploads/${path.relative(baseDir, fullPath).replace(/\\/g, '/')}`;
+    const newUrl = `/uploads/${path.relative(baseDir, destPath).replace(/\\/g, '/')}`;
     
     updateImageReferences(oldUrl, newUrl);
     res.json({ success: true, oldUrl, newUrl });
@@ -189,25 +227,26 @@ router.put('/files/move', (req, res) => {
   const { targetFolder, paths } = req.body;
   if (targetFolder === undefined || !paths || !Array.isArray(paths)) return res.status(400).json({ error: 'targetFolder and paths array required' });
 
-  const safeTarget = targetFolder.replace(/\.\./g, '');
-  const destDir = safeTarget === 'root' || safeTarget === '' ? baseDir : path.join(baseDir, safeTarget);
+  const safeTarget = targetFolder === 'root' || targetFolder === '' ? '' : targetFolder;
+  const destDir = resolveSafePath(baseDir, safeTarget);
+  if (!destDir) {
+    return res.status(400).json({ error: 'Invalid target folder' });
+  }
   if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
   const movedItems = [];
 
   paths.forEach(urlPath => {
-    const safePath = urlPath.replace(/\.\./g, '');
-    const fullPath = path.join(baseDir, safePath);
-    
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+    const fullPath = resolveSafePath(baseDir, urlPath);
+    if (fullPath && fullPath !== path.resolve(baseDir) && fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
       const filename = path.basename(fullPath);
       const destPath = path.join(destDir, filename);
       
       if (fullPath !== destPath) {
         fs.renameSync(fullPath, destPath);
         
-        const oldUrl = `/uploads/${safePath}`.replace(/\\/g, '/');
-        const newUrl = (safeTarget === 'root' || safeTarget === '' ? `/uploads/${filename}` : `/uploads/${safeTarget}/${filename}`).replace(/\\/g, '/');
+        const oldUrl = `/uploads/${path.relative(baseDir, fullPath).replace(/\\/g, '/')}`;
+        const newUrl = `/uploads/${path.relative(baseDir, destPath).replace(/\\/g, '/')}`;
         
         updateImageReferences(oldUrl, newUrl);
         movedItems.push({ oldUrl, newUrl });
@@ -221,8 +260,10 @@ router.put('/files/move', (req, res) => {
 router.post('/folder', (req, res) => {
   const { folderName } = req.body;
   if (!folderName) return res.status(400).json({ error: 'folderName required' });
-  const safePath = folderName.replace(/\.\./g, '');
-  const targetPath = path.join(baseDir, safePath);
+  const targetPath = resolveSafePath(baseDir, folderName);
+  if (!targetPath || targetPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Invalid folder path' });
+  }
   if (fs.existsSync(targetPath)) return res.status(400).json({ error: 'Folder already exists' });
   
   fs.mkdirSync(targetPath, { recursive: true });
@@ -232,8 +273,10 @@ router.post('/folder', (req, res) => {
 router.delete('/folder', (req, res) => {
   const folderPath = req.query.path;
   if (!folderPath) return res.status(400).json({ error: 'path required' });
-  const safePath = folderPath.replace(/\.\./g, '');
-  const targetPath = path.join(baseDir, safePath);
+  const targetPath = resolveSafePath(baseDir, folderPath);
+  if (!targetPath || targetPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Cannot delete root or invalid directory' });
+  }
   if (!fs.existsSync(targetPath)) return res.status(404).json({ error: 'Folder not found' });
   
   fs.rmSync(targetPath, { recursive: true, force: true });
@@ -244,15 +287,23 @@ router.put('/folder/rename', (req, res) => {
   const { oldPath, newName } = req.body;
   if (!oldPath || !newName) return res.status(400).json({ error: 'oldPath and newName required' });
   
-  const safeOldPath = oldPath.replace(/\.\./g, '');
-  const safeNewName = newName.replace(/\.\./g, '').replace(/\//g, '');
-  const targetOldPath = path.join(baseDir, safeOldPath);
-  
+  const targetOldPath = resolveSafePath(baseDir, oldPath);
+  if (!targetOldPath || targetOldPath === path.resolve(baseDir)) {
+    return res.status(400).json({ error: 'Invalid oldPath' });
+  }
   if (!fs.existsSync(targetOldPath)) return res.status(404).json({ error: 'Folder not found' });
-  
+
+  const safeNewName = path.basename(newName);
+  if (!safeNewName || safeNewName === '.' || safeNewName.includes('..')) {
+    return res.status(400).json({ error: 'Invalid newName' });
+  }
+
   const parentDir = path.dirname(targetOldPath);
   const targetNewPath = path.join(parentDir, safeNewName);
-  
+  const checkSafe = resolveSafePath(baseDir, path.relative(baseDir, targetNewPath));
+  if (!checkSafe) {
+    return res.status(400).json({ error: 'Unsafe new folder path' });
+  }
   if (fs.existsSync(targetNewPath)) return res.status(400).json({ error: 'New folder name already exists' });
   
   fs.renameSync(targetOldPath, targetNewPath);

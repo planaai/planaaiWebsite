@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 const { getStudentMasterDB, saveMasterDB } = require('../config/masterDB');
+const { requireAdmin } = require('../middleware/auth');
 
 router.get('/students/names', (req, res) => {
   res.json(getStudentMasterDB().map(s => s.name));
@@ -11,7 +12,7 @@ router.get('/students/names', (req, res) => {
 
 router.get('/students', (req, res) => res.json(getStudentMasterDB()));
 
-router.post('/students', (req, res) => {
+router.post('/students', requireAdmin, (req, res) => {
   const studentMasterDB = getStudentMasterDB();
   
   // Find the maximum ID currently in the DB
@@ -30,7 +31,7 @@ router.post('/students', (req, res) => {
   res.json({ status: 'success', student: newStudent });
 });
 
-router.put('/students/:id', (req, res) => {
+router.put('/students/:id', requireAdmin, (req, res) => {
   const { getStudentMasterDB, setStudentMasterDB } = require('../config/masterDB');
   let studentMasterDB = getStudentMasterDB();
   studentMasterDB = studentMasterDB.map(s => s.id === parseInt(req.params.id) ? { ...req.body, id: parseInt(req.params.id) } : s);
@@ -38,7 +39,7 @@ router.put('/students/:id', (req, res) => {
   res.json({ status: 'success' });
 });
 
-router.delete('/students/:id', (req, res) => {
+router.delete('/students/:id', requireAdmin, (req, res) => {
   const { getStudentMasterDB, setStudentMasterDB } = require('../config/masterDB');
   let studentMasterDB = getStudentMasterDB();
   studentMasterDB = studentMasterDB.filter(s => s.id !== parseInt(req.params.id));
@@ -46,7 +47,7 @@ router.delete('/students/:id', (req, res) => {
   res.json({ status: 'success' });
 });
 
-router.get('/students/fix-ids', (req, res) => {
+router.all('/students/fix-ids', requireAdmin, (req, res) => {
   const studentMasterDB = getStudentMasterDB();
   let changed = 0;
   
@@ -72,10 +73,17 @@ router.get('/students/fix-ids', (req, res) => {
   res.json({ status: 'success', fixedCount: changed });
 });
 
-router.post('/gacha/update', (req, res) => {
+router.post('/gacha/update', requireAdmin, (req, res) => {
   const { urls } = req.body;
   if (!urls || !Array.isArray(urls) || urls.length === 0) {
     return res.status(400).json({ error: 'urls array is required' });
+  }
+
+  // Validate each url
+  for (const u of urls) {
+    if (typeof u !== 'string' || !/^https?:\/\//i.test(u)) {
+      return res.status(400).json({ error: 'Invalid URL format in urls array' });
+    }
   }
   
   const scriptPath = path.join(__dirname, '..', 'scripts', 'update_gacha_from_url.js');
@@ -83,7 +91,7 @@ router.post('/gacha/update', (req, res) => {
   execFile('node', [scriptPath, ...urls], { timeout: 60000, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
     if (error) {
       console.error('execFile error:', error);
-      return res.status(500).json({ error: 'Failed to update gacha data', details: stderr || error.message });
+      return res.status(500).json({ error: 'Failed to update gacha data' });
     }
     // Invalidate cache so next status request shows fresh data
     gachaCache = null;

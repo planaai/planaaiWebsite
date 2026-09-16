@@ -1,6 +1,24 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  compress: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.planaai.kro.kr',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'planaai.kro.kr',
+        pathname: '/**',
+      }
+    ],
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
   async headers() {
     return [
       {

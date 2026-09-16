@@ -4,33 +4,47 @@ const helmet = require('helmet');
 const hpp = require('hpp');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+// Reverse Proxy (Nginx / Cloudflare) Trust
+app.set('trust proxy', 1);
 
 const { ipBanMiddleware } = require('./middleware/ipBan');
 
-// 미들웨어
+// 미들웨어 - CORS 설정
+const productionOrigins = [
+  'https://planaai.kro.kr',
+  'https://www.planaai.kro.kr',
+  'https://admin.planaai.kro.kr',
+  'https://api.planaai.kro.kr',
+  'https://planaai-admin.planaai.workers.dev',
+  'https://pvp.planaai.kro.kr'
+];
+
+const developmentOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://localhost:3000',
+  'https://localhost:5173'
+];
+
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? productionOrigins 
+  : [...productionOrigins, ...developmentOrigins];
+
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://localhost:3000',
-    'https://localhost:5173',
-    'https://planaai.kro.kr',
-    'https://www.planaai.kro.kr',
-    'https://admin.planaai.kro.kr',
-    'https://api.planaai.kro.kr',
-    'https://planaai-admin.planaai.workers.dev',
-    'https://pvp.planaai.kro.kr'
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'X-Requested-With', 'Accept', 'X-Device-Fingerprint']
 };
+
 app.use(cors(corsOptions));
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(hpp());
@@ -62,28 +76,11 @@ const noticesRouter = require('./routes/notices');
 const inquiriesRouter = require('./routes/inquiries');
 const raidsRouter = require('./routes/raids');
 const pvpRouter = require('./routes/pvp');
-
-// 새로 분리된 라우터들
 const schemaRouter = require('./routes/schema');
 const imagesRouter = require('./routes/images');
 const masterRouter = require('./routes/master');
 const archiveRouter = require('./routes/archive');
 const hofRouter = require('./routes/hof');
-
-const { requireAdmin } = require('./middleware/auth');
-
-// 관리자 인증 미들웨어 일괄 적용 (마스터 DB 수정용 라우트)
-app.use((req, res, next) => {
-  const adminRoutes = [
-    '/api/schema/enums', '/api/schema/ooparts', '/api/schema/equipments', '/api/schema/gifts', '/api/schema/resourceIcons',
-    '/api/images/upload', '/api/images/folder', '/api/images/file',
-    '/api/master/students', '/api/master/gacha/update'
-  ];
-  if (req.method !== 'GET' && adminRoutes.some(route => req.path.startsWith(route))) {
-    return requireAdmin(req, res, next);
-  }
-  next();
-});
 
 app.use('/api/auth', authRouter);
 app.use('/api/collection', collectionRouter);
@@ -102,9 +99,16 @@ app.use('/api/master', masterRouter);
 app.use('/api/archive', archiveRouter);
 app.use('/api/hof', hofRouter);
 
+// 전역 에러 핸들러 (스택 트레이스 노출 방지)
+app.use((err, req, res, next) => {
+  console.error('Unhandled server error:', err);
+  res.status(err.status || 500).json({
+    error: '서버 오류가 발생했습니다.'
+  });
+});
+
 app.listen(port, () => console.log(`Backend Server running at http://localhost:${port}`));
 
-const https = require('https');
 try {
   const options = {
     key: fs.readFileSync(path.join(__dirname, 'key.pem')),
@@ -114,5 +118,7 @@ try {
     console.log('Secure Backend Server running at https://localhost:3443');
   });
 } catch (e) {
-  console.log('Failed to start HTTPS server:', e.message);
+  // HTTPS key/cert may not exist in local development
 }
+
+module.exports = app;

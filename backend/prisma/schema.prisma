@@ -125,6 +125,8 @@ model GrowthPlan {
   targetWeaponStar   Int      @default(0)
   student            Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, studentId])
 }
 
 model Notice {
@@ -260,6 +262,9 @@ model SharedRaidParty {
   reportCount         Int                   @default(0)
   isBlinded           Boolean               @default(false)
   reports             Report[]
+
+  @@index([bossId, terrain])
+  @@index([authorId])
 }
 
 model SharedRaidPartyLike {

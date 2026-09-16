@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { getSchemaConfig, saveSchemaConfig } = require('../config/masterDB');
+const { requireAdmin } = require('../middleware/auth');
 
 router.get('/', (req, res) => res.json(getSchemaConfig()));
+
+// All schema mutations require admin privilege
+router.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return requireAdmin(req, res, next);
+  }
+  next();
+});
 
 // Enum value CRUD
 router.post('/enums/:enumKey/values', (req, res) => {
