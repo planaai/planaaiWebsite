@@ -362,8 +362,9 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
         router.push('/tactics?mode=pve');
       }
     } catch (err: unknown) {
-      console.error(err);
-      setError(err.response?.data?.error || '업로드 중 오류가 발생했습니다.');
+      const error = err as any;
+      console.error(error);
+      setError(error.response?.data?.error || '업로드 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }

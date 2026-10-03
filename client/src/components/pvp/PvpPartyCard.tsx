@@ -84,8 +84,9 @@ export function PvpPartyCard({ party: rawParty, masterData, onDelete, isDetail =
         toast.error('추천 처리 중 오류가 발생했습니다.');
       }
     } catch (err: unknown) {
-      console.error(err);
-      toast.error(err.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
+      const error = err as any;
+      console.error(error);
+      toast.error(error.response?.data?.error || '추천 처리 중 오류가 발생했습니다.');
       setIsLiked(originalIsLiked);
       setLikeCount(originalLikeCount);
     } finally {

@@ -42,7 +42,8 @@ export function RaidReportModal({ partyId, partyName, onClose }: Props) {
         toast.error(res.data.error || '신고 접수에 실패했습니다.');
       }
     } catch (err: unknown) {
-      toast.error(err.response?.data?.error || '신고 접수 중 오류가 발생했습니다.');
+      const error = err as any;
+      toast.error(error.response?.data?.error || '신고 접수 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }

@@ -87,11 +87,11 @@ export function performSinglePull(
   } else if (selectedRarity === 2) {
     const pool = gachaData.pools["2_star"];
     const selected = pool[Math.floor(Math.random() * pool.length)];
-    selectedName = selected?.name || selected;
+    selectedName = typeof selected === 'string' ? selected : (selected?.name || '');
   } else if (selectedRarity === 1) {
     const pool = gachaData.pools["1_star"];
     const selected = pool[Math.floor(Math.random() * pool.length)];
-    selectedName = selected?.name || selected;
+    selectedName = typeof selected === 'string' ? selected : (selected?.name || '');
   }
 
   results.push({

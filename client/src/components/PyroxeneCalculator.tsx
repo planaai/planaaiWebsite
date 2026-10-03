@@ -634,9 +634,9 @@ export default function PyroxeneCalculator({ data, events }: Props) {
       {/* Hidden Export Template */}
       <PyroxeneExportTemplate
         exportRef={exportRef}
-        startDate={startDate}
-        targetDate={targetDate}
-        today={today}
+        startDate={new Date(startDateStr)}
+        targetDate={new Date(targetDateStr)}
+        today={new Date()}
         breakdown={breakdown}
         costBreakdown={costBreakdown}
         totalCost={totalCost}
