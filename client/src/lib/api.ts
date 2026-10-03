@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { StudentMaster, SchemaConfig } from '../types';
+import type { StudentMaster, SchemaConfig, ArchiveRecord, ArchiveData } from '../types';
 
 export const API_BASE = 'https://api.plan4ai.fyi/api';
 
@@ -51,15 +51,15 @@ export const getImageUrl = (url: string | undefined | null) => {
   }
 };
 
-export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] }> => {
+export const fetchServerData = async (retries = 3): Promise<{ masterData: StudentMaster[], archiveData: ArchiveRecord[] }> => {
   for (let i = 0; i < retries; i++) {
     try {
       const resArchive = await api.get('/archive');
-      const data = resArchive.data.data || [];
-      const masterData = data.map((d: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => d.master);
-      const archiveData = data.map((d: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => d.archive).filter(Boolean);
+      const data: ArchiveData[] = resArchive.data.data || [];
+      const masterData = data.map(d => d.master);
+      const archiveData = data.map(d => d.archive).filter((a): a is ArchiveRecord => a !== null);
       return { masterData, archiveData };
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: unknown) {
       if (i === retries - 1) {
         console.error('Failed to fetch server data after retries:', error);
         return { masterData: [], archiveData: [] };
@@ -81,7 +81,7 @@ export const fetchSchema = async (): Promise<SchemaConfig | null> => {
   }
 };
 
-export const syncCollectionToServer = async (collections: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[]) => {
+export const syncCollectionToServer = async (collections: ArchiveRecord[]) => {
   const res = await api.post('/collection/sync', { collections });
   return res.data;
 };
@@ -91,7 +91,7 @@ export const fetchCollectionFromServer = async () => {
   return res.data;
 };
 
-export const loginUser = async (data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+export const loginUser = async (data: Record<string, unknown>) => {
   const res = await axios.post(`${API_BASE}/auth/login`, data);
   return res.data;
 };

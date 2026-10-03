@@ -64,7 +64,7 @@ export default function PvpList() {
       await api.delete(`/pvp/parties/${id}`);
       setParties(prev => prev.filter(p => p.id !== id));
       toast.success('공략이 삭제되었습니다.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('오류가 발생했습니다.');
     }
   };

@@ -44,7 +44,7 @@ export interface PlannerRecord {
 
 interface PlannerState {
   plans: PlannerRecord[];
-  addPlan: (studentId: number, archiveData?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
+  addPlan: (studentId: number, archiveData?: Partial<ArchiveRecord>) => void;
   updatePlan: (id: number, updates: Partial<PlannerRecord>) => void;
   deletePlan: (id: number) => void;
 }
@@ -57,12 +57,12 @@ export const usePlannerStore = create<PlannerState>()(
         set((state) => {
           if (state.plans.some(p => p.studentId === studentId)) return state;
           
-          const getVal = (val: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, fallback: number) => typeof val === 'number' && !isNaN(val) ? val : fallback;
-          const getLvl = (val: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => getVal(val, 1);
+          const getVal = (val: number | undefined | null, fallback: number) => typeof val === 'number' && !isNaN(val) ? val : fallback;
+          const getLvl = (val: number | undefined | null) => getVal(val, 1);
           
-          const currentEquip1 = archiveData?.equipment?.slot1 ? getLvl(archiveData?.equipment?.slot1?.tier) : 0;
-          const currentEquip2 = archiveData?.equipment?.slot2 ? getLvl(archiveData?.equipment?.slot2?.tier) : 0;
-          const currentEquip3 = archiveData?.equipment?.slot3 ? getLvl(archiveData?.equipment?.slot3?.tier) : 0;
+          const currentEquip1 = archiveData?.equipment?.slot1 ? getLvl(archiveData.equipment.slot1.tier) : 0;
+          const currentEquip2 = archiveData?.equipment?.slot2 ? getLvl(archiveData.equipment.slot2.tier) : 0;
+          const currentEquip3 = archiveData?.equipment?.slot3 ? getLvl(archiveData.equipment.slot3.tier) : 0;
 
           const newPlan: PlannerRecord = {
             id: Date.now(),
@@ -73,14 +73,14 @@ export const usePlannerStore = create<PlannerState>()(
             currentBasic: getLvl(archiveData?.skillLevels?.normal), targetBasic: 10,
             currentEnh: getLvl(archiveData?.skillLevels?.passive), targetEnh: 10,
             currentSub: getLvl(archiveData?.skillLevels?.sub), targetSub: 10,
-            currentEquip1, currentEquip1Level: archiveData?.equipment?.slot1 ? getLvl(archiveData?.equipment?.slot1?.level) : 1,
+            currentEquip1, currentEquip1Level: archiveData?.equipment?.slot1 ? getLvl(archiveData.equipment.slot1.level) : 1,
             targetEquip1: 10, targetEquip1Level: 70,
-            currentEquip2, currentEquip2Level: archiveData?.equipment?.slot2 ? getLvl(archiveData?.equipment?.slot2?.level) : 1,
+            currentEquip2, currentEquip2Level: archiveData?.equipment?.slot2 ? getLvl(archiveData.equipment.slot2.level) : 1,
             targetEquip2: 10, targetEquip2Level: 70,
-            currentEquip3, currentEquip3Level: archiveData?.equipment?.slot3 ? getLvl(archiveData?.equipment?.slot3?.level) : 1,
+            currentEquip3, currentEquip3Level: archiveData?.equipment?.slot3 ? getLvl(archiveData.equipment.slot3.level) : 1,
             targetEquip3: 10, targetEquip3Level: 70,
-            currentWeaponStar: archiveData?.uniqueWeapon?.starGrade || 0, targetWeaponStar: 3,
-            currentWeaponLevel: archiveData?.uniqueWeapon?.level || 1, targetWeaponLevel: 60,
+            currentWeaponStar: archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.stars, 0) : 0, targetWeaponStar: 3,
+            currentWeaponLevel: archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.level, 1) : 1, targetWeaponLevel: 60,
             currentAbilityHP: getVal(archiveData?.potentialLevels?.maxHP, 0), targetAbilityHP: 25,
             currentAbilityAtk: getVal(archiveData?.potentialLevels?.attackPower, 0), targetAbilityAtk: 25,
             currentAbilityHeal: getVal(archiveData?.potentialLevels?.healPower, 0), targetAbilityHeal: 25

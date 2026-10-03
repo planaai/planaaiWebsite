@@ -1,20 +1,9 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { performTenPull, performSinglePull } from '@/lib/gachaLogic';
-import { fetchGachaStatus } from '@/lib/api';
+import React from 'react';
 import { Sparkles, RotateCcw, User, AlertCircle } from 'lucide-react';
-import { getCachedServerData } from '@/lib/dataCache';
-import type { StudentMaster } from '@/types';
 import { getImageUrl } from '@/components/planner/utils';
-import { toast } from 'sonner';
-
-interface GachaResult {
-  name: string;
-  rarity: 1 | 2 | 3;
-  isPickup: boolean;
-  isNew?: boolean;
-}
+import { useGacha } from '@/hooks/useGacha';
 
 const ENCORE_STUDENTS = [
   "아즈사(수영복)", "마시로(수영복)", "히나(수영복)", "이오리(수영복)", 
@@ -23,97 +12,22 @@ const ENCORE_STUDENTS = [
 ];
 
 export default function GachaPage() {
-  const [gachaData, setGachaData] = useState<any>(null);
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-  const [results, setResults] = useState<GachaResult[]>([]);
-  const [pullHistory, setPullHistory] = useState<GachaResult[]>([]);
-  const [showResultScreen, setShowResultScreen] = useState(false);
-  const [masterDataMap, setMasterDataMap] = useState<Record<string, StudentMaster>>({});
-  const [encoreTarget, setEncoreTarget] = useState<string>('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadData() {
-      const [{ masterData }, gachaStatus] = await Promise.all([
-        getCachedServerData(),
-        fetchGachaStatus().catch(() => null)
-      ]);
-      
-      if (cancelled) return;
-
-      const map: Record<string, StudentMaster> = {};
-      masterData.forEach(student => {
-        const normalizedName = student.name.replace(/\s+/g, '');
-        map[normalizedName] = student;
-      });
-      setMasterDataMap(map);
-
-      if (gachaStatus) {
-        // 백엔드 캐시 오류 대응: 3성 풀에서 '앙코르 모집!' 등의 잘못된 이름 제거
-        if (gachaStatus.pools && gachaStatus.pools["3_star"]) {
-          gachaStatus.pools["3_star"] = gachaStatus.pools["3_star"].filter(
-            (item: any) => {
-              const nameStr = typeof item === 'string' ? item : (item?.name || '');
-              return typeof nameStr === 'string' && !nameStr.includes('앙코르 모집');
-            }
-          );
-        }
-        setGachaData(gachaStatus);
-      }
-    }
-    loadData();
-    return () => { cancelled = true; };
-  }, []);
-
-  const banner = gachaData?.banners?.[activeBannerIndex] || gachaData?.banners?.[0];
-  const isEncore = banner?.name?.includes('앙코르 모집');
-
-  const handlePull = (type: 'single' | 'ten') => {
-    if (!gachaData || !banner) return;
-    if (isEncore && !encoreTarget) {
-      toast.error('잠시 후에 다시 시도해 주세요');
-      return;
-    }
-
-    const pullResults = type === 'single' 
-      ? performSinglePull(gachaData, activeBannerIndex, encoreTarget) 
-      : performTenPull(gachaData, activeBannerIndex, encoreTarget);
-    
-    setPullHistory(prev => {
-      const historyNames = new Set(prev.map(p => p.name));
-      const finalResults = pullResults.map(r => ({
-          ...r,
-          isNew: !historyNames.has(r.name)
-      }));
-      setResults(finalResults);
-      return [...prev, ...finalResults];
-    });
-    setShowResultScreen(true);
-  };
-
-  const handleReset = () => {
-    setResults([]);
-    setPullHistory([]);
-    setShowResultScreen(false);
-  };
-
-  const inventorySummary = useMemo(() => {
-    const summary: Record<string, { count: number; rarity: number; isPickup: boolean }> = {};
-    pullHistory.forEach(r => {
-      if (!summary[r.name]) {
-        summary[r.name] = { count: 0, rarity: r.rarity, isPickup: r.isPickup };
-      }
-      summary[r.name].count += 1;
-    });
-
-    const sorted = Object.entries(summary).sort((a, b) => {
-      if (a[1].isPickup && !b[1].isPickup) return -1;
-      if (!a[1].isPickup && b[1].isPickup) return 1;
-      if (b[1].rarity !== a[1].rarity) return b[1].rarity - a[1].rarity;
-      return b[1].count - a[1].count;
-    });
-    return sorted;
-  }, [pullHistory]);
+  const {
+    gachaData,
+    activeBannerIndex,
+    setActiveBannerIndex,
+    results,
+    setResults,
+    pullHistory,
+    masterDataMap,
+    encoreTarget,
+    setEncoreTarget,
+    banner,
+    isEncore,
+    handlePull,
+    handleReset,
+    inventorySummary
+  } = useGacha();
 
   const getCardStyle = (rarity: number) => {
     if (rarity === 3) return 'border-[#ff8ac8] bg-[#ff8ac8] shadow-[0_0_20px_rgba(255,138,200,0.8)]';
@@ -153,7 +67,7 @@ export default function GachaPage() {
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700">
             {gachaData.banners.map((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
               <button
-                key={b.id}
+                key={b.id || idx}
                 onClick={() => {
                   setActiveBannerIndex(idx);
                   setResults([]); // Clear results when switching banners to avoid confusion

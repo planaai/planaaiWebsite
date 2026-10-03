@@ -80,7 +80,7 @@ export function RaidRecommendationView({ masterData }: Props) {
       await api.delete(`/raids/parties/${id}`);
       setParties(prev => prev.filter(p => p.id !== id));
       toast.success('공략이 삭제되었습니다.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('잠시 후에 다시 시도해 주세요');
     }
   };

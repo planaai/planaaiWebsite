@@ -6,6 +6,12 @@ import { syncCollectionToServer, fetchCollectionFromServer } from '../lib/api';
 
 import { useAuthStore } from './authStore';
 
+interface ServerCollectionData {
+  studentId: number;
+  starGrade: number;
+  details?: ArchiveRecord;
+}
+
 interface ArchiveState {
   records: Record<number, ArchiveRecord>;
   lastSyncTimes: Record<string, string>;
@@ -68,7 +74,7 @@ export const useArchiveStore = create<ArchiveState>()(
       syncToServer: async () => {
         const { records } = useArchiveStore.getState();
         // 전체 데이터를 그대로 배열로 전송 (starGrade는 호환성을 위해 유지)
-        const recordsArr = Object.values(records).map((r: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
+        const recordsArr = Object.values(records).map((r: ArchiveRecord) => ({
           ...r,
           starGrade: r.currentStars,
           isOwned: true
@@ -98,7 +104,7 @@ export const useArchiveStore = create<ArchiveState>()(
         try {
           const res = await fetchCollectionFromServer();
           if (res.status === 'success') {
-            const mappedRecords: ArchiveRecord[] = res.collections.map((c: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+            const mappedRecords: ArchiveRecord[] = res.collections.map((c: ServerCollectionData) => {
               // 서버에 저장된 details가 있다면 그대로 복원하고, 없다면 기본값 세팅
               if (c.details) {
                 return {

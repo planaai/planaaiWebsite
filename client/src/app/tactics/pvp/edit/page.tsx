@@ -52,7 +52,7 @@ function PvpEditPageContent() {
           
           setPartyData(data);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load edit data:', err, err.response?.data);
         toast.error(`오류 발생: ${err.message}`);
         setLoading(false);

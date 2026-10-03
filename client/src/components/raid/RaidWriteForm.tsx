@@ -361,7 +361,7 @@ export function RaidWriteForm({ masterData, initialData }: Props) {
         alert('성공적으로 공략이 등록되었습니다!');
         router.push('/tactics?mode=pve');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError(err.response?.data?.error || '업로드 중 오류가 발생했습니다.');
     } finally {

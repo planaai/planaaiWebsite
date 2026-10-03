@@ -42,7 +42,7 @@ function RaidDetailPageContent() {
         // Try fetching from API first (by shortCode)
         const res = await api.get(`/raids/parties/code/${code}`);
         setParty(res.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         // If not found by code, try by ID
         try {
           const res2 = await api.get(`/raids/parties`); // Fetching all is inefficient but works as a quick fallback for dev
@@ -77,7 +77,7 @@ function RaidDetailPageContent() {
       await api.delete(`/raids/parties/${party.id}`);
       toast.success('공략이 삭제되었습니다.');
       router.push('/tactics?mode=pve');
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('잠시 후에 다시 시도해 주세요');
     }
   };

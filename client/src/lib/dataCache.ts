@@ -1,4 +1,4 @@
-import type { StudentMaster, SchemaConfig } from '../types';
+import type { StudentMaster, SchemaConfig, ArchiveRecord } from '../types';
 import { fetchServerData as _fetchServerData, fetchSchema as _fetchSchema } from './api';
 
 /**
@@ -13,11 +13,11 @@ import { fetchServerData as _fetchServerData, fetchSchema as _fetchSchema } from
 const CACHE_TTL = 5 * 60 * 1000; // 5분
 
 // --- Server Data Cache ---
-let serverDataCache: { masterData: StudentMaster[]; archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] } | null = null;
+let serverDataCache: { masterData: StudentMaster[]; archiveData: ArchiveRecord[] } | null = null;
 let serverDataCacheTime = 0;
-let serverDataPromise: Promise<{ masterData: StudentMaster[]; archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] }> | null = null;
+let serverDataPromise: Promise<{ masterData: StudentMaster[]; archiveData: ArchiveRecord[] }> | null = null;
 
-export async function getCachedServerData(): Promise<{ masterData: StudentMaster[]; archiveData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */[] }> {
+export async function getCachedServerData(): Promise<{ masterData: StudentMaster[]; archiveData: ArchiveRecord[] }> {
   const now = Date.now();
 
   // 캐시가 유효하면 즉시 반환

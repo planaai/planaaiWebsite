@@ -64,44 +64,44 @@ export function getPyroxeneData(): PyroxeneData {
   const wb = xlsx.read(fileBuffer);
   
   // 1. Daily/Weekly Quests
-  const dailySheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['일반적 수급량']);
-  const dailyQuests = dailySheet.find(row => row['수급 방법'] === '일일 퀘스트')?.['청휘석 량'] || 20;
-  const weeklyQuests = dailySheet.find(row => row['수급 방법'] === '주간 퀘스트')?.['청휘석 량'] || 120;
+  const dailySheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['일반적 수급량']);
+  const dailyQuests = (dailySheet.find(row => row['수급 방법'] === '일일 퀘스트')?.['청휘석 량'] as number) || 20;
+  const weeklyQuests = (dailySheet.find(row => row['수급 방법'] === '주간 퀘스트')?.['청휘석 량'] as number) || 120;
 
   // 2. Packages
-  const parsePackage = (row: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): PackageOption => ({
-    name: row['패키지명'],
-    limit: row['구매 가능 횟수'] || 1,
-    amount: row['수급량'] || 0,
-    cost: row['어른의 카드 청구서'] || 0
+  const parsePackage = (row: Record<string, unknown>): PackageOption => ({
+    name: String(row['패키지명'] || ''),
+    limit: Number(row['구매 가능 횟수'] || 1),
+    amount: Number(row['수급량'] || 0),
+    cost: Number(row['어른의 카드 청구서'] || 0)
   });
 
-  const monthlyPkgSheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['패키지를 통한 월간 수급량']);
+  const monthlyPkgSheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['패키지를 통한 월간 수급량']);
   const monthlyPackages = monthlyPkgSheet.filter(row => row['패키지명']).map(parsePackage);
 
-  const weeklyPkgSheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['패키지를 통한 주간 수급량']);
+  const weeklyPkgSheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['패키지를 통한 주간 수급량']);
   const weeklyPackages = weeklyPkgSheet.filter(row => row['패키지명']).map(parsePackage);
 
   // 3. Assault Tiers
-  const parseTier = (row: any /* eslint-disable-line @typescript-eslint/no-explicit-any */): TierOption => ({
-    name: row['항목'],
-    amount: row['수급량'] || 0
+  const parseTier = (row: Record<string, unknown>): TierOption => ({
+    name: String(row['항목'] || ''),
+    amount: Number(row['수급량'] || 0)
   });
 
-  const totalAssaultSheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['총력전 월간 청휘석 수급량']);
+  const totalAssaultSheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['총력전 월간 청휘석 수급량']);
   const totalAssaultTiers = totalAssaultSheet
     .filter(row => row['항목'] && row['항목'] !== '누적 포인트 보상 올클리어')
     .map(parseTier);
     
-  const grandAssaultSheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['대결전 월간 청휘석 수급량']);
+  const grandAssaultSheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['대결전 월간 청휘석 수급량']);
   const grandAssaultTiers = grandAssaultSheet
     .filter(row => row['항목'] && row['항목'] !== '누적 포인트 보상 올클리어')
     .map(parseTier);
 
-  const assaultClearReward = totalAssaultSheet.find(row => row['항목'] === '누적 포인트 보상 올클리어')?.['수급량'] || 650;
+  const assaultClearReward = (totalAssaultSheet.find(row => row['항목'] === '누적 포인트 보상 올클리어')?.['수급량'] as number) || 650;
 
   // 4. Tactical Challenge Ranks
-  const tacticalSheet = xlsx.utils.sheet_to_json<any>(wb.Sheets['전술대회 일간 청휘석 수급량']);
+  const tacticalSheet = xlsx.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets['전술대회 일간 청휘석 수급량']);
   const tacticalRanks: RankOption[] = tacticalSheet.map(row => {
     // Columns were parsed as '1' (rank string) and '45' (amount) due to no header in excel
     // The keys are exactly what we got from dump: '1' for string, '45' for amount
