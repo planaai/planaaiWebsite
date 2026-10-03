@@ -21,6 +21,7 @@ const productionOrigins = [
   'https://admin.plan4ai.fyi',
   'https://api.plan4ai.fyi',
   'https://planaai-admin.planaai.workers.dev',
+  'https://planaai-admin.pages.dev',
   'https://pvp.plan4ai.fyi'
 ];
 
