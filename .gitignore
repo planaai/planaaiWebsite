@@ -77,3 +77,5 @@ lint-results.txt
 docs-vault/
 .agents/
 .agentignore
+
+QA_PROCESS.md
