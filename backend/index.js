@@ -16,12 +16,12 @@ const { ipBanMiddleware } = require('./middleware/ipBan');
 
 // 미들웨어 - CORS 설정
 const productionOrigins = [
-  'https://planaai.kro.kr',
-  'https://www.planaai.kro.kr',
-  'https://admin.planaai.kro.kr',
-  'https://api.planaai.kro.kr',
+  'https://plan4ai.fyi',
+  'https://www.plan4ai.fyi',
+  'https://admin.plan4ai.fyi',
+  'https://api.plan4ai.fyi',
   'https://planaai-admin.planaai.workers.dev',
-  'https://pvp.planaai.kro.kr'
+  'https://pvp.plan4ai.fyi'
 ];
 
 const developmentOrigins = [

@@ -171,7 +171,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     : (master.portraitUrls && master.portraitUrls.length > selectedMode + 1 ? master.portraitUrls[selectedMode + 1] : master.portraitUrls?.[1]);
                   
                   if (portraitUrl) {
-                    return <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;
+                    return <img src={`https://api.plan4ai.fyi${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;
                   } else {
                     return (
                       <div className="w-32 h-32 border-2 border-slate-300 text-slate-400 font-bold rounded-2xl flex items-center justify-center bg-white/50 mb-40">
@@ -249,7 +249,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       ].map((stat, i) => (
                         <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded-md p-1.5 shadow-sm w-14">
                           <span className="text-[11px] text-slate-500 font-bold mb-0.5">{stat.label}</span>
-                          <img src={`https://api.planaai.kro.kr/uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
+                          <img src={`https://api.plan4ai.fyi/uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
                         </div>
                       ));
                     })()}
@@ -339,7 +339,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                           {/* Icon placeholder */}
                           <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                             {sData.iconUrl ? (
-                              <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
+                              <img src={`https://api.plan4ai.fyi${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
@@ -389,7 +389,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                             {/* Icon placeholder */}
                             <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
                               {sData.iconUrl ? (
-                                <img src={`https://api.planaai.kro.kr${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
+                                <img src={`https://api.plan4ai.fyi${sData.iconUrl}`} alt={label} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[10px] font-black text-slate-400">IMG</span>
                               )}
@@ -426,7 +426,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   <div className="skew-x-[5deg] p-5 flex flex-col w-full h-full">
                     <div className="w-full h-28 bg-slate-50 flex items-center justify-center mb-4 border border-slate-100">
                       {master.uniqueWeaponUrl ? (
-                        <img src={`https://api.planaai.kro.kr${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
+                        <img src={`https://api.plan4ai.fyi${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
                       ) : (
                         <span className="text-slate-400 font-bold text-sm">이미지 없음</span>
                       )}
@@ -475,7 +475,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     const equipmentDef = schema.equipments?.find(e => e.key === equipCategory);
                     const equipImageRaw = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl;
                     const equipImage = equipImageRaw 
-                      ? (equipImageRaw.startsWith('img-') ? `https://api.planaai.kro.kr/uploads/equipment/${equipImageRaw}` : (equipImageRaw.startsWith('/') ? `https://api.planaai.kro.kr${equipImageRaw}` : equipImageRaw))
+                      ? (equipImageRaw.startsWith('img-') ? `https://api.plan4ai.fyi/uploads/equipment/${equipImageRaw}` : (equipImageRaw.startsWith('/') ? `https://api.plan4ai.fyi${equipImageRaw}` : equipImageRaw))
                       : '/images/ui/equip_empty.png';
                     
                     return (

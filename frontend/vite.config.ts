@@ -8,11 +8,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://api.planaai.kro.kr',
+        target: 'https://api.plan4ai.fyi',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'https://api.planaai.kro.kr',
+        target: 'https://api.plan4ai.fyi',
         changeOrigin: true,
       },
     },

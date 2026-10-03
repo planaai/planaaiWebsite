@@ -6,12 +6,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'api.planaai.kro.kr',
+        hostname: 'api.plan4ai.fyi',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'planaai.kro.kr',
+        hostname: 'plan4ai.fyi',
         pathname: '/**',
       }
     ],

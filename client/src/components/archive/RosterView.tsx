@@ -144,7 +144,7 @@ export function RosterView({ initialMasterData, schema, mode = 'collection' }: R
                   </span>
                   
                   {portraitUrl ? (
-                    <img src={`https://api.planaai.kro.kr${portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
+                    <img src={`https://api.plan4ai.fyi${portraitUrl}`} className="w-full h-full object-cover object-bottom transition-transform duration-500 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                       <span className="text-xs text-[var(--plana-text-muted)] font-bold">No Image</span>

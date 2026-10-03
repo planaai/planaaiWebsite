@@ -124,7 +124,7 @@ export function PvpWriteForm({ masterData, initialData }: Props) {
 
   const exportUrl = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:3001/formation-export' 
-    : 'https://planaai.kro.kr/formation-export';
+    : 'https://plan4ai.fyi/formation-export';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
