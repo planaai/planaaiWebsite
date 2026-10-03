@@ -127,7 +127,7 @@ export function getPyroxeneData(): PyroxeneData {
 }
 
 export async function fetchScheduledEvents(): Promise<ScheduledEvent[]> {
-  const url = 'https://docs.google.com/spreadsheets/d/1frtGAJ2q5X-rTkUxE2sdMzp0VCuMjgulwTdZ5aBTi28/export?format=csv&gid=370752835';
+  const url = 'https://docs.google.com/spreadsheets/d/1frtGAJ2q5X-rTkUxE2sdMzp0VCuMjgulwTdZ5aBTi28/export?format=csv&gid=672251043';
   
   try {
     const res = await fetch(url, {
