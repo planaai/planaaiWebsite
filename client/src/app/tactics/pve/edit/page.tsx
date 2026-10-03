@@ -53,9 +53,9 @@ function RaidEditPageContent() {
           
           setPartyData(data);
         }
-      } catch (err: unknown) {
-        console.error('Failed to load edit data:', err, err.response?.data);
-        toast.error(`오류 발생: ${err.message}`);
+      } catch (err: any) {
+        console.error('Failed to load edit data:', err, err?.response?.data);
+        toast.error(`오류 발생: ${err?.message || '알 수 없는 오류'}`);
         setLoading(false);
       } finally {
         if (!cancelled) setLoading(false);
