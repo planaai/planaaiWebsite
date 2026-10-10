@@ -1,16 +1,29 @@
-import { useState, useMemo, useEffect } from 'react';
-import { performTenPull, performSinglePull, GachaData } from '@/lib/gachaLogic';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import {
+  executeGachaPull,
+  getBannerChargeType,
+  ChargeType,
+  GachaData,
+  GachaResult,
+} from '@/lib/gachaLogic';
 import { fetchGachaStatus } from '@/lib/api';
 import { getCachedServerData } from '@/lib/dataCache';
 import type { StudentMaster } from '@/types';
 import { toast } from 'sonner';
 
-export interface GachaResult {
-  name: string;
-  rarity: 1 | 2 | 3;
-  isPickup: boolean;
-  isNew?: boolean;
+const STORAGE_KEYS = {
+  CHARGE_STACKS: 'plana_gacha_charge_stacks',
+} as const;
+
+interface ChargeStacksState {
+  regular: number;
+  limited: number;
 }
+
+const DEFAULT_STACKS: ChargeStacksState = {
+  regular: 0,
+  limited: 0,
+};
 
 export function useGacha() {
   const [gachaData, setGachaData] = useState<GachaData | null>(null);
@@ -21,78 +34,135 @@ export function useGacha() {
   const [masterDataMap, setMasterDataMap] = useState<Record<string, StudentMaster>>({});
   const [encoreTarget, setEncoreTarget] = useState<string>('');
 
+  // 모집 차지 스택 (일반 / 한정 분리 저장)
+  const [chargeStacks, setChargeStacks] = useState<ChargeStacksState>(() => {
+    if (typeof window === 'undefined') return DEFAULT_STACKS;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.CHARGE_STACKS);
+      return saved ? JSON.parse(saved) : DEFAULT_STACKS;
+    } catch {
+      return DEFAULT_STACKS;
+    }
+  });
+
+  // LocalStorage 동기화
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CHARGE_STACKS, JSON.stringify(chargeStacks));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [chargeStacks]);
+
   useEffect(() => {
     let cancelled = false;
     async function loadData() {
       try {
         const [{ masterData }, gachaStatus] = await Promise.all([
           getCachedServerData(),
-          fetchGachaStatus().catch(() => null)
+          fetchGachaStatus().catch(() => null),
         ]);
-        
+
         if (cancelled) return;
 
         const map: Record<string, StudentMaster> = {};
-        masterData.forEach(student => {
+        masterData.forEach((student) => {
           const normalizedName = student.name.replace(/\s+/g, '');
           map[normalizedName] = student;
         });
         setMasterDataMap(map);
 
         if (gachaStatus) {
-          if (gachaStatus.pools && gachaStatus.pools["3_star"]) {
-            gachaStatus.pools["3_star"] = gachaStatus.pools["3_star"].filter(
-              (item: any) => {
-                const nameStr = typeof item === 'string' ? item : (item?.name || '');
-                return typeof nameStr === 'string' && !nameStr.includes('앙코르 모집');
-              }
-            );
+          if (gachaStatus.pools && gachaStatus.pools['3_star']) {
+            gachaStatus.pools['3_star'] = gachaStatus.pools['3_star'].filter((item: unknown) => {
+              const nameStr = typeof item === 'string' ? item : (item as { name?: string })?.name || '';
+              return typeof nameStr === 'string' && !nameStr.includes('앙코르 모집');
+            });
           }
           setGachaData(gachaStatus);
         }
-      } catch (err: unknown) {
+      } catch {
         if (!cancelled) toast.error('데이터를 불러오는데 실패했습니다.');
       }
     }
     loadData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const banner = gachaData?.banners?.[activeBannerIndex] || gachaData?.banners?.[0];
-  const isEncore = banner?.name?.includes('앙코르 모집');
+  const isEncore = Boolean(banner?.name?.includes('앙코르 모집'));
 
-  const handlePull = (type: 'single' | 'ten') => {
-    if (!gachaData || !banner) return;
-    if (isEncore && !encoreTarget) {
-      toast.error('잠시 후에 다시 시도해 주세요');
-      return;
-    }
+  // 현재 활성화된 배너의 차지 유형 ('regular' | 'limited')
+  const chargeType: ChargeType = useMemo(
+    () => getBannerChargeType(banner?.name),
+    [banner?.name]
+  );
 
-    const pullResults = type === 'single' 
-      ? performSinglePull(gachaData, activeBannerIndex, encoreTarget) 
-      : performTenPull(gachaData, activeBannerIndex, encoreTarget);
-    
-    setPullHistory(prev => {
-      const historyNames = new Set(prev.map(p => p.name));
-      const finalResults = pullResults.map(r => ({
-          ...r,
-          isNew: !historyNames.has(r.name)
+  // 현재 배너에 적용되는 차지 스택 값
+  const currentChargeStack = chargeStacks[chargeType];
+
+  const handlePull = useCallback(
+    (type: 'single' | 'ten') => {
+      if (!gachaData || !banner) return;
+      if (isEncore && !encoreTarget) {
+        toast.error('잠시 후에 다시 시도해 주세요');
+        return;
+      }
+
+      const pullCount: 1 | 10 = type === 'single' ? 1 : 10;
+      const executionResult = executeGachaPull({
+        gachaData,
+        bannerIndex: activeBannerIndex,
+        pullCount,
+        currentChargeStack,
+        currentRecruitCount: 0,
+        encoreTarget,
+      });
+
+      // 스택 업데이트
+      setChargeStacks((prev) => ({
+        ...prev,
+        [chargeType]: executionResult.nextChargeStack,
       }));
-      setResults(finalResults as GachaResult[]);
-      return [...prev, ...(finalResults as GachaResult[])];
-    });
-    setShowResultScreen(true);
-  };
 
-  const handleReset = () => {
+      // 신규 획득 여부 계산 및 결과 반영
+      setPullHistory((prev) => {
+        const historyNames = new Set(prev.map((p) => p.name));
+        const finalResults = executionResult.results.map((r) => ({
+          ...r,
+          isNew: !historyNames.has(r.name),
+        }));
+        setResults(finalResults);
+        return [...prev, ...finalResults];
+      });
+
+      setShowResultScreen(true);
+    },
+    [gachaData, banner, isEncore, encoreTarget, activeBannerIndex, currentChargeStack, chargeType]
+  );
+
+  // 뽑기 결과 화면 및 기록 리셋
+  const handleResetHistory = useCallback(() => {
     setResults([]);
     setPullHistory([]);
     setShowResultScreen(false);
-  };
+    toast.info('모의 가챠 뽑기 기록이 초기화되었습니다.');
+  }, []);
+
+  // 차지 스택 전체 초기화
+  const handleResetStacks = useCallback(() => {
+    setChargeStacks(DEFAULT_STACKS);
+    setResults([]);
+    setPullHistory([]);
+    setShowResultScreen(false);
+    toast.info('모집 차지 스택이 초기화되었습니다.');
+  }, []);
 
   const inventorySummary = useMemo(() => {
     const summary: Record<string, { count: number; rarity: number; isPickup: boolean }> = {};
-    pullHistory.forEach(r => {
+    pullHistory.forEach((r) => {
       if (!summary[r.name]) {
         summary[r.name] = { count: 0, rarity: r.rarity, isPickup: r.isPickup };
       }
@@ -120,8 +190,12 @@ export function useGacha() {
     setEncoreTarget,
     banner,
     isEncore,
+    chargeType,
+    currentChargeStack,
+    chargeStacks,
     handlePull,
-    handleReset,
-    inventorySummary
+    handleResetHistory,
+    handleResetStacks,
+    inventorySummary,
   };
 }

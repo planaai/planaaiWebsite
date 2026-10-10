@@ -7,8 +7,8 @@ import { MaintenanceNotice } from '@/components/ui/MaintenanceNotice';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'Plana.AI - 점검 중',
-  description: '서비스 업데이트 진행 중입니다.',
+  title: 'Plana.AI',
+  description: '블루 아카이브 종합 도구 및 시뮬레이터',
 };
 
 // 점검 모드 토글 (true: 점검 공지 표시, false: 정상 운영)
