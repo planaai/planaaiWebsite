@@ -1,10 +1,37 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, RotateCcw, User, AlertCircle, Zap, Star, Award, Info, BarChart2 } from 'lucide-react';
+import Image from 'next/image';
+import { Sparkles, RotateCcw, User, AlertCircle, Zap, Info, BarChart2 } from 'lucide-react';
 import { getImageUrl } from '@/components/planner/utils';
 import { useGacha } from '@/hooks/useGacha';
 import type { GachaBanner, GachaPickup, GuaranteeType } from '@/lib/gachaLogic';
+import kusoaronaImg from './kusoarona.png';
+
+function BrickWallIcon({ size = 11, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M8 3v6" />
+      <path d="M16 3v6" />
+      <path d="M12 9v6" />
+      <path d="M8 15v6" />
+      <path d="M16 15v6" />
+    </svg>
+  );
+}
 
 const ENCORE_STUDENTS = [
   '아즈사(수영복)', '마시로(수영복)', '히나(수영복)', '이오리(수영복)',
@@ -179,13 +206,15 @@ export default function GachaPage() {
                   : 'bg-gradient-to-r from-[#FFFBFD] to-white border-[#FFA6C9]/30 text-slate-600'
               }`}>
                 <div className="flex items-center gap-2">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${
-                    currentChargeStack >= 100
-                      ? 'bg-gradient-to-br from-[#FF88B3] to-[#FF6599] text-white'
-                      : 'bg-[#FFE4EE] text-[#FF5A92]'
-                  }`}>
-                    <Star size={10} className="fill-current" />
-                  </span>
+                  <div className="w-8 h-8 flex items-center justify-center shrink-0 -my-1">
+                    <Image
+                      src={kusoaronaImg}
+                      alt="3★ 모집 봉투"
+                      width={32}
+                      height={32}
+                      className="object-contain drop-shadow-sm scale-110"
+                    />
+                  </div>
                   <div>
                     <div className="text-[11px] font-black text-slate-800 leading-tight">100 차지: 3★ 1명 확정</div>
                     <div className="text-[10px] text-slate-500 leading-tight">픽업 확률 50%</div>
@@ -203,16 +232,16 @@ export default function GachaPage() {
               {/* 200 Stack Checkpoint */}
               <div className={`flex items-center justify-between px-3 py-1.5 rounded-xl border transition-all ${
                 currentChargeStack >= 200
-                  ? 'bg-gradient-to-r from-[#FAF5FF] to-white border-[#C084FC] text-slate-800 shadow-xs'
-                  : 'bg-gradient-to-r from-[#FDFBFF] to-white border-[#E0CFFC]/50 text-slate-600'
+                  ? 'bg-gradient-to-r from-[#FFF0F5] to-white border-[#FF6599] text-slate-800 shadow-xs'
+                  : 'bg-gradient-to-r from-[#FFFBFD] to-white border-[#FFA6C9]/30 text-slate-600'
               }`}>
                 <div className="flex items-center gap-2">
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs shrink-0 ${
                     currentChargeStack >= 200
-                      ? 'bg-gradient-to-br from-[#9333EA] to-[#7E22CE] text-white'
-                      : 'bg-[#F3E8FF] text-[#9333EA]'
+                      ? 'bg-gradient-to-br from-[#FF88B3] to-[#FF6599] text-white'
+                      : 'bg-[#FFE4EE] text-[#FF5A92]'
                   }`}>
-                    <Award size={11} className="fill-current" />
+                    <BrickWallIcon size={11} />
                   </span>
                   <div>
                     <div className="text-[11px] font-black text-slate-800 leading-tight">200 차지: 픽업 확정</div>
@@ -221,8 +250,8 @@ export default function GachaPage() {
                 </div>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                   currentChargeStack >= 200
-                    ? 'bg-[#9333EA] text-white shadow-xs'
-                    : 'bg-[#FAF5FF] text-[#9333EA] border border-[#E0CFFC]'
+                    ? 'bg-[#FF6599] text-white shadow-xs'
+                    : 'bg-[#FFF0F5] text-[#FF5A92] border border-[#FFA6C9]/40'
                 }`}>
                   {currentChargeStack >= 200 ? '달성' : `${200 - currentChargeStack}회 남음`}
                 </span>
@@ -230,7 +259,7 @@ export default function GachaPage() {
             </div>
 
             {/* Bottom Guide Text */}
-            <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 bg-gradient-to-r from-[#FFF5F8]/90 to-[#FAF5FF]/90 rounded-xl px-3 py-1.5 border border-[#FFA6C9]/30">
+            <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 bg-gradient-to-r from-[#FFF5F8]/90 to-[#FFF0F5]/90 rounded-xl px-3 py-1.5 border border-[#FFA6C9]/30">
               <Info size={12} className="text-[#FF6599] shrink-0" />
               <span>
                 픽업 캐릭터 획득 시 스택이 즉시 <strong>0</strong>으로 초기화되며, 다음 픽업으로 이월됩니다.
