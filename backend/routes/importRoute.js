@@ -104,8 +104,10 @@ router.post('/screenshot', requireAuth, async (req, res) => {
     // bondRank와 장비 레벨 저장
     const extractedBondRank = req.body.bondRank ?? req.body.bond_rank ?? stats?.bondRank ?? stats?.bond_rank;
     if (extractedBondRank !== undefined && extractedBondRank !== null) {
-      const parsedBond = parseInt(extractedBondRank);
-      if (!isNaN(parsedBond)) detailsObj.bondRank = parsedBond;
+      const parsedBond = parseInt(extractedBondRank, 10);
+      if (!isNaN(parsedBond) && parsedBond >= 1 && parsedBond <= 100) {
+        detailsObj.bondRank = parsedBond;
+      }
     }
     
     if (equipment?.slot1?.level) detailsObj.equip1Level = equipment.slot1.level;
@@ -179,6 +181,9 @@ router.post('/screenshot', requireAuth, async (req, res) => {
         healPower: stats.healPower
       };
     }
+
+    // 캡처/임포트 시점 타임스탬프 기록 (ISO 8601 UTC)
+    detailsObj.capturedAt = new Date().toISOString();
 
     await prisma.collection.upsert({
       where: {
@@ -268,7 +273,13 @@ router.post('/screenshot', requireAuth, async (req, res) => {
        });
     }
 
-    return res.json({ success: true, message: `Updated data for ${student.name}` });
+    return res.json({
+      success: true,
+      message: `Updated data for ${student.name}`,
+      userId: userId,
+      studentId: student.id,
+      studentName: student.name
+    });
   } catch (error) {
     console.error('Import Error:', error);
     return res.status(500).json({ error: '데이터 가져오기 처리 중 서버 오류가 발생했습니다.' });

@@ -27,6 +27,7 @@ function LoginContent() {
       const res = await api.post('/auth/login', { username, password });
       if (res.data.status === 'success') {
         login(res.data.token, res.data.user);
+        await useArchiveStore.getState().fetchFromServer().catch(console.error);
         const redirect = searchParams.get('redirect') || '/';
         router.push(redirect);
       }

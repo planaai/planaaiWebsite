@@ -110,7 +110,8 @@ export const useArchiveStore = create<ArchiveState>()(
                 return {
                   ...c.details,
                   studentId: c.studentId,
-                  currentStars: c.starGrade
+                  currentStars: c.starGrade,
+                  capturedAt: c.details.capturedAt || new Date().toISOString()
                 };
               }
 
