@@ -3,7 +3,7 @@ import { X, Save, Star, Sparkles } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, Skill } from '../../types';
 import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
-import { MasterJsonImportModal } from './MasterJsonImportModal';
+import { MasterJsonImportModal, mergeUrlArrays, preserveUrl, mergeSkill, mergeSkillField } from './MasterJsonImportModal';
 
 interface MasterModalProps {
   student: Omit<StudentMaster, 'id'> & { id?: number };
@@ -92,15 +92,36 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
           onClose={() => setShowJsonModal(false)}
           currentStudent={form}
           onImport={(imported) => {
-            setForm(prev => ({
-              ...imported,
-              id: isNew ? undefined : prev.id,
-              portraitUrls: (imported.portraitUrls && imported.portraitUrls.length > 0)
-                ? imported.portraitUrls
-                : prev.portraitUrls
-            }));
+            setForm(prev => {
+              const portraitUrls = mergeUrlArrays(imported.portraitUrls, prev.portraitUrls);
+              const uniqueWeaponUrl = preserveUrl(imported.uniqueWeaponUrl, prev.uniqueWeaponUrl);
+              const favoriteItemUrl = preserveUrl(imported.favoriteItemUrl, prev.favoriteItemUrl);
+              const skills = (imported.skills || []).map((sSet, sIdx) => {
+                const prevSet = prev.skills?.[sIdx];
+                return {
+                  ...sSet,
+                  portraitUrl: preserveUrl(sSet.portraitUrl, prevSet?.portraitUrl),
+                  fullIllustUrl: preserveUrl(sSet.fullIllustUrl, prevSet?.fullIllustUrl),
+                  ex: mergeSkillField(sSet.ex, prevSet?.ex),
+                  normal: mergeSkillField(sSet.normal, prevSet?.normal),
+                  passive: mergeSkill(sSet.passive, prevSet?.passive),
+                  sub: mergeSkill(sSet.sub, prevSet?.sub),
+                  normalPlus: mergeSkill(sSet.normalPlus, prevSet?.normalPlus),
+                  passivePlus: mergeSkill(sSet.passivePlus, prevSet?.passivePlus),
+                };
+              });
+
+              return {
+                ...imported,
+                id: isNew ? undefined : prev.id,
+                portraitUrls,
+                uniqueWeaponUrl,
+                favoriteItemUrl,
+                skills
+              };
+            });
             setShowJsonModal(false);
-            showToast(`'${imported.name || '학생'}' 데이터를 폼에 적용했습니다. 검토 후 저장해주세요.`);
+            showToast(`'${imported.name || '학생'}' 데이터를 폼에 적용했습니다. (기존 이미지 URL 보존 완료)`);
           }}
           schema={schema}
           showToast={showToast}

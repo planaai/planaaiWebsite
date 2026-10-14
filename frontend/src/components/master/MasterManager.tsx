@@ -99,10 +99,26 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
         <MasterJsonImportModal
           isOpen={showJsonModal}
           onClose={() => setShowJsonModal(false)}
+          existingStudents={data.map(d => d.master)}
           onImport={(imported) => {
             setShowJsonModal(false);
-            setModal({ student: imported, isNew: true });
-            showToast(`'${imported.name || '학생'}' 데이터를 성공적으로 불러왔습니다. 검토 후 저장해주세요.`);
+            const matched = data.find(d => 
+              (imported.name && d.master.name.trim() === imported.name.trim()) ||
+              (imported.studentNumber && d.master.studentNumber === imported.studentNumber)
+            );
+            if (matched) {
+              setModal({
+                student: {
+                  ...imported,
+                  id: matched.master.id
+                },
+                isNew: false
+              });
+              showToast(`기존 '${matched.master.name}'(ID: ${matched.master.id}) 마스터 데이터에 적용했습니다. (이미지 URL 보존 완료)`);
+            } else {
+              setModal({ student: imported, isNew: true });
+              showToast(`'${imported.name || '학생'}' 신규 데이터를 불러왔습니다. 검토 후 저장해주세요.`);
+            }
           }}
           schema={schema}
           showToast={showToast}
