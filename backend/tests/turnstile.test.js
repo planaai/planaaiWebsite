@@ -5,9 +5,9 @@
 const assert = require('node:assert');
 const test = require('node:test');
 const path = require('node:path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-const { verifyRecaptcha } = require('./utils/recaptcha');
+const { verifyRecaptcha } = require('../utils/recaptcha');
 
 test('1. [Edge Case] verifyRecaptcha with missing or empty token', async () => {
   // Must return false without throwing or calling external network
@@ -84,7 +84,7 @@ test('5. [Network / HTTP Exception Recovery] verifyRecaptcha handles network fai
 });
 
 test('6. [Auth Integration] registerUser rejects registration when Turnstile verification fails', async () => {
-  const { registerUser } = require('./services/authService');
+  const { registerUser } = require('../services/authService');
   
   await assert.rejects(
     async () => {

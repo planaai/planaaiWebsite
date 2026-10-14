@@ -7,8 +7,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "test": "node --test test_turnstile.js",
-    "test:turnstile": "node --test test_turnstile.js",
+    "test": "node --test",
+    "test:turnstile": "node --test tests/turnstile.test.js",
+    "test:sync": "node --test tests/sync_and_import.test.js",
     "db:sync": "ts-node sync_db_from_excel.ts"
   },
   "keywords": [],
