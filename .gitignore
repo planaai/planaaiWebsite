@@ -13,6 +13,10 @@ build/
 dist/
 dist-ssr/
 
+
+docs/
+tools/
+
 # Backend & Database
 /backend/uploads/
 /backend/data/

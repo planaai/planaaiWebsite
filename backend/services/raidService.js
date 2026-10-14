@@ -369,7 +369,7 @@ const toggleLike = async (id, reqBody, reqHeaders, reqIp, userToken) => {
 
   if (!existingLike) {
     const { turnstileToken } = reqBody;
-    const isHuman = await verifyRecaptcha(turnstileToken);
+    const isHuman = await verifyRecaptcha(turnstileToken, reqIp);
     if (!isHuman) throw new Error('비정상적인 접근입니다. (보안 인증 실패)');
   }
 

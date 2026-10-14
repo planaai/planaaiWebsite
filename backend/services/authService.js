@@ -4,14 +4,14 @@ const { JWT_SECRET } = require('../middleware/auth');
 const { verifyRecaptcha } = require('../utils/recaptcha');
 const { prisma } = require('../db');
 
-const registerUser = async (data) => {
+const registerUser = async (data, clientIp) => {
   const { username, password, turnstileToken } = data;
   
   if (!username || !password) {
     throw new Error('ID와 비밀번호를 입력해주세요.');
   }
 
-  const isHuman = await verifyRecaptcha(turnstileToken);
+  const isHuman = await verifyRecaptcha(turnstileToken, clientIp);
   if (!isHuman) {
     throw new Error('비정상적인 접근이 감지되었습니다. (보안 인증 실패)');
   }

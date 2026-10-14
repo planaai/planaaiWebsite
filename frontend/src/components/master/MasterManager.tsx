@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, Sparkles } from 'lucide-react';
 import type { ArchiveData, SchemaConfig, StudentMaster } from '../../types';
 import { API } from '../../constants';
 import { MasterModal } from './MasterModal';
+import { MasterJsonImportModal } from './MasterJsonImportModal';
 import { EnumManager } from '../enums/EnumManager';
 
 interface MasterManagerProps {
@@ -15,6 +16,7 @@ interface MasterManagerProps {
 
 export function MasterManager({ data, schema, onRefresh, showToast }: MasterManagerProps) {
   const [modal, setModal] = useState<{ student: Omit<StudentMaster, 'id'> & { id?: number }; isNew: boolean } | null>(null);
+  const [showJsonModal, setShowJsonModal] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSchool, setFilterSchool] = useState('');
@@ -93,6 +95,19 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
 
   return (
     <div className="space-y-6 animate-slide-in">
+      {showJsonModal && (
+        <MasterJsonImportModal
+          isOpen={showJsonModal}
+          onClose={() => setShowJsonModal(false)}
+          onImport={(imported) => {
+            setShowJsonModal(false);
+            setModal({ student: imported, isNew: true });
+            showToast(`'${imported.name || '학생'}' 데이터를 성공적으로 불러왔습니다. 검토 후 저장해주세요.`);
+          }}
+          schema={schema}
+          showToast={showToast}
+        />
+      )}
       {modal && (
         <MasterModal
           student={modal.student}
@@ -112,12 +127,20 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
             학생들의 마스터 데이터를 등록하고 초상화, 고유 스킬을 관리합니다.
           </p>
         </div>
-        <button
-          onClick={() => setModal({ student: emptyStudent, isNew: true })}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg text-white"
-        >
-          <Plus size={18} /> 새 마스터 등록
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setShowJsonModal(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg text-white"
+          >
+            <Sparkles size={18} /> JSON 자동완성 등록
+          </button>
+          <button
+            onClick={() => setModal({ student: emptyStudent, isNew: true })}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg text-white"
+          >
+            <Plus size={18} /> 새 마스터 등록
+          </button>
+        </div>
       </div>
       <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden flex flex-col">
         {/* Filters */}

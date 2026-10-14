@@ -16,7 +16,8 @@ const authLimiter = rateLimit({
 // 회원가입
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const user = await authService.registerUser(req.body);
+    const clientIp = req.headers['cf-connecting-ip'] || req.ip || req.connection?.remoteAddress;
+    const user = await authService.registerUser(req.body, clientIp);
     res.status(201).json({ status: 'success', user });
   } catch (error) {
     console.error('Register error:', error);

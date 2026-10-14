@@ -3,22 +3,33 @@
 import { Turnstile, type TurnstileInstance } from '@marsidev/react-turnstile';
 import { forwardRef } from 'react';
 
+export type { TurnstileInstance };
+
 interface TurnstileWidgetProps {
   onSuccess: (token: string) => void;
-  onError?: () => void;
+  onError?: (error?: string | Error) => void;
   onExpire?: () => void;
-  size?: 'normal' | 'compact' | 'invisible';
+  size?: 'normal' | 'compact' | 'flexible' | 'invisible';
+  action?: string;
+  theme?: 'auto' | 'light' | 'dark';
 }
 
 const TurnstileWidget = forwardRef<TurnstileInstance, TurnstileWidgetProps>(
-  ({ onSuccess, onError, onExpire, size = 'normal' }, ref) => (
+  ({ onSuccess, onError, onExpire, size = 'normal', action, theme = 'light' }, ref) => (
     <Turnstile
       ref={ref}
       siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
       onSuccess={onSuccess}
       onError={onError}
       onExpire={onExpire}
-      options={{ size }}
+      options={{
+        size,
+        action,
+        theme,
+        refreshExpired: 'auto',
+        refreshTimeout: 'auto',
+        retry: 'auto',
+      }}
     />
   )
 );

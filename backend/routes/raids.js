@@ -143,7 +143,8 @@ router.delete('/parties/:id', requireAuth, async (req, res) => {
 // POST /api/raids/parties/:id/like - Toggle like on a shared party
 router.post('/parties/:id/like', requireAuth, async (req, res) => {
   try {
-    const result = await raidService.toggleLike(req.params.id, req.body, req.headers, req.ip || req.connection.remoteAddress, req.user);
+    const clientIp = req.headers['cf-connecting-ip'] || req.ip || req.connection?.remoteAddress;
+    const result = await raidService.toggleLike(req.params.id, req.body, req.headers, clientIp, req.user);
     res.json(result);
   } catch (error) {
     console.error('Like error:', error);

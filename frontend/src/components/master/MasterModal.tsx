@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, Save, Star } from 'lucide-react';
+import { X, Save, Star, Sparkles } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, Skill } from '../../types';
 import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
+import { MasterJsonImportModal } from './MasterJsonImportModal';
 
 interface MasterModalProps {
   student: Omit<StudentMaster, 'id'> & { id?: number };
@@ -10,12 +11,13 @@ interface MasterModalProps {
   schema: SchemaConfig;
   onSave: (data: Omit<StudentMaster, 'id'> & { id?: number }) => void;
   onClose: () => void;
-  showToast: (m: string, t?: 'error') => void;
+  showToast: (m: string, t?: 'success' | 'error') => void;
 }
 
 export function MasterModal({ student, isNew, schema, onSave, onClose, showToast }: MasterModalProps) {
   const [form, setForm] = useState(student);
   const [showSummon, setShowSummon] = useState(!!student.summon);
+  const [showJsonModal, setShowJsonModal] = useState(false);
   
   const [activeSkillIndex, setActiveSkillIndex] = useState(0);
 
@@ -84,10 +86,40 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      {showJsonModal && (
+        <MasterJsonImportModal
+          isOpen={showJsonModal}
+          onClose={() => setShowJsonModal(false)}
+          currentStudent={form}
+          onImport={(imported) => {
+            setForm(prev => ({
+              ...imported,
+              id: isNew ? undefined : prev.id,
+              portraitUrls: (imported.portraitUrls && imported.portraitUrls.length > 0)
+                ? imported.portraitUrls
+                : prev.portraitUrls
+            }));
+            setShowJsonModal(false);
+            showToast(`'${imported.name || '학생'}' 데이터를 폼에 적용했습니다. 검토 후 저장해주세요.`);
+          }}
+          schema={schema}
+          showToast={showToast}
+        />
+      )}
       <div className="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
         <div className="bg-slate-900 border-b border-slate-700 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
           <h2 className="text-xl font-bold text-white">{isNew ? '신규 마스터 데이터 추가' : `✏️ ${form.name} 마스터 수정`}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowJsonModal(true)}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600/50 hover:text-white px-3 py-1.5 rounded-lg border border-indigo-500/40 transition-colors shadow-sm"
+              title="변환기에서 생성된 JSON 데이터를 붙여넣거나 파일로 불러와 입력 폼을 자동으로 채웁니다."
+            >
+              <Sparkles size={14} /> JSON 불러오기
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+          </div>
         </div>
         <div className="overflow-y-auto flex-1 min-h-0">
           <div className="p-6 space-y-8">

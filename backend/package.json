@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test test_turnstile.js",
+    "test:turnstile": "node --test test_turnstile.js",
     "db:sync": "ts-node sync_db_from_excel.ts"
   },
   "keywords": [],

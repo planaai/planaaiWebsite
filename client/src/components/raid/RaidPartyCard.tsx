@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Trash2, ThumbsUp, ChevronRight, FileText, MonitorPlay, Image as ImageIcon, Pencil, AlertTriangle } from 'lucide-react';
 import { getImageUrl } from '../planner/utils';
 import Link from 'next/link';
-import TurnstileWidget from '@/components/TurnstileWidget';
+import TurnstileWidget, { type TurnstileInstance } from '@/components/TurnstileWidget';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { RaidReportModal } from './RaidReportModal';
@@ -45,7 +45,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
   
   const [likeCount, setLikeCount] = useState(party.likeCount || 0);
   const [isLiked, setIsLiked] = useState(party.isLiked || false);
-  const turnstileRef = useRef<any>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [isLiking, setIsLiking] = useState(false);
   const [currentPartyIndex, setCurrentPartyIndex] = useState(0);
@@ -100,7 +100,7 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
       if (!isLiked) {
         token = turnstileToken;
         if (!token) {
-          toast.info('잠시 후에 다시 시도해 주세요.');
+          toast.info('보안 확인 중입니다. 잠시 후 다시 시도해 주세요.');
           setIsLiking(false);
           turnstileRef.current?.reset();
           return;
@@ -298,12 +298,15 @@ export function RaidPartyCard({ party: rawParty, masterData, onDelete, isDetail 
                 <span className="text-sm font-extrabold">{likeCount}</span>
               </div>
             )}
-            <TurnstileWidget
-              ref={turnstileRef}
-              size="invisible"
-              onSuccess={(token) => setTurnstileToken(token)}
-              onExpire={() => setTurnstileToken(null)}
-            />
+            {user && !isLiked && (
+              <TurnstileWidget
+                ref={turnstileRef}
+                size="invisible"
+                action="raid_like"
+                onSuccess={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken(null)}
+              />
+            )}
           </div>
 
           {!isDetail && (

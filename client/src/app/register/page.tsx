@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import TurnstileWidget from '@/components/TurnstileWidget';
+import TurnstileWidget, { type TurnstileInstance } from '@/components/TurnstileWidget';
 import { api } from '@/lib/api';
 
 export default function Register() {
@@ -13,7 +13,7 @@ export default function Register() {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileRef = useRef<any>(null);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   
   const router = useRouter();
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -85,7 +85,15 @@ export default function Register() {
           <div className="flex justify-center my-4">
             <TurnstileWidget
               ref={turnstileRef}
-              onSuccess={(token) => setTurnstileToken(token)}
+              action="register"
+              onSuccess={(token) => {
+                setTurnstileToken(token);
+                setError('');
+              }}
+              onError={() => {
+                setError('보안 인증을 불러오지 못했습니다. 광고 차단기를 해제하거나 새로고침 후 다시 시도해 주세요.');
+                setTurnstileToken(null);
+              }}
               onExpire={() => setTurnstileToken(null)}
             />
           </div>
