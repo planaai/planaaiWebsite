@@ -176,8 +176,7 @@ export function normalizeStudentData(
   }
   const portraitUrls = mergeUrlArrays(incomingPortraits, currentStudent?.portraitUrls);
 
-  // 고유무기 / 애장품 이미지 URL 보존
-  const uniqueWeaponUrl = preserveUrl(raw.uniqueWeaponUrl, currentStudent?.uniqueWeaponUrl);
+  // 애장품 이미지 URL 보존
   const favoriteItemUrl = preserveUrl(raw.favoriteItemUrl, currentStudent?.favoriteItemUrl);
 
   // 스킬 목록 정규화 및 스킬 아이콘 / 일러스트 URL 보존
@@ -272,7 +271,6 @@ export function normalizeStudentData(
     terrainAffinity,
     uniqueWeaponName,
     uniqueWeaponEffects,
-    uniqueWeaponUrl,
     favoriteItemUrl,
     favoriteItemEffects,
     skills,
@@ -568,9 +566,6 @@ export function MasterJsonImportModal({
                   <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${parsedData.portraitUrls && parsedData.portraitUrls.some(u => u && u.trim() !== '') ? 'bg-blue-950/60 text-blue-300 border-blue-800/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
                     초상화/일러스트 {parsedData.portraitUrls?.filter(u => u && u.trim() !== '').length || 0}개 {parsedData.portraitUrls && parsedData.portraitUrls.some(u => u && u.trim() !== '') ? '유지됨' : '미등록'}
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${parsedData.uniqueWeaponUrl ? 'bg-purple-950/60 text-purple-300 border-purple-800/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
-                    고유무기 {parsedData.uniqueWeaponUrl ? '유지됨' : '미등록'}
-                  </span>
                   <span className={`px-2 py-0.5 rounded text-[11px] font-medium border ${parsedData.favoriteItemUrl ? 'bg-pink-950/60 text-pink-300 border-pink-800/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
                     애장품 {parsedData.favoriteItemUrl ? '유지됨' : '미등록'}
                   </span>
@@ -625,7 +620,7 @@ export function MasterJsonImportModal({
                       아래 <strong>[입력 폼에 적용 및 검토하기]</strong>를 누르면 본 입력 창의 모든 입력란에 채워집니다.
                     </p>
                     <p className="text-emerald-400/90 mt-1 font-medium">
-                      🛡️ 기존에 등록되어 있던 초상화, 전신 일러스트, 고유무기/애장품 및 스킬 아이콘 URL은 빈 값으로 덮어씌워지지 않고 안전하게 보존됩니다.
+                      🛡️ 기존에 등록되어 있던 초상화, 전신 일러스트, 애장품 및 스킬 아이콘 URL은 빈 값으로 덮어씌워지지 않고 안전하게 보존됩니다.
                     </p>
                   </div>
                 </div>

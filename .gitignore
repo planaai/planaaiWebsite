@@ -1,23 +1,32 @@
 # Dependencies
 node_modules/
 .pnp
-.pnp.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # Testing
 coverage/
 
-# Frontend (Next.js / Vite)
+# Frontend (Next.js / Vite / Cloudflare)
 .next/
+.open-next/
+.wrangler/
+.vercel/
 out/
 build/
 dist/
 dist-ssr/
+next-env.d.ts
 
-
+# Docs & Tools
 docs/
 tools/
-
 missing_skill_icons.md
+QA_PROCESS.md
 
 # Backend & Database
 /backend/uploads/
@@ -25,15 +34,29 @@ missing_skill_icons.md
 /backend/generated/prisma
 /backend/prisma/*.db
 /backend/prisma/*.db-journal
+/backend/prisma/*.db-shm
+/backend/prisma/*.db-wal
+backend_data_backup/
+databackup/
 uploads/
+*.sql
+*.dump
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+lerna-debug.log*
 
 # Environment Variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+*.local
 
 # Python
 __pycache__/
@@ -51,17 +74,23 @@ env/
 # OS Files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # IDEs and Editors
 .idea/
-.vscode/
-*.swp
-*.swo
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Project specific & Temporary
 scratch/
 deploy/
 client-pvp/
+gacha_changes/
 /ico/
 ~$*.xlsx
 ip.txt
@@ -78,14 +107,13 @@ lint-results.txt
 *.tar.gz
 *.zip
 *.rar
+*.7z
 
-# AI Agent
+# AI Agent & Memory
 docs-vault/
 .agents/
+.agent/
+.claude/
+.cursor/
 .agentignore
-
-QA_PROCESS.md
-
-gacha_changes/
-
-databackup/
+CLAUDE.local.md

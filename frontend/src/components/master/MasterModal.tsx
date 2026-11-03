@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Save, Star, Sparkles } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, Skill } from '../../types';
-import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, UniqueWeaponUpload, TextInput, ComboBox } from '../ui';
+import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
 import { MasterJsonImportModal, mergeUrlArrays, preserveUrl, mergeSkill, mergeSkillField } from './MasterJsonImportModal';
 
@@ -94,7 +94,6 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
           onImport={(imported) => {
             setForm(prev => {
               const portraitUrls = mergeUrlArrays(imported.portraitUrls, prev.portraitUrls);
-              const uniqueWeaponUrl = preserveUrl(imported.uniqueWeaponUrl, prev.uniqueWeaponUrl);
               const favoriteItemUrl = preserveUrl(imported.favoriteItemUrl, prev.favoriteItemUrl);
               const skills = (imported.skills || []).map((sSet, sIdx) => {
                 const prevSet = prev.skills?.[sIdx];
@@ -115,7 +114,6 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 ...imported,
                 id: isNew ? undefined : prev.id,
                 portraitUrls,
-                uniqueWeaponUrl,
                 favoriteItemUrl,
                 skills
               };
@@ -328,43 +326,40 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
 
             <div>
               <h3 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">✨ 고유무기 한계해방 효과</h3>
-              <div className="flex gap-6 items-start">
-                <UniqueWeaponUpload url={form.uniqueWeaponUrl || ''} onChange={url => setForm({ ...form, uniqueWeaponUrl: url })} showToast={showToast} />
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border border-purple-500/30">
-                    <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">무기 이름</span>
-                    <input value={(form.skills?.[activeSkillIndex]?.uniqueWeaponName) || (activeSkillIndex === 0 ? (form.uniqueWeaponName || '') : '')} onChange={e => {
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border border-purple-500/30">
+                  <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">무기 이름</span>
+                  <input value={(form.skills?.[activeSkillIndex]?.uniqueWeaponName) || (activeSkillIndex === 0 ? (form.uniqueWeaponName || '') : '')} onChange={e => {
+                    const newSkills = [...(form.skills || [])];
+                    if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
+                    newSkills[activeSkillIndex] = {
+                      ...newSkills[activeSkillIndex],
+                      uniqueWeaponName: e.target.value
+                    };
+                    setForm({ ...form, skills: newSkills });
+                  }}
+                    placeholder="예: 아이언 호루스" className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors flex-1" />
+                </div>
+                {[{ key: 'star2', label: '★2 효과', desc: '강화 스킬+ 잠금 해제', color: 'border-blue-500/30' }, 
+                  { key: 'star3', label: '★3 효과', desc: '지형 전투력 강화', color: 'border-emerald-500/30' }, 
+                  { key: 'star4', label: '★4 효과', desc: '유효 보너스', color: 'border-amber-500/30' }].map(item => (
+                  <div key={item.key} className={`flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border ${item.color}`}>
+                    <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">{item.label}</span>
+                    <input value={((form.skills?.[activeSkillIndex]?.uniqueWeaponEffects as any)?.[item.key]) || (activeSkillIndex === 0 ? ((form.uniqueWeaponEffects as any)?.[item.key] || '') : '')} onChange={e => {
                       const newSkills = [...(form.skills || [])];
                       if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
                       newSkills[activeSkillIndex] = {
                         ...newSkills[activeSkillIndex],
-                        uniqueWeaponName: e.target.value
+                        uniqueWeaponEffects: {
+                          ...(newSkills[activeSkillIndex].uniqueWeaponEffects || (activeSkillIndex === 0 ? form.uniqueWeaponEffects : undefined) || { star2: '', star3: '', star4: '' }),
+                          [item.key]: e.target.value
+                        }
                       };
                       setForm({ ...form, skills: newSkills });
                     }}
-                      placeholder="예: 아이언 호루스" className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors flex-1" />
+                      placeholder={item.desc} className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors flex-1" />
                   </div>
-                  {[{ key: 'star2', label: '★2 효과', desc: '강화 스킬+ 잠금 해제', color: 'border-blue-500/30' }, 
-                    { key: 'star3', label: '★3 효과', desc: '지형 전투력 강화', color: 'border-emerald-500/30' }, 
-                    { key: 'star4', label: '★4 효과', desc: '유효 보너스', color: 'border-amber-500/30' }].map(item => (
-                    <div key={item.key} className={`flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl border ${item.color}`}>
-                      <span className="text-xs font-black text-slate-300 bg-slate-700 px-2 py-1 rounded w-16 text-center flex-shrink-0">{item.label}</span>
-                      <input value={((form.skills?.[activeSkillIndex]?.uniqueWeaponEffects as any)?.[item.key]) || (activeSkillIndex === 0 ? ((form.uniqueWeaponEffects as any)?.[item.key] || '') : '')} onChange={e => {
-                        const newSkills = [...(form.skills || [])];
-                        if (!newSkills[activeSkillIndex]) newSkills[activeSkillIndex] = { ex: {} as any, normal: {} as any, passive: {} as any, sub: {} as any };
-                        newSkills[activeSkillIndex] = {
-                          ...newSkills[activeSkillIndex],
-                          uniqueWeaponEffects: {
-                            ...(newSkills[activeSkillIndex].uniqueWeaponEffects || (activeSkillIndex === 0 ? form.uniqueWeaponEffects : undefined) || { star2: '', star3: '', star4: '' }),
-                            [item.key]: e.target.value
-                          }
-                        };
-                        setForm({ ...form, skills: newSkills });
-                      }}
-                        placeholder={item.desc} className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors flex-1" />
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
 

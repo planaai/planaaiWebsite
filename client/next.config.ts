@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // _next 내부 라우트와 api 라우트를 제외한 모든 라우트에 대해 캐시 적용
-        source: '/:path((?!_next/|api/).*)',
+        source: '/:path((?!_next|api).*)',
         headers: [
           {
             key: 'Cache-Control',

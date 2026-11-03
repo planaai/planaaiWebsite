@@ -424,14 +424,6 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                 </div>
                 <div className="bg-white shadow-sm -skew-x-[5deg] rounded-xl overflow-hidden">
                   <div className="skew-x-[5deg] p-5 flex flex-col w-full h-full">
-                    <div className="w-full h-28 bg-slate-50 flex items-center justify-center mb-4 border border-slate-100">
-                      {master.uniqueWeaponUrl ? (
-                        <img src={`https://api.plan4ai.fyi${master.uniqueWeaponUrl}`} className="max-h-full max-w-full object-contain mix-blend-multiply" />
-                      ) : (
-                        <span className="text-slate-400 font-bold text-sm">이미지 없음</span>
-                      )}
-                    </div>
-
                     <div className="flex justify-between items-end border-b border-slate-100 pb-3">
                       <div>
                         <div className="text-[var(--plana-primary)] text-[11px] font-bold mb-1 uppercase tracking-widest">{getLabel('WeaponType', master.weaponType)}</div>

@@ -132,7 +132,6 @@ export interface StudentMaster {
   secondaryOopart?: string;
   terrainAffinity?: { urban: string; outdoor: string; indoor: string };
   uniqueWeaponEffects?: { star2: string; star3: string; star4: string };
-  uniqueWeaponUrl?: string;
   uniqueWeaponName?: string;
   favoriteItemUrl?: string;
   favoriteItemEffects?: { t1: string; t2: string };
