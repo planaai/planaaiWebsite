@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Lock, Sword, Shield } from 'lucide-react';
+import { ArrowLeft, Lock, Sword, Shield, Crosshair } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { RegistrationModal } from './RegistrationModal';
@@ -121,6 +121,11 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
     };
   };
 
+  const isShunSwimsuit = master.name.replace(/\s+/g, '') === '슌(수영복)';
+  const activeSkillSet = master.skills && master.skills.length > selectedMode ? master.skills[selectedMode] : null;
+  const effectiveRole = activeSkillSet?.Role || (selectedMode === 1 ? (master.Role2 || (isShunSwimsuit ? 'Supporter' : undefined)) : undefined) || master.Role;
+  const effectivePosition = selectedMode === 1 && master.position2 ? master.position2 : master.position;
+
   const getTypeColor = (type: string) => {
     if (type === 'Explosion' || type === 'LightArmor') return 'bg-[#D33F4A]';
     if (type === 'Pierce' || type === 'HeavyArmor') return 'bg-[#E3A02C]';
@@ -154,15 +159,54 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
               <div className="flex-1 relative flex items-center justify-center pt-8">
                 {master.skills && master.skills.length > 1 && (
                   <div className="absolute top-8 right-8 z-50 flex flex-col gap-2">
-                    {master.skills.map((skillSet, idx) => (
-                      <button 
-                        key={idx}
-                        onClick={() => setSelectedMode(idx)}
-                        className={`px-4 py-2 rounded-full font-bold shadow-sm transition-colors text-sm ${selectedMode === idx ? 'bg-[var(--plana-primary)] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
-                      >
-                        {skillSet.modeName || `모드 ${idx + 1}`}
-                      </button>
-                    ))}
+                    {master.skills.map((skillSet, idx) => {
+                      const defaultModeTitle = isShunSwimsuit
+                        ? (idx === 0 ? '성숙한 버전' : '어린 버전')
+                        : (idx === 0 ? '방어형' : '공격형');
+                      const shunIcoUrl = isShunSwimsuit
+                        ? (master.portraitIco?.[idx] || skillSet.portraitUrl)
+                        : undefined;
+                      return (
+                        <button 
+                          key={idx}
+                          onClick={() => setSelectedMode(idx)}
+                          className={`${
+                            isShunSwimsuit
+                              ? `w-12 h-12 rounded-full overflow-hidden border-2 shadow-sm transition-all flex items-center justify-center ${
+                                  selectedMode === idx
+                                    ? 'border-[var(--plana-primary)] ring-2 ring-[var(--plana-primary)]/40 bg-white scale-105'
+                                    : 'border-white/80 bg-white/80 opacity-60 hover:opacity-100'
+                                }`
+                              : `p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${
+                                  selectedMode === idx
+                                    ? 'bg-[var(--plana-primary)] text-white'
+                                    : 'bg-white text-slate-400 hover:bg-slate-50'
+                                }`
+                          }`}
+                          title={skillSet.modeName || defaultModeTitle}
+                        >
+                          {isShunSwimsuit ? (
+                            shunIcoUrl ? (
+                              <img
+                                src={shunIcoUrl.startsWith('http') ? shunIcoUrl : `https://api.plan4ai.fyi${shunIcoUrl}`}
+                                alt={skillSet.modeName || defaultModeTitle}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-[11px] font-bold text-slate-600">
+                                {idx === 0 ? '성인' : '어린이'}
+                              </span>
+                            )
+                          ) : idx === 0 ? (
+                            <Shield size={24} />
+                          ) : idx === 1 ? (
+                            <Crosshair size={24} />
+                          ) : (
+                            <span className="px-2 font-bold text-sm">{skillSet.modeName || `모드 ${idx + 1}`}</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 {(() => {
@@ -222,10 +266,10 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   <div className="flex gap-2 text-[13px] font-bold -skew-x-[15deg] -translate-x-2">
                     <div className="flex flex-col gap-1.5 w-24">
                       <div className="px-2 py-1 bg-slate-200 text-slate-600 shadow-sm whitespace-nowrap flex items-center justify-center w-full">
-                        <div className="skew-x-[15deg]">{getLabel('Role', master.Role)}</div>
+                        <div className="skew-x-[15deg]">{getLabel('Role', effectiveRole)}</div>
                       </div>
                       <div className="px-2 py-1 bg-white border border-slate-200 text-slate-600 shadow-sm whitespace-nowrap flex items-center justify-center w-full flex-1">
-                        <div className="skew-x-[15deg]">{getLabel('Position', master.position) || master.position}</div>
+                        <div className="skew-x-[15deg]">{getLabel('Position', effectivePosition) || effectivePosition}</div>
                       </div>
                     </div>
                     <div className="flex flex-col gap-1.5">

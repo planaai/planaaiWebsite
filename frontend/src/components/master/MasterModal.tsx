@@ -48,11 +48,21 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
     if (activeSkillIndex >= index && activeSkillIndex > 0) setActiveSkillIndex(activeSkillIndex - 1);
   };
 
+  const isShunSwimsuit = form.name.replace(/\s+/g, '') === '슌(수영복)';
+
   const updatePortrait = (url: string) => {
     setForm(prev => {
       const urls = [...(prev.portraitUrls || [])];
       urls[0] = url;
       return { ...prev, portraitUrls: urls };
+    });
+  };
+
+  const updatePortraitIco = (index: number, url: string) => {
+    setForm(prev => {
+      const icos = [...(prev.portraitIco || ['', ''])];
+      icos[index] = url;
+      return { ...prev, portraitIco: icos };
     });
   };
 
@@ -94,6 +104,7 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
           onImport={(imported) => {
             setForm(prev => {
               const portraitUrls = mergeUrlArrays(imported.portraitUrls, prev.portraitUrls);
+              const portraitIco = mergeUrlArrays(imported.portraitIco, prev.portraitIco);
               const favoriteItemUrl = preserveUrl(imported.favoriteItemUrl, prev.favoriteItemUrl);
               const skills = (imported.skills || []).map((sSet, sIdx) => {
                 const prevSet = prev.skills?.[sIdx];
@@ -114,6 +125,7 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 ...imported,
                 id: isNew ? undefined : prev.id,
                 portraitUrls,
+                ...(portraitIco.length > 0 ? { portraitIco } : {}),
                 favoriteItemUrl,
                 skills
               };
@@ -153,6 +165,28 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                         <PortraitUpload url={form.portraitUrls?.[0] || ''} onChange={updatePortrait} showToast={showToast} />
                       </div>
                     </div>
+
+                    {isShunSwimsuit && (
+                      <div className="w-full">
+                        <label className="text-xs font-semibold text-pink-400 uppercase tracking-wider mb-2 block">폼 전환 아이콘 (portraitIco)</label>
+                        <div className="flex flex-col gap-2">
+                          {[0, 1].map((icoIdx) => (
+                            <div key={icoIdx} className="w-full flex flex-col border border-pink-500/30 p-2 rounded-lg bg-slate-800/30">
+                              <span className="text-[10px] text-pink-300 font-bold mb-1.5">
+                                portraitIco[{icoIdx}] ({icoIdx === 0 ? '성숙한 버전' : '어린 버전'})
+                              </span>
+                              <div className="flex justify-center w-full">
+                                <PortraitUpload
+                                  url={form.portraitIco?.[icoIdx] || ''}
+                                  onChange={newUrl => updatePortraitIco(icoIdx, newUrl)}
+                                  showToast={showToast}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="w-full">
                       <div className="flex items-center justify-between mb-2">

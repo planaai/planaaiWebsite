@@ -18,6 +18,7 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
   const { showConfirm } = useAlert();
 
   const currentMode = student ? (studentModes[student.id] || 0) : 0;
+  const isShunSwimsuit = student ? student.name.replace(/\s+/g, '') === '슌(수영복)' : false;
   
   const handleModeToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -198,14 +199,41 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
             {student.skills && student.skills.length > 1 && (
               <button
                 onClick={handleModeToggle}
-                className="absolute bottom-[90px] right-2 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-50 pointer-events-auto shadow-lg hover:scale-110 border-2 shadow-black/50"
+                className="absolute bottom-[90px] right-2 sm:right-4 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all z-50 pointer-events-auto shadow-lg hover:scale-110 border-2 shadow-black/50 overflow-hidden"
                 style={{
-                  backgroundColor: currentMode === 0 ? '#315B9A' : '#D33F4A',
+                  backgroundColor: isShunSwimsuit
+                    ? '#ffffff'
+                    : (currentMode === 0 ? '#315B9A' : '#D33F4A'),
                   borderColor: 'rgba(255,255,255,0.9)'
                 }}
-                title={student.skills[currentMode].modeName || '모드 변경'}
+                title={
+                  student.skills[currentMode].modeName ||
+                  (isShunSwimsuit
+                    ? currentMode === 0
+                      ? '성숙한 버전'
+                      : '어린 버전'
+                    : currentMode === 0
+                      ? '방어형'
+                      : '공격형')
+                }
               >
-                {currentMode === 0 ? <Shield size={16} color="white" /> : <Crosshair size={16} color="white" />}
+                {isShunSwimsuit ? (
+                  student.portraitIco?.[currentMode] ? (
+                    <img
+                      src={getImageUrl(student.portraitIco[currentMode])}
+                      alt={currentMode === 0 ? '성숙한 버전' : '어린 버전'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-[9px] font-bold text-slate-700">
+                      {currentMode === 0 ? '성인' : '어린'}
+                    </span>
+                  )
+                ) : currentMode === 0 ? (
+                  <Shield size={16} color="white" />
+                ) : (
+                  <Crosshair size={16} color="white" />
+                )}
               </button>
             )}
           </div>

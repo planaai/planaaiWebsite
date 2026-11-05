@@ -175,6 +175,7 @@ export function normalizeStudentData(
     if (raw.fullIllustUrl) incomingPortraits.push(raw.fullIllustUrl);
   }
   const portraitUrls = mergeUrlArrays(incomingPortraits, currentStudent?.portraitUrls);
+  const portraitIco = mergeUrlArrays(Array.isArray(raw.portraitIco) ? raw.portraitIco : [], currentStudent?.portraitIco);
 
   // 애장품 이미지 URL 보존
   const favoriteItemUrl = preserveUrl(raw.favoriteItemUrl, currentStudent?.favoriteItemUrl);
@@ -266,6 +267,7 @@ export function normalizeStudentData(
     equipmentSlot2,
     equipmentSlot3,
     portraitUrls,
+    ...(portraitIco.length > 0 ? { portraitIco } : {}),
     primaryOopart,
     secondaryOopart,
     terrainAffinity,

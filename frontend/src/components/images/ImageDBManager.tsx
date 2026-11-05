@@ -47,6 +47,7 @@ export function ImageDBManager({ data, schema, showToast, onRefresh }: ImageDBMa
     const usage: string[] = [];
     data.forEach(({ master }) => {
       if (master.portraitUrls && master.portraitUrls.includes(url)) usage.push(`[초상화] ${master.name}`);
+      if (master.portraitIco && master.portraitIco.includes(url)) usage.push(`[폼 아이콘] ${master.name}`);
       if (master.skills && Array.isArray(master.skills)) {
         master.skills.forEach(skillSet => {
           ['ex', 'normal', 'passive', 'sub', 'normalPlus', 'passivePlus'].forEach(k => {

@@ -48,12 +48,20 @@
   font-weight: 700;
   font-style: normal;
 }
+@font-face {
+  font-family: 'TitleV';
+  src: url('/fonts/TitleV.woff') format('woff');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: 'GyeonggiTitle', sans-serif;
   --font-mono: var(--font-geist-mono);
+  --font-title-v: 'TitleV', sans-serif;
   
   --color-plana-primary: var(--plana-primary);
   --color-plana-primary-light: var(--plana-primary-light);
@@ -61,6 +69,15 @@
   --color-plana-accent: var(--plana-accent);
   --color-plana-bg-panel: var(--plana-bg-panel);
   --color-plana-border: var(--plana-border);
+
+  --color-terminal-bg: #F4F7FB;
+  --color-terminal-line: #E2E8F0;
+  --color-terminal-ink: #0F172A;
+  --color-arona: #0EA5E9;
+  --color-plana: #FB7185;
+  --color-rarity-3: #FB7185;
+  --color-rarity-2: #F59E0B;
+  --color-rarity-1: #94A3B8;
 }
 
 body {
@@ -75,6 +92,11 @@ body {
 }
 
 /* Custom Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--plana-primary) rgba(255, 255, 255, 0.5);
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   height: 8px;
   width: 8px;
@@ -145,4 +167,45 @@ body {
 .slide-in-right-anim {
   opacity: 0;
   animation: slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Gacha Terminal Animations */
+@keyframes recruit-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) skewX(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) skewX(-6deg);
+  }
+}
+
+@keyframes light-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+
+.animate-recruit-in {
+  animation: recruit-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-light-sweep {
+  animation: light-sweep 0.65s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-recruit-in,
+  .animate-light-sweep {
+    animation: none !important;
+  }
 }

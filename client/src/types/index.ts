@@ -118,6 +118,7 @@ export interface StudentMaster {
   equipmentSlot2: string;
   equipmentSlot3: string;
   portraitUrls: string[];
+  portraitIco?: string[];
   primaryOopart?: string;
   secondaryOopart?: string;
   terrainAffinity?: { urban: string; outdoor: string; indoor: string };

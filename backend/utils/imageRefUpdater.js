@@ -8,6 +8,9 @@ function updateImageReferences(oldUrl, newUrl) {
     if (master.portraitUrls && Array.isArray(master.portraitUrls)) {
       master.portraitUrls = master.portraitUrls.map(url => url === oldUrl ? newUrl : url);
     }
+    if (master.portraitIco && Array.isArray(master.portraitIco)) {
+      master.portraitIco = master.portraitIco.map(url => url === oldUrl ? newUrl : url);
+    }
     if (master.favoriteItemUrl === oldUrl) master.favoriteItemUrl = newUrl;
     if (master.skills && Array.isArray(master.skills)) {
       master.skills.forEach(skillSet => {
