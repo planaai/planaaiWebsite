@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_STUDENT_OCR_PROMPT, RECOMMENDED_MODELS, NVIDIA_BASE_URL } from '@/lib/ocr/prompts';
 import { extractJsonObject, normalizeOcrData } from '@/lib/ocr/studentOcrParser';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 180; // 180초 비전 추론 타임아웃 지원
 
