@@ -76,11 +76,89 @@ const saveMasterDB = () => {
   try { fs.writeFileSync(masterFile, JSON.stringify(studentMasterDB, null, 2), 'utf8'); } catch(e) {}
 };
 
+const syncStudentGiftAffinity = (studentId, preferredGifts) => {
+  if (preferredGifts === undefined || preferredGifts === null || typeof preferredGifts !== 'object' || Array.isArray(preferredGifts)) {
+    return;
+  }
+  const num = Number(studentId);
+  if (!Number.isInteger(num) || num <= 0) {
+    return;
+  }
+  const sId = num;
+
+  if (!schemaConfig.gifts || !Array.isArray(schemaConfig.gifts)) {
+    schemaConfig.gifts = [];
+  }
+
+  const sanitizeKeyList = (arr) => {
+    if (!Array.isArray(arr)) return [];
+    return arr
+      .filter(k => k !== null && k !== undefined)
+      .map(k => String(k).trim())
+      .filter(k => k.length > 0 && k !== 'null' && k !== 'undefined');
+  };
+
+  const pL2 = sanitizeKeyList(preferredGifts.level2);
+  const pL3 = sanitizeKeyList(preferredGifts.level3);
+  const pL4 = sanitizeKeyList(preferredGifts.level4);
+
+  const matchKey = (list, key, name) => {
+    if (!key && !name) return false;
+    const targetKey = key ? String(key).toLowerCase().trim() : '';
+    const targetName = name ? String(name).toLowerCase().trim() : '';
+    return list.some(k => {
+      const lower = k.toLowerCase();
+      return (targetKey && lower === targetKey) || (targetName && lower === targetName);
+    });
+  };
+
+  const cleanAffinityList = (arr) => {
+    return Array.from(new Set(
+      (Array.isArray(arr) ? arr : [])
+        .map(id => Number(id))
+        .filter(n => Number.isInteger(n) && n > 0)
+    )).sort((a, b) => a - b);
+  };
+
+  schemaConfig.gifts.forEach(gift => {
+    if (!gift || typeof gift !== 'object') return;
+
+    if (!gift.affinity || typeof gift.affinity !== 'object') {
+      gift.affinity = { level2: [], level3: [], level4: [] };
+    }
+    if (!Array.isArray(gift.affinity.level2)) gift.affinity.level2 = [];
+    if (!Array.isArray(gift.affinity.level3)) gift.affinity.level3 = [];
+    if (!Array.isArray(gift.affinity.level4)) gift.affinity.level4 = [];
+
+    // Remove existing mapping for this student across all affinity tiers (handling string/number consistency)
+    gift.affinity.level2 = gift.affinity.level2.filter(id => Number(id) !== sId);
+    gift.affinity.level3 = gift.affinity.level3.filter(id => Number(id) !== sId);
+    gift.affinity.level4 = gift.affinity.level4.filter(id => Number(id) !== sId);
+
+    // Exclusive allocation: Lv.4 > Lv.3 > Lv.2 (matching by key or name)
+    if (matchKey(pL4, gift.key, gift.name)) {
+      gift.affinity.level4.push(sId);
+    } else if (matchKey(pL3, gift.key, gift.name)) {
+      gift.affinity.level3.push(sId);
+    } else if (matchKey(pL2, gift.key, gift.name)) {
+      gift.affinity.level2.push(sId);
+    }
+
+    // Deduplicate and maintain ascending sort order with strictly positive integer IDs
+    gift.affinity.level2 = cleanAffinityList(gift.affinity.level2);
+    gift.affinity.level3 = cleanAffinityList(gift.affinity.level3);
+    gift.affinity.level4 = cleanAffinityList(gift.affinity.level4);
+  });
+
+  saveSchemaConfig();
+};
+
 module.exports = {
   getSchemaConfig: () => schemaConfig,
   setSchemaConfig: (newConfig) => { schemaConfig = newConfig; saveSchemaConfig(); },
   saveSchemaConfig,
   getStudentMasterDB: () => studentMasterDB,
   setStudentMasterDB: (newDB) => { studentMasterDB = newDB; saveMasterDB(); },
-  saveMasterDB
+  saveMasterDB,
+  syncStudentGiftAffinity
 };

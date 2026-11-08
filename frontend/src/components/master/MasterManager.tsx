@@ -248,6 +248,7 @@ export function MasterManager({ data, schema, onRefresh, showToast }: MasterMana
       )}
       {modal && (
         <MasterModal
+          key={modal.student.id !== undefined ? `student-${modal.student.id}` : (modal.isNew ? 'new-student' : 'edit-student')}
           student={modal.student}
           isNew={modal.isNew}
           schema={schema}

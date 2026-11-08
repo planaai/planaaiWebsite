@@ -164,6 +164,10 @@ body {
   animation: fade-in 1.2s ease-out forwards;
 }
 
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
 .slide-in-right-anim {
   opacity: 0;
   animation: slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -205,7 +209,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-recruit-in,
-  .animate-light-sweep {
+  .animate-light-sweep,
+  .animate-fade-in {
     animation: none !important;
   }
 }

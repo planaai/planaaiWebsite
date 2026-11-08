@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
-const { getStudentMasterDB, saveMasterDB } = require('../config/masterDB');
+const { getStudentMasterDB, setStudentMasterDB, saveMasterDB, syncStudentGiftAffinity } = require('../config/masterDB');
 const { requireAdmin } = require('../middleware/auth');
 
 router.get('/students/names', (req, res) => {
@@ -23,27 +23,63 @@ router.post('/students', requireAdmin, (req, res) => {
   
   const newId = maxId + 1;
 
-  const newStudent = { ...req.body, id: newId };
+  const { preferredGifts, ...studentData } = req.body;
+  const newStudent = { ...studentData, id: newId };
   if (!newStudent.skills) newStudent.skills = [{ ex: {}, normal: {}, passive: {}, sub: {} }];
   if (!newStudent.portraitUrls) newStudent.portraitUrls = [];
   studentMasterDB.push(newStudent);
   saveMasterDB();
+
+  let parsedGifts = preferredGifts;
+  if (typeof preferredGifts === 'string') {
+    try { parsedGifts = JSON.parse(preferredGifts); } catch(e) {}
+  }
+  if (parsedGifts !== undefined && parsedGifts !== null) {
+    syncStudentGiftAffinity(newId, parsedGifts);
+  }
+
   res.json({ status: 'success', student: newStudent });
 });
 
 router.put('/students/:id', requireAdmin, (req, res) => {
-  const { getStudentMasterDB, setStudentMasterDB } = require('../config/masterDB');
+  const studentId = Number(req.params.id);
+  if (!Number.isInteger(studentId) || studentId <= 0) {
+    return res.status(400).json({ error: 'Invalid student ID' });
+  }
+
+  const { preferredGifts, ...studentData } = req.body;
   let studentMasterDB = getStudentMasterDB();
-  studentMasterDB = studentMasterDB.map(s => s.id === parseInt(req.params.id) ? { ...req.body, id: parseInt(req.params.id) } : s);
+  const exists = studentMasterDB.some(s => s.id === studentId);
+  if (!exists) {
+    return res.status(404).json({ error: 'Student not found' });
+  }
+
+  studentMasterDB = studentMasterDB.map(s => s.id === studentId ? { ...studentData, id: studentId } : s);
   setStudentMasterDB(studentMasterDB);
+
+  let parsedGifts = preferredGifts;
+  if (typeof preferredGifts === 'string') {
+    try { parsedGifts = JSON.parse(preferredGifts); } catch(e) {}
+  }
+  if (parsedGifts !== undefined && parsedGifts !== null) {
+    syncStudentGiftAffinity(studentId, parsedGifts);
+  }
+
   res.json({ status: 'success' });
 });
 
 router.delete('/students/:id', requireAdmin, (req, res) => {
-  const { getStudentMasterDB, setStudentMasterDB } = require('../config/masterDB');
+  const studentId = Number(req.params.id);
+  if (!Number.isInteger(studentId) || studentId <= 0) {
+    return res.status(400).json({ error: 'Invalid student ID' });
+  }
+
   let studentMasterDB = getStudentMasterDB();
-  studentMasterDB = studentMasterDB.filter(s => s.id !== parseInt(req.params.id));
+  studentMasterDB = studentMasterDB.filter(s => s.id !== studentId);
   setStudentMasterDB(studentMasterDB);
+
+  syncStudentGiftAffinity(studentId, { level2: [], level3: [], level4: [] });
+
   res.json({ status: 'success' });
 });
 

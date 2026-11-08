@@ -83,6 +83,7 @@ const imagesRouter = require('./routes/images');
 const masterRouter = require('./routes/master');
 const archiveRouter = require('./routes/archive');
 const hofRouter = require('./routes/hof');
+const ocrRouter = require('./routes/ocr');
 
 app.use('/api/auth', authRouter);
 app.use('/api/collection', collectionRouter);
@@ -100,6 +101,7 @@ app.use('/api/images', imagesRouter);
 app.use('/api/master', masterRouter);
 app.use('/api/archive', archiveRouter);
 app.use('/api/hof', hofRouter);
+app.use('/api/ocr', ocrRouter);
 
 // 전역 에러 핸들러 (스택 트레이스 노출 방지)
 app.use((err, req, res, next) => {

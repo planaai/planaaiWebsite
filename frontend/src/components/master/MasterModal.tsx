@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { X, Save, Star, Sparkles } from 'lucide-react';
-import type { StudentMaster, SchemaConfig, Skill } from '../../types';
+import { useState, useMemo } from 'react';
+import { X, Save, Star, Sparkles, Gift as GiftIcon, Search } from 'lucide-react';
+import type { StudentMaster, SchemaConfig, Skill, StudentPreferredGifts, Gift } from '../../types';
+import { API } from '../../constants';
 import { PortraitUpload, IllustUpload, SkillInput, Select, FavoriteItemUpload, TextInput, ComboBox } from '../ui';
 import { EtcSkillCostInput } from './EtcSkillCostInput';
-import { MasterJsonImportModal, mergeUrlArrays, preserveUrl, mergeSkill, mergeSkillField } from './MasterJsonImportModal';
+import { MasterJsonImportModal, mergeUrlArrays, preserveUrl, mergeSkill, mergeSkillField, normalizePreferredGifts } from './MasterJsonImportModal';
 
 interface MasterModalProps {
   student: Omit<StudentMaster, 'id'> & { id?: number };
@@ -20,6 +21,107 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
   const [showJsonModal, setShowJsonModal] = useState(false);
   
   const [activeSkillIndex, setActiveSkillIndex] = useState(0);
+
+  const initialGifts = useMemo<StudentPreferredGifts>(() => {
+    if (student.preferredGifts) {
+      return normalizePreferredGifts(student.preferredGifts);
+    }
+    const gifts = schema.gifts || [];
+    const sId = Number(student.id);
+    if (!isNew && !isNaN(sId) && sId > 0) {
+      const matchStudent = (arr?: (number | string)[]) => (arr || []).some(id => Number(id) === sId);
+      return normalizePreferredGifts({
+        level4: gifts.filter(g => g && g.key && matchStudent(g.affinity?.level4)).map(g => String(g.key)),
+        level3: gifts.filter(g => g && g.key && matchStudent(g.affinity?.level3)).map(g => String(g.key)),
+        level2: gifts.filter(g => g && g.key && matchStudent(g.affinity?.level2)).map(g => String(g.key)),
+      });
+    }
+    return { level2: [], level3: [], level4: [] };
+  }, [student, schema.gifts, isNew]);
+
+  const [preferredGifts, setPreferredGifts] = useState<StudentPreferredGifts>(initialGifts);
+  const [giftSearchTerm, setGiftSearchTerm] = useState('');
+  const [giftTierFilter, setGiftTierFilter] = useState<'ALL' | 'Normal' | 'HighGrade'>('ALL');
+
+  const giftMap = useMemo(() => {
+    const map = new Map<string, Gift>();
+    (schema.gifts || []).forEach(g => {
+      if (!g || !g.key) return;
+      map.set(g.key, g);
+      map.set(g.key.toLowerCase().trim(), g);
+    });
+    return map;
+  }, [schema.gifts]);
+
+  const filteredGifts = useMemo(() => {
+    const list = schema.gifts || [];
+    return list.filter(g => {
+      if (!g || !g.key) return false;
+      if (giftTierFilter !== 'ALL' && g.tier !== giftTierFilter) {
+        return false;
+      }
+      if (giftSearchTerm.trim()) {
+        const q = giftSearchTerm.toLowerCase().trim();
+        const matchName = (typeof g.name === 'string' ? g.name : '').toLowerCase().includes(q);
+        const matchKey = String(g.key || '').toLowerCase().includes(q);
+        if (!matchName && !matchKey) return false;
+      }
+      return true;
+    });
+  }, [schema.gifts, giftTierFilter, giftSearchTerm]);
+
+  const toggleGiftAffinity = (giftKey: string, level: 'level2' | 'level3' | 'level4') => {
+    if (!giftKey || typeof giftKey !== 'string') return;
+    const target = giftKey.toLowerCase().trim();
+    if (!target) return;
+    setPreferredGifts(prev => {
+      const currentList = prev[level] || [];
+      const isCurrentlyInLevel = currentList.some(k => typeof k === 'string' && k.toLowerCase().trim() === target);
+      const nextLevel2 = (prev.level2 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target);
+      const nextLevel3 = (prev.level3 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target);
+      const nextLevel4 = (prev.level4 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target);
+
+      if (isCurrentlyInLevel) {
+        return {
+          level2: nextLevel2,
+          level3: nextLevel3,
+          level4: nextLevel4
+        };
+      } else {
+        const canonicalKey = (schema.gifts || []).find(g => g && g.key && g.key.toLowerCase().trim() === target)?.key || giftKey;
+        if (level === 'level2') nextLevel2.push(canonicalKey);
+        if (level === 'level3') nextLevel3.push(canonicalKey);
+        if (level === 'level4') nextLevel4.push(canonicalKey);
+        return {
+          level2: nextLevel2,
+          level3: nextLevel3,
+          level4: nextLevel4
+        };
+      }
+    });
+  };
+
+  const removeGiftAffinity = (giftKey: string) => {
+    if (!giftKey || typeof giftKey !== 'string') return;
+    const target = giftKey.toLowerCase().trim();
+    if (!target) return;
+    setPreferredGifts(prev => ({
+      level2: (prev.level2 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target),
+      level3: (prev.level3 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target),
+      level4: (prev.level4 || []).filter(k => typeof k === 'string' && k.toLowerCase().trim() !== target)
+    }));
+  };
+
+  const getGiftIconSrc = (url?: string) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+      return url;
+    }
+    if (url.startsWith('//')) {
+      return `https:${url}`;
+    }
+    return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
 
   const updateSkill = (index: number, key: 'ex' | 'normal' | 'passive' | 'sub' | 'normalPlus' | 'passivePlus', newSkill: Skill) => 
     setForm(prev => {
@@ -100,7 +202,7 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
         <MasterJsonImportModal
           isOpen={showJsonModal}
           onClose={() => setShowJsonModal(false)}
-          currentStudent={form}
+          currentStudent={{ ...form, preferredGifts }}
           onImport={(imported) => {
             setForm(prev => {
               const portraitUrls = mergeUrlArrays(imported.portraitUrls, prev.portraitUrls);
@@ -130,6 +232,9 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
                 skills
               };
             });
+            if (imported.preferredGifts) {
+              setPreferredGifts(normalizePreferredGifts(imported.preferredGifts));
+            }
             setShowJsonModal(false);
             showToast(`'${imported.name || '학생'}' 데이터를 폼에 적용했습니다. (기존 이미지 URL 보존 완료)`);
           }}
@@ -418,13 +523,267 @@ export function MasterModal({ student, isNew, schema, onSave, onClose, showToast
               </div>
             )}
 
+            {/* 🎁 선호 선물 설정 섹션 */}
+            <div className="border-t border-slate-700/60 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-pink-400 uppercase tracking-wider flex items-center gap-2">
+                    <GiftIcon size={16} /> 선호 선물 설정 (호감도 아이템)
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    학생이 선호하는 선물을 지정하면 선물 DB(호감도 매핑)에 실시간 자동 동기화됩니다.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold self-start sm:self-auto">
+                  <span className="px-2.5 py-1 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                    Lv.4 {(preferredGifts.level4 || []).length}개
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    Lv.3 {(preferredGifts.level3 || []).length}개
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Lv.2 {(preferredGifts.level2 || []).length}개
+                  </span>
+                </div>
+              </div>
 
+              {/* 현재 선택된 선호 선물 요약 영역 */}
+              <div className="bg-slate-800/40 rounded-xl border border-slate-700/60 p-4 space-y-3 mb-4">
+                {/* Lv.4 Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex items-center gap-1.5 w-32 shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-pink-400 shadow-[0_0_8px_rgba(244,114,182,0.8)]" />
+                    <span className="text-xs font-bold text-pink-300">매우 선호 (Lv.4)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 flex-1 min-h-[30px] items-center">
+                    {(preferredGifts.level4 || []).length === 0 ? (
+                      <span className="text-xs text-slate-500 italic">선택된 선물 없음</span>
+                    ) : (
+                      (preferredGifts.level4 || []).map(key => {
+                        const k = typeof key === 'string' ? key.toLowerCase().trim() : '';
+                        const gift = giftMap.get(key) || (k ? giftMap.get(k) : undefined);
+                        return (
+                          <span
+                            key={key}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-pink-950/40 border border-pink-500/40 text-pink-200 text-xs shadow-sm hover:border-pink-400 transition-colors"
+                          >
+                            {gift?.iconUrl ? (
+                              <img src={getGiftIconSrc(gift.iconUrl)} alt="" className="w-4 h-4 object-contain rounded" />
+                            ) : null}
+                            <span className="font-medium">{gift?.name || key}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeGiftAffinity(key)}
+                              className="text-pink-400 hover:text-white ml-0.5 rounded p-0.5 hover:bg-pink-800/50 transition-colors cursor-pointer"
+                              title="선호 해제"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Lv.3 Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2 border-t border-slate-700/40">
+                  <div className="flex items-center gap-1.5 w-32 shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+                    <span className="text-xs font-bold text-blue-300">선호 (Lv.3)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 flex-1 min-h-[30px] items-center">
+                    {(preferredGifts.level3 || []).length === 0 ? (
+                      <span className="text-xs text-slate-500 italic">선택된 선물 없음</span>
+                    ) : (
+                      (preferredGifts.level3 || []).map(key => {
+                        const k = typeof key === 'string' ? key.toLowerCase().trim() : '';
+                        const gift = giftMap.get(key) || (k ? giftMap.get(k) : undefined);
+                        return (
+                          <span
+                            key={key}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-950/40 border border-blue-500/40 text-blue-200 text-xs shadow-sm hover:border-blue-400 transition-colors"
+                          >
+                            {gift?.iconUrl ? (
+                              <img src={getGiftIconSrc(gift.iconUrl)} alt="" className="w-4 h-4 object-contain rounded" />
+                            ) : null}
+                            <span className="font-medium">{gift?.name || key}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeGiftAffinity(key)}
+                              className="text-blue-400 hover:text-white ml-0.5 rounded p-0.5 hover:bg-blue-800/50 transition-colors cursor-pointer"
+                              title="선호 해제"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Lv.2 Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-2 border-t border-slate-700/40">
+                  <div className="flex items-center gap-1.5 w-32 shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                    <span className="text-xs font-bold text-emerald-300">일반 선호 (Lv.2)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 flex-1 min-h-[30px] items-center">
+                    {(preferredGifts.level2 || []).length === 0 ? (
+                      <span className="text-xs text-slate-500 italic">선택된 선물 없음</span>
+                    ) : (
+                      (preferredGifts.level2 || []).map(key => {
+                        const k = typeof key === 'string' ? key.toLowerCase().trim() : '';
+                        const gift = giftMap.get(key) || (k ? giftMap.get(k) : undefined);
+                        return (
+                          <span
+                            key={key}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs shadow-sm hover:border-emerald-400 transition-colors"
+                          >
+                            {gift?.iconUrl ? (
+                              <img src={getGiftIconSrc(gift.iconUrl)} alt="" className="w-4 h-4 object-contain rounded" />
+                            ) : null}
+                            <span className="font-medium">{gift?.name || key}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeGiftAffinity(key)}
+                              className="text-emerald-400 hover:text-white ml-0.5 rounded p-0.5 hover:bg-emerald-800/50 transition-colors cursor-pointer"
+                              title="선호 해제"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 검색 및 등급 필터 */}
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between mb-3">
+                <div className="relative flex-1">
+                  <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="선물 이름 또는 ID 검색..."
+                    value={giftSearchTerm}
+                    onChange={e => setGiftSearchTerm(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-600 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-500 transition-colors"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(['ALL', 'Normal', 'HighGrade'] as const).map(tier => (
+                    <button
+                      key={tier}
+                      type="button"
+                      onClick={() => setGiftTierFilter(tier)}
+                      className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-colors cursor-pointer ${
+                        giftTierFilter === tier
+                          ? 'bg-pink-600 text-white shadow-sm'
+                          : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      {tier === 'ALL' ? '전체 등급' : tier === 'Normal' ? '일반' : '고급'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 선물 목록 그리드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1 border border-slate-700/60 rounded-xl p-2.5 bg-slate-900/60 scrollbar-thin scrollbar-thumb-slate-700">
+                {filteredGifts.length === 0 ? (
+                  <div className="col-span-full py-8 text-center text-xs text-slate-500">
+                    등록된 선물이 없거나 검색 결과가 없습니다.
+                  </div>
+                ) : (
+                  filteredGifts.map(gift => {
+                    const giftKeyLower = String(gift.key || '').toLowerCase().trim();
+                    const isLv2 = (preferredGifts.level2 || []).some(k => typeof k === 'string' && k.toLowerCase().trim() === giftKeyLower);
+                    const isLv3 = (preferredGifts.level3 || []).some(k => typeof k === 'string' && k.toLowerCase().trim() === giftKeyLower);
+                    const isLv4 = (preferredGifts.level4 || []).some(k => typeof k === 'string' && k.toLowerCase().trim() === giftKeyLower);
+
+                    return (
+                      <div
+                        key={gift.key}
+                        className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                          isLv4
+                            ? 'bg-pink-950/30 border-pink-500/50 shadow-[0_0_10px_rgba(236,72,153,0.15)]'
+                            : isLv3
+                            ? 'bg-blue-950/30 border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.15)]'
+                            : isLv2
+                            ? 'bg-emerald-950/30 border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                            : 'bg-slate-800/40 border-slate-700/60 hover:border-slate-600'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                          <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            {gift.iconUrl ? (
+                              <img src={getGiftIconSrc(gift.iconUrl)} alt={gift.name || ''} className="w-8 h-8 object-contain" />
+                            ) : (
+                              <GiftIcon size={18} className="text-slate-600" />
+                            )}
+                            <span className="absolute bottom-0 right-0 text-[8px] font-bold px-1 rounded-tl bg-slate-800/90 text-slate-300">
+                              {gift.tier === 'Normal' ? '일반' : '고급'}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-bold text-white truncate">{gift.name || gift.key}</div>
+                            <div className="text-[10px] text-slate-400 font-mono truncate">{gift.key}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleGiftAffinity(gift.key, 'level2')}
+                            className={`px-2 py-1 text-[11px] font-bold rounded transition-colors cursor-pointer ${
+                              isLv2
+                                ? 'bg-emerald-500 text-white shadow-sm'
+                                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                            }`}
+                            title="일반 선호 (Lv.2) 토글"
+                          >
+                            Lv.2
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleGiftAffinity(gift.key, 'level3')}
+                            className={`px-2 py-1 text-[11px] font-bold rounded transition-colors cursor-pointer ${
+                              isLv3
+                                ? 'bg-blue-500 text-white shadow-sm'
+                                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                            }`}
+                            title="선호 (Lv.3) 토글"
+                          >
+                            Lv.3
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleGiftAffinity(gift.key, 'level4')}
+                            className={`px-2 py-1 text-[11px] font-bold rounded transition-colors cursor-pointer ${
+                              isLv4
+                                ? 'bg-pink-500 text-white shadow-sm'
+                                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                            }`}
+                            title="매우 선호 (Lv.4) 토글"
+                          >
+                            Lv.4
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="bg-slate-900 border-t border-slate-700 px-6 py-4 flex justify-end gap-3 rounded-b-2xl flex-shrink-0">
           <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-700 transition-colors">취소</button>
-          <button onClick={() => { if (!form.name.trim()) return; onSave(form); }} disabled={!form.name.trim()} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-colors"><Save size={16} /> {isNew ? '추가하기' : '수정하기'}</button>
+          <button onClick={() => { if (!form.name.trim()) return; onSave({ ...form, preferredGifts: normalizePreferredGifts(preferredGifts) }); }} disabled={!form.name.trim()} className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-colors cursor-pointer"><Save size={16} /> {isNew ? '추가하기' : '수정하기'}</button>
         </div>
       </div>
     </div>

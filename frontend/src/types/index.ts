@@ -39,6 +39,12 @@ export interface Gift {
   };
 }
 
+export interface StudentPreferredGifts {
+  level2: string[];
+  level3: string[];
+  level4: string[];
+}
+
 export interface SchemaConfig {
   enums: Record<string, EnumDef>;
   ooparts?: Oopart[];
@@ -136,6 +142,7 @@ export interface StudentMaster {
   uniqueWeaponName?: string;
   favoriteItemUrl?: string;
   favoriteItemEffects?: { t1: string; t2: string };
+  preferredGifts?: StudentPreferredGifts;
   skills: SkillSet[];
   vehicles?: VehicleData[];
   etcSkillCosts?: {

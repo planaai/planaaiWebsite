@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Sword, Shield, Crosshair } from 'lucide-react';
 import type { StudentMaster, SchemaConfig } from '@/types';
 import { computeDiff } from '@/lib/diffUtils';
-import { parseTerrainUpgrade } from '@/lib/terrainUtils';
+import { parseTerrainUpgrade, getTerrainAffinityImage } from '@/lib/terrainUtils';
 import { SkillSimulator } from './SkillSimulator';
 
 interface MasterDetailViewProps {
@@ -53,7 +54,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   const parseDescriptionCore = (template: string, parameters: Record<string, string[]>, maxIdx: number) => {
     if (!template) return '설명이 없습니다.';
     let parsed = template;
-    
+
     // 단순 파라미터 매칭
     if (parameters) {
       Object.entries(parameters).forEach(([key, values]) => {
@@ -67,7 +68,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
         }
       });
     }
-    
+
     // 추가적인 태그 제거
     parsed = parsed.replace(/<[^>]*>/g, (match) => {
       if (match.startsWith('<span')) return match;
@@ -76,7 +77,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
       if (match === '</y>') return '</span>';
       return '';
     });
-    
+
     parsed = parsed.replace(/\n/g, '<br />');
 
     return parsed;
@@ -85,58 +86,58 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   const parseDescription = (template: string, parameters: Record<string, string[]>, isEx: boolean, baseTemplate?: string, baseParameters?: Record<string, string[]>) => {
     const maxIdx = isEx ? 4 : 9; // EX는 5레벨(인덱스 4), 나머지는 10레벨(인덱스 9)
     const parsed = parseDescriptionCore(template, parameters, maxIdx);
-    
+
     if (baseTemplate) {
       const baseParsed = parseDescriptionCore(baseTemplate, baseParameters || {}, maxIdx);
       return computeDiff(baseParsed, parsed);
     }
-    
+
     return parsed;
   };
 
   const renderMultipliers = (parameters: Record<string, string[]>, isEx: boolean, template?: string) => {
     if (!parameters || Object.keys(parameters).length === 0) return null;
     const maxLvl = isEx ? 5 : 10;
-    
+
     const getParamLabel = (key: string, tmpl?: string) => {
       if (!tmpl) return key;
       const regex = new RegExp(`(.*?)(?:<b:\\{\\{?${key}\\}?\\}>|\\{\\{?${key}\\}?\\})`);
       const match = tmpl.match(regex);
       if (match && match[1]) {
         let beforeText = match[1].replace(/<[^>]*>/g, '');
-        beforeText = beforeText.replace(/\{\{?[^{}]+\}\}?/g, ''); 
+        beforeText = beforeText.replace(/\{\{?[^{}]+\}\}?/g, '');
         beforeText = beforeText.replace(/[%()]/g, '');
-        
+
         const textForMatch = beforeText.replace(/(의|은|는|이|가|을|를|강화율)$/, '').trim();
         const normalize = (s: string) => s.replace(/\s+/g, '').replace(/데미지/g, '대미지');
         const normalizedMatch = normalize(textForMatch);
 
         const allowedStats = [
-          "최대 체력", "공격력", "방어력", "치유력", "명중 수치", "회피 수치", "일반공격 사거리", 
-          "받는 회복 효과", "장탄수", "엄폐 성공 수치", "방어 관통 수치", "이동 속도", "공격 속도", 
-          "버프 효과 유지력", "군중제어(CC) 지속력", "치명 수치", "치명 저항력", "치명 대미지", 
-          "치명 대미지 저항률", "안정 수치", "코스트 회복력", "EX 스킬 코스트", "EX 스킬 추가 소모 코스트", 
-          "코스트 오버", "가하는 피해량", "받는 피해량", "피해량 상한", "보호막", "지속 회복", 
-          "피격 시 회복", "구호의 마음가짐", "폭발 특효", "관통 특효", "신비 특효", "진동 특효", 
-          "기본기 숙련", "집중공격", "약점 파악", "사거리", "CC 저항력", "해로운 효과 유지력", 
-          "화상 지속 대미지", "중독 지속 대미지", "오한 지속 대미지", "감전 지속 대미지", "응원의 열기", 
+          "최대 체력", "공격력", "방어력", "치유력", "명중 수치", "회피 수치", "일반공격 사거리",
+          "받는 회복 효과", "장탄수", "엄폐 성공 수치", "방어 관통 수치", "이동 속도", "공격 속도",
+          "버프 효과 유지력", "군중제어(CC) 지속력", "치명 수치", "치명 저항력", "치명 대미지",
+          "치명 대미지 저항률", "안정 수치", "코스트 회복력", "EX 스킬 코스트", "EX 스킬 추가 소모 코스트",
+          "코스트 오버", "가하는 피해량", "받는 피해량", "피해량 상한", "보호막", "지속 회복",
+          "피격 시 회복", "구호의 마음가짐", "폭발 특효", "관통 특효", "신비 특효", "진동 특효",
+          "기본기 숙련", "집중공격", "약점 파악", "사거리", "CC 저항력", "해로운 효과 유지력",
+          "화상 지속 대미지", "중독 지속 대미지", "오한 지속 대미지", "감전 지속 대미지", "응원의 열기",
           "저주", "도발", "기절", "공포", "혼란", "동결", "군중제어 강화력", "군중제어 저항력"
         ];
         allowedStats.sort((a, b) => b.length - a.length);
 
         const matchedStat = allowedStats.find(stat => normalizedMatch.endsWith(normalize(stat)));
-        
+
         if (matchedStat) {
           return matchedStat;
         }
-        
+
         const afterRegex = new RegExp(`(?:<b:\\{\\{?${key}\\}?\\}>|\\{\\{?${key}\\}?\\})([^<]*)`);
         const afterMatch = tmpl.match(afterRegex);
         let afterText = afterMatch ? afterMatch[1].trim() : '';
         if (afterText.startsWith('%')) {
           afterText = afterText.substring(1).trim();
         }
-        
+
         // Fallback for time/count/quantity that are not in the list but very useful
         if (afterText.startsWith('초')) return '시간';
         if (afterText.startsWith('회') && !afterText.startsWith('회복') && !afterText.startsWith('회피')) return '횟수';
@@ -154,8 +155,8 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
           <thead>
             <tr>
               <th className="text-left pr-2 font-bold text-[10px] text-slate-400 pb-1">파라미터</th>
-              {Array.from({length: maxLvl}, (_, i) => (
-                <th key={i} className="text-center font-bold text-[10px] text-slate-400 pb-1 px-1">Lv.{i+1}</th>
+              {Array.from({ length: maxLvl }, (_, i) => (
+                <th key={i} className="text-center font-bold text-[10px] text-slate-400 pb-1 px-1">Lv.{i + 1}</th>
               ))}
             </tr>
           </thead>
@@ -163,7 +164,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
             {Object.entries(parameters).map(([key, values]) => (
               <tr key={key} className="border-t border-slate-100">
                 <td className="pr-2 py-1 font-bold text-slate-500">{getParamLabel(key, template)}</td>
-                {Array.from({length: maxLvl}, (_, i) => (
+                {Array.from({ length: maxLvl }, (_, i) => (
                   <td key={i} className="text-center py-1 px-1">{values[Math.min(i, values.length - 1)]}</td>
                 ))}
               </tr>
@@ -175,7 +176,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   };
 
   const getAttackBg = (type?: string) => {
-    switch(type) {
+    switch (type) {
       case 'Explosion': return 'bg-[#D33F4A]';
       case 'Pierce': return 'bg-[#E3A02C]';
       case 'Mystic': return 'bg-[#315B9A]';
@@ -186,7 +187,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
   };
 
   const getArmorBg = (type?: string) => {
-    switch(type) {
+    switch (type) {
       case 'LightArmor': return 'bg-[#D33F4A]';
       case 'HeavyArmor': return 'bg-[#E3A02C]';
       case 'Unarmed': return 'bg-[#315B9A]';
@@ -251,7 +252,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
   return (
     <div className="w-full flex flex-col font-sans -mt-4 relative">
-      
+
       {/* Back Button (Top Left) */}
       <div className="mb-5">
         <Link href="/archive" className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full text-sm text-[var(--plana-primary)] font-bold shadow-sm border border-white/50 hover:bg-white transition-colors">
@@ -260,15 +261,15 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1150px] mx-auto w-full items-start">
-        
+
         {/* Left Column (Illustration & Info) */}
         <div className="lg:w-[440px] shrink-0 relative h-[820px] -translate-x-8 lg:sticky lg:top-8 z-10">
           {/* Skewed Background & Clipping Container */}
           <div className="absolute inset-0 bg-white/60 backdrop-blur-md border border-white shadow-lg -skew-x-[4deg] rounded-3xl overflow-hidden">
-            
+
             {/* Un-skewed Content Wrapper */}
             <div className="absolute top-0 bottom-0 -left-[40px] -right-[40px] flex flex-col skew-x-[4deg]">
-              
+
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
 
@@ -282,22 +283,19 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         ? (master.portraitIco?.[idx] || skillSet.portraitUrl)
                         : undefined;
                       return (
-                        <button 
+                        <button
                           key={idx}
                           onClick={() => setSelectedMode(idx)}
-                          className={`${
-                            isShunSwimsuit
-                              ? `w-12 h-12 rounded-full overflow-hidden border-2 shadow-sm transition-all flex items-center justify-center ${
-                                  selectedMode === idx
-                                    ? 'border-[var(--plana-primary)] ring-2 ring-[var(--plana-primary)]/40 bg-white scale-105'
-                                    : 'border-white/80 bg-white/80 opacity-60 hover:opacity-100'
-                                }`
-                              : `p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${
-                                  selectedMode === idx
-                                    ? 'bg-[var(--plana-primary)] text-white'
-                                    : 'bg-white text-slate-400 hover:bg-slate-50'
-                                }`
-                          }`}
+                          className={`${isShunSwimsuit
+                              ? `w-12 h-12 rounded-full overflow-hidden border-2 shadow-sm transition-all flex items-center justify-center ${selectedMode === idx
+                                ? 'border-[var(--plana-primary)] ring-2 ring-[var(--plana-primary)]/40 bg-white scale-105'
+                                : 'border-white/80 bg-white/80 opacity-60 hover:opacity-100'
+                              }`
+                              : `p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${selectedMode === idx
+                                ? 'bg-[var(--plana-primary)] text-white'
+                                : 'bg-white text-slate-400 hover:bg-slate-50'
+                              }`
+                            }`}
                           title={skillSet.modeName || defaultModeTitle}
                         >
                           {isShunSwimsuit ? (
@@ -328,7 +326,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                   const portraitUrl = (master.skills && master.skills.length > selectedMode && master.skills[selectedMode].fullIllustUrl)
                     ? master.skills[selectedMode].fullIllustUrl
                     : (master.portraitUrls && master.portraitUrls.length > selectedMode + 1 ? master.portraitUrls[selectedMode + 1] : master.portraitUrls?.[1]);
-                  
+
                   if (portraitUrl) {
                     return <img src={`https://api.plan4ai.fyi${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;
                   } else {
@@ -384,7 +382,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     {(() => {
                       const wepStars = weaponStars;
@@ -396,7 +394,14 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       ].map((stat, i) => (
                         <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded-md p-1.5 shadow-sm w-14">
                           <span className="text-[11px] text-slate-500 font-bold mb-0.5">{stat.label}</span>
-                          <img src={`https://api.plan4ai.fyi/uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
+                          <img
+                            src={`https://api.plan4ai.fyi/uploads/misc/${stat.val}.webp`}
+                            className="w-8 h-8 object-contain"
+                            alt={stat.val}
+                            onError={(e) => {
+                              e.currentTarget.src = getTerrainAffinityImage(stat.val).src;
+                            }}
+                          />
                         </div>
                       ));
                     })()}
@@ -409,14 +414,14 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
         {/* Right Column (Stats & Skills) */}
         <div className="flex-1 flex flex-col pt-4 pr-4 pl-2 -ml-2 pb-10 custom-scrollbar">
-          
+
           {/* Header row: Level & Tabs */}
           <div className="flex justify-between items-end border-b border-[var(--plana-primary)]/20 pb-2 mb-6">
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-black text-slate-500 tracking-wider">LEVEL</span>
               <span className="text-5xl font-black text-[var(--plana-primary)]">90</span>
             </div>
-            
+
             <div className="flex gap-1 -skew-x-[15deg]">
               <button
                 onClick={() => setActiveTab('detail')}
@@ -435,7 +440,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
           {activeTab === 'detail' && (
             <div className="space-y-6 pb-12">
-              
+
               {/* 2. 고유 스킬 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -454,7 +459,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       <div key={i} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300">
                         {/* Skill Header — always visible, clickable to expand */}
                         <button
-                          onClick={() => setShowSkillMultipliers(prev => ({...prev, [key]: !prev[key]}))}
+                          onClick={() => setShowSkillMultipliers(prev => ({ ...prev, [key]: !prev[key] }))}
                           className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50/50 transition-colors"
                         >
                           {/* Icon */}
@@ -465,7 +470,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
                           </div>
-                          
+
                           {/* Name & Level */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
@@ -485,7 +490,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
                           {/* Expand indicator */}
                           <div className={`text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
                           </div>
                         </button>
 
@@ -497,7 +502,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                               className="text-xs text-slate-600 leading-relaxed mt-3 bg-slate-50 rounded-lg p-3"
                               dangerouslySetInnerHTML={{ __html: parseDescription(sData.descriptionTemplate, sData.parameters, key === 'ex', skillInfo.baseData?.descriptionTemplate, skillInfo.baseData?.parameters) }}
                             />
-                            
+
                             {/* Multiplier table */}
                             {hasParams && (
                               <div className="mt-3">
@@ -524,7 +529,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                     {['normal', 'passive', 'sub'].map((baseKey, i) => {
                       const sData = (master.summon!.skills as any)?.[baseKey];
                       if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
-                      
+
                       const key = baseKey;
                       const isExpanded = showSkillMultipliers[`summon_${key}` as any];
                       const hasParams = sData.parameters && Object.keys(sData.parameters).length > 0;
@@ -535,7 +540,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         <div key={i} className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden transition-all duration-300">
                           {/* Skill Header */}
                           <button
-                            onClick={() => setShowSkillMultipliers(prev => ({...prev, [`summon_${key}`]: !prev[`summon_${key}` as any]} as any))}
+                            onClick={() => setShowSkillMultipliers(prev => ({ ...prev, [`summon_${key}`]: !prev[`summon_${key}` as any] } as any))}
                             className="w-full flex items-center gap-4 p-4 text-left hover:bg-slate-50/50 transition-colors"
                           >
                             <div className="w-14 h-14 flex items-center justify-center shrink-0 scale-[1.03]">
@@ -545,7 +550,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                                 <span className="text-[10px] font-black text-slate-400">IMG</span>
                               )}
                             </div>
-                            
+
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-[11px] font-black px-2 py-0.5 rounded bg-[#FF8888] text-white shrink-0">
@@ -562,7 +567,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                             </div>
 
                             <div className={`text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
                             </div>
                           </button>
 
@@ -572,7 +577,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                                 className="text-xs text-slate-600 leading-relaxed mt-3 bg-slate-50 rounded-lg p-3"
                                 dangerouslySetInnerHTML={{ __html: parseDescription(sData.descriptionTemplate, sData.parameters, isExFormat, sData.descriptionTemplate, sData.parameters) }}
                               />
-                              
+
                               {hasParams && (
                                 <div className="mt-3">
                                   {renderMultipliers(sData.parameters, isExFormat, sData.descriptionTemplate)}
@@ -614,7 +619,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-1.5 text-xs text-slate-600 items-end mt-3">
                       {weaponStars >= 2 && effectiveUwEffects?.star2 && (
                         <div className="flex gap-2 items-center">
@@ -654,7 +659,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Favorite Item Card */}
                   {master.hasFavoriteItem && (
                     <div className="flex-1 bg-white border border-pink-200 rounded-2xl flex flex-col p-3 relative shadow-sm">
@@ -732,7 +737,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Level 3 Gifts */}
                     {schema.gifts.filter(g => g.affinity.level3.includes(master.id)).length > 0 && (
                       <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
@@ -787,7 +792,7 @@ export function MasterDetailView({ master, schema }: MasterDetailViewProps) {
 
           {activeTab === 'simulator' && (
             <div className="space-y-6 pb-12 mt-4">
-              <SkillSimulator 
+              <SkillSimulator
                 initialLevels={{ ex: 1, normal: 1, passive: 1, sub: 1 }}
                 master={master}
                 schema={schema}

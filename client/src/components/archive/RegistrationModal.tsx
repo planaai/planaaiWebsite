@@ -2,11 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, ChevronDown, ChevronUp, Save, Upload, Edit3, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { toast } from 'sonner';
 import { getEquipMaxLevel, getWeaponMaxLevel, SKILL_MAX } from '@/lib/equipmentUtils';
+import { StudentOcrUploader } from './StudentOcrUploader';
+import { mapOcrDataToFormValues, type NormalizedStudentOcrData } from '@/lib/ocr/studentOcrParser';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -59,10 +61,17 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
           const [obj, key] = field.split('.');
           return { ...f, [obj]: { ...(f as any)[obj], [key]: value } };
         }
-        if (field === 'studentId' && typeof value === 'number') {
-          const master = masterData.find(m => m.id === value);
-          if (master) {
-            return { ...f, [field]: value, currentStars: master.starNum || 1 };
+        if (field === 'studentId') {
+          if (typeof value === 'number' && !isNaN(value)) {
+            const master = masterData.find(m => m.id === value);
+            return {
+              ...f,
+              studentId: value,
+              // Preserve existing stars (e.g. from OCR extraction) instead of blindly resetting to base stars
+              currentStars: f.currentStars || master?.starNum || 1,
+            };
+          } else {
+            return { ...f, studentId: undefined };
           }
         }
         return { ...f, [field]: value };
@@ -78,21 +87,85 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     setForms(prev => prev.filter(f => f._localId !== localId));
   };
 
+  const handleOcrExtracted = (localId: number, ocrData: NormalizedStudentOcrData) => {
+    const safeMasterData = Array.isArray(masterData) ? masterData : [];
+    const mapped = mapOcrDataToFormValues(ocrData, safeMasterData);
+
+    setForms(prev => prev.map(f => {
+      if (f._localId === localId) {
+        // 기존 수정 모드에서는 studentId를 강제 변경하지 않음 (오인 등록 방지)
+        const nextStudentId = initialEditRecord
+          ? (f.studentId ?? mapped.studentId)
+          : (mapped.studentId !== undefined ? mapped.studentId : f.studentId);
+
+        const matched = mapped.matchedMaster || safeMasterData.find(m => m.id === nextStudentId);
+
+        if (initialEditRecord && mapped.studentId && mapped.studentId !== f.studentId) {
+          toast.warning(
+            `현재 수정 중인 학생과 스크린샷 학생(${ocrData.studentName})이 일치하지 않습니다. 스펙만 반영합니다.`
+          );
+        }
+
+        return {
+          ...f,
+          studentId: nextStudentId,
+          level: mapped.level,
+          currentStars: mapped.currentStars || matched?.starNum || f.currentStars || 3,
+          bondRank: mapped.bondRank !== undefined ? mapped.bondRank : f.bondRank,
+          skillLevels: mapped.skillLevels,
+          equipment: {
+            slot1: mapped.equipment.slot1,
+            slot2: mapped.equipment.slot2,
+            slot3: mapped.equipment.slot3,
+            slot4: mapped.equipment.slot4 !== undefined ? mapped.equipment.slot4 : (f.equipment?.slot4 || null),
+          },
+          uniqueWeapon: mapped.uniqueWeapon,
+          stats: {
+            ...f.stats,
+            ...mapped.stats,
+          },
+          potentialLevels: {
+            ...f.potentialLevels,
+            ...mapped.potentialLevels,
+          },
+        };
+      }
+      return f;
+    }));
+
+    if (!mapped.studentId) {
+      toast.warning(
+        `추출된 학생명 '${ocrData.studentName}'을 학생 목록에서 자동으로 찾지 못했습니다. 학생을 직접 선택해주세요.`
+      );
+    }
+  };
+
   const handleSaveAll = async () => {
     setIsSaving(true);
     try {
       const validForms = forms.filter(f => f.studentId && f.level);
-      if (validForms.length === 0) return;
+      if (validForms.length === 0) {
+        toast.error('등록할 학생과 레벨을 입력해주세요.');
+        return;
+      }
 
       const payloads = validForms.map(f => {
         const { _localId, _isCollapsed, ...rest } = f;
+        const weapon = (!rest.uniqueWeapon || rest.uniqueWeapon.stars === 0) ? null : rest.uniqueWeapon;
         return {
           ...rest,
           level: rest.level || 1,
           currentStars: rest.currentStars || 1,
           skillLevels: rest.skillLevels || { ex: 1, normal: 1, passive: 1, sub: 1 },
-          equipment: rest.equipment || { slot1: null, slot2: null, slot3: null, slot4: null },
+          equipment: {
+            slot1: rest.equipment?.slot1 ?? null,
+            slot2: rest.equipment?.slot2 ?? null,
+            slot3: rest.equipment?.slot3 ?? null,
+            slot4: rest.equipment?.slot4 ?? null,
+          },
+          uniqueWeapon: weapon,
           stats: rest.stats || {},
+          capturedAt: rest.capturedAt || new Date().toISOString(),
         };
       });
 
@@ -104,6 +177,11 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
         store.syncToServer().catch(console.error);
       }
 
+      toast.success(
+        initialEditRecord
+          ? '학생 정보가 수정되었습니다.'
+          : `${payloads.length}명의 학생 정보가 성공적으로 등록되었습니다.`
+      );
       onClose();
     } catch (err) {
       console.error(err);
@@ -174,14 +252,23 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
 
                     {/* Accordion Body */}
                     {!form._isCollapsed && (
-                      <div className="p-5 flex flex-col xl:flex-row gap-6">
+                      <div className="p-5 flex flex-col gap-6">
+                        {/* 0. 인게임 스크린샷 AI 자동인식 (OCR) */}
+                        <StudentOcrUploader
+                          onOcrExtracted={(ocrData) => handleOcrExtracted(form._localId, ocrData)}
+                          disabled={isSaving}
+                        />
+
                         <div className="w-full space-y-6">
                           {/* 1. Student Selection */}
                         <div>
                           <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">학생 선택</label>
                           <select 
                             value={form.studentId || ''} 
-                            onChange={(e) => handleUpdateForm(form._localId, 'studentId', parseInt(e.target.value))}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10);
+                              handleUpdateForm(form._localId, 'studentId', isNaN(v) ? undefined : v);
+                            }}
                             className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-3 text-[var(--plana-text-main)] focus:outline-none focus:border-[var(--plana-accent)]"
                             disabled={!!initialEditRecord}
                           >
@@ -260,7 +347,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                             <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">장비 (티어 / 레벨)</label>
                             <div className="grid grid-cols-1 gap-3">
                               {['slot1', 'slot2', 'slot3'].map((eq) => {
-                                const isUnequipped = form.equipment?.[eq as keyof typeof form.equipment] === null;
+                                const isUnequipped = !form.equipment?.[eq as keyof typeof form.equipment];
                                 return (
                                 <div key={eq} className="space-y-1">
                                   <label className="flex items-center gap-2 cursor-pointer w-max">
@@ -310,6 +397,40 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                   </div>
                                 </div>
                               )})}
+
+                              {/* 애용품 (Favorite Item / slot4) */}
+                              <div className="space-y-1 pt-2 border-t border-slate-200">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-pink-600">애용품</span>
+                                  <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={!form.equipment?.slot4}
+                                      onChange={(e) => {
+                                        handleUpdateForm(form._localId, 'equipment.slot4', e.target.checked ? null : { tier: 1, level: 1 });
+                                      }}
+                                      className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
+                                    />
+                                    <span className="text-[10px] text-slate-500 font-bold">미착용</span>
+                                  </label>
+                                </div>
+                                <div className={`flex gap-2 items-center transition-opacity ${!form.equipment?.slot4 ? 'opacity-40 pointer-events-none' : ''}`}>
+                                  <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                    <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2.5 bg-[var(--plana-primary-light)]/30 flex items-center">티어</span>
+                                    <select
+                                      value={form.equipment?.slot4?.tier || 1}
+                                      onChange={(e) => {
+                                        const t = parseInt(e.target.value);
+                                        handleUpdateForm(form._localId, 'equipment.slot4', { tier: isNaN(t) ? 1 : t, level: 1 });
+                                      }}
+                                      className="w-full bg-transparent px-2 py-1.5 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                    >
+                                      <option value={1}>T1</option>
+                                      <option value={2}>T2</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           <div>
@@ -318,21 +439,21 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                               <label className="flex items-center gap-2 cursor-pointer w-max">
                                 <input 
                                   type="checkbox" 
-                                  checked={form.uniqueWeapon?.stars === 0} 
+                                  checked={!form.uniqueWeapon || form.uniqueWeapon.stars === 0} 
                                   onChange={(e) => {
-                                    handleUpdateForm(form._localId, 'uniqueWeapon', e.target.checked ? { stars: 0, level: 1 } : { stars: 1, level: 1 });
+                                    handleUpdateForm(form._localId, 'uniqueWeapon', e.target.checked ? null : { stars: 1, level: 1 });
                                   }}
                                   className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
                                 />
                                 <span className="text-[10px] text-slate-500 font-bold">미착용(미해금)</span>
                               </label>
-                              <div className={`flex gap-2 items-center transition-opacity ${form.uniqueWeapon?.stars === 0 ? 'opacity-40 pointer-events-none' : ''}`}>
+                              <div className={`flex gap-2 items-center transition-opacity ${(!form.uniqueWeapon || form.uniqueWeapon.stars === 0) ? 'opacity-40 pointer-events-none' : ''}`}>
                                 <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
                                   <select 
                                     value={form.uniqueWeapon?.stars || 1} 
                                     onChange={(e) => {
-                                      const star = parseInt(e.target.value);
-                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: star, level: form.uniqueWeapon?.level || 1 });
+                                      const star = parseInt(e.target.value, 10);
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...(form.uniqueWeapon || { level: 1 }), stars: isNaN(star) ? 1 : star });
                                     }} 
                                     className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
                                   >

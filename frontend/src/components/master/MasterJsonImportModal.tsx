@@ -1,6 +1,39 @@
 import React, { useState, useId } from 'react';
 import { X, FileCode, Upload, Sparkles, CheckCircle2, AlertCircle, Eye, Image as ImageIcon } from 'lucide-react';
-import type { StudentMaster, SchemaConfig, SkillSet, Skill } from '../../types';
+import type { StudentMaster, SchemaConfig, SkillSet, Skill, StudentPreferredGifts } from '../../types';
+
+function dedupeCaseInsensitive(list: (string | number | null | undefined)[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const item of list) {
+    if (item === null || item === undefined) continue;
+    const s = String(item).trim();
+    if (!s || s === 'null' || s === 'undefined') continue;
+    const lower = s.toLowerCase();
+    if (!seen.has(lower)) {
+      seen.add(lower);
+      result.push(s);
+    }
+  }
+  return result;
+}
+
+export function normalizePreferredGifts(pg?: Partial<StudentPreferredGifts> | null): StudentPreferredGifts {
+  if (!pg || typeof pg !== 'object') {
+    return { level2: [], level3: [], level4: [] };
+  }
+  const l4 = dedupeCaseInsensitive(Array.isArray(pg.level4) ? pg.level4 : []);
+  const l4Set = new Set(l4.map(k => k.toLowerCase()));
+
+  const l3Raw = dedupeCaseInsensitive(Array.isArray(pg.level3) ? pg.level3 : []);
+  const l3 = l3Raw.filter(k => !l4Set.has(k.toLowerCase()));
+  const l3Set = new Set(l3.map(k => k.toLowerCase()));
+
+  const l2Raw = dedupeCaseInsensitive(Array.isArray(pg.level2) ? pg.level2 : []);
+  const l2 = l2Raw.filter(k => !l4Set.has(k.toLowerCase()) && !l3Set.has(k.toLowerCase()));
+
+  return { level2: l2, level3: l3, level4: l4 };
+}
 
 interface MasterJsonImportModalProps {
   isOpen: boolean;
@@ -247,6 +280,38 @@ export function normalizeStudentData(
     });
   }
 
+  const sId = Number(currentStudent?.id);
+  const existingFromSchema: StudentPreferredGifts = (!isNaN(sId) && schema.gifts) ? {
+    level4: schema.gifts.filter(g => g && g.key && (g.affinity?.level4 || []).some(id => Number(id) === sId)).map(g => g.key),
+    level3: schema.gifts.filter(g => g && g.key && (g.affinity?.level3 || []).some(id => Number(id) === sId)).map(g => g.key),
+    level2: schema.gifts.filter(g => g && g.key && (g.affinity?.level2 || []).some(id => Number(id) === sId)).map(g => g.key),
+  } : { level2: [], level3: [], level4: [] };
+
+  const basePreferred = currentStudent?.preferredGifts || existingFromSchema;
+  let preferredGifts = currentStudent?.preferredGifts || (existingFromSchema.level2.length || existingFromSchema.level3.length || existingFromSchema.level4.length ? existingFromSchema : undefined);
+
+  if (raw.preferredGifts && typeof raw.preferredGifts === 'object') {
+    const mapGiftKey = (val: string): string => {
+      if (val === null || val === undefined) return '';
+      const strVal = String(val).trim().toLowerCase();
+      if (!strVal || strVal === 'null' || strVal === 'undefined') return '';
+      if (!schema.gifts) return String(val).trim();
+      const found = schema.gifts.find(g => 
+        g && (
+          (g.key && g.key.toLowerCase().trim() === strVal) || 
+          (typeof g.name === 'string' && g.name.trim().toLowerCase() === strVal)
+        )
+      );
+      return found?.key ? found.key : String(val).trim();
+    };
+
+    preferredGifts = normalizePreferredGifts({
+      level2: Array.isArray(raw.preferredGifts.level2) ? raw.preferredGifts.level2.map(mapGiftKey) : basePreferred.level2,
+      level3: Array.isArray(raw.preferredGifts.level3) ? raw.preferredGifts.level3.map(mapGiftKey) : basePreferred.level3,
+      level4: Array.isArray(raw.preferredGifts.level4) ? raw.preferredGifts.level4.map(mapGiftKey) : basePreferred.level4,
+    });
+  }
+
   return {
     id: currentStudent?.id,
     name,
@@ -278,7 +343,8 @@ export function normalizeStudentData(
     skills,
     summon,
     vehicles,
-    etcSkillCosts: raw.etcSkillCosts || currentStudent?.etcSkillCosts
+    etcSkillCosts: raw.etcSkillCosts || currentStudent?.etcSkillCosts,
+    ...(preferredGifts ? { preferredGifts } : {})
   };
 }
 
@@ -514,6 +580,15 @@ export function MasterJsonImportModal({
                   {parsedData.hasFavoriteItem && (
                     <span className="px-2 py-0.5 rounded text-xs font-semibold text-pink-300 bg-pink-950/50 border border-pink-700/50">
                       애장품 보유
+                    </span>
+                  )}
+                  {parsedData.preferredGifts && (
+                    (parsedData.preferredGifts.level4?.length || 0) +
+                    (parsedData.preferredGifts.level3?.length || 0) +
+                    (parsedData.preferredGifts.level2?.length || 0) > 0
+                  ) && (
+                    <span className="px-2 py-0.5 rounded text-xs font-semibold text-pink-300 bg-pink-950/50 border border-pink-700/50">
+                      선호 선물 {(parsedData.preferredGifts.level4?.length || 0) + (parsedData.preferredGifts.level3?.length || 0) + (parsedData.preferredGifts.level2?.length || 0)}개
                     </span>
                   )}
                 </div>

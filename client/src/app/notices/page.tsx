@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { api } from '@/lib/api';
@@ -23,12 +23,7 @@ export default function NoticesPage() {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const user = useAuthStore(state => state.user);
 
-  useEffect(() => {
-    useAuthStore.getState().checkAuth();
-    fetchNotices();
-  }, [page, categoryFilter]);
-
-  const fetchNotices = async () => {
+  const fetchNotices = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/notices', {
@@ -41,7 +36,12 @@ export default function NoticesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, categoryFilter]);
+
+  useEffect(() => {
+    useAuthStore.getState().checkAuth();
+    fetchNotices();
+  }, [fetchNotices]);
 
   return (
     <div className="max-w-4xl mx-auto py-8">

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Lock, Sword, Shield, Crosshair } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { RegistrationModal } from './RegistrationModal';
 import { computeDiff } from '@/lib/diffUtils';
-import { parseTerrainUpgrade } from '@/lib/terrainUtils';
+import { parseTerrainUpgrade, getTerrainAffinityImage } from '@/lib/terrainUtils';
 import { SkillSimulator } from './SkillSimulator';
 
 interface StudentDetailViewProps {
@@ -27,6 +28,8 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
     uniqueWeapon: null,
     stats: { maxHP: 0, attackPower: 0, defensePower: 0, healPower: 0 }
   };
+
+  const favTier = (record.equipment?.slot4 as any)?.tier || 0;
 
   const getLabel = (enumKey: string, valKey: string | undefined) => {
     if (!valKey) return '-';
@@ -137,7 +140,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
   return (
     <div className="w-full flex flex-col font-sans -mt-4 relative">
-      
+
       {/* Back Button (Top Left) */}
       <div className="mb-5">
         <Link href="/collection" className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full text-sm text-[var(--plana-primary)] font-bold shadow-sm border border-white/50 hover:bg-white transition-colors">
@@ -146,15 +149,15 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 max-w-[1150px] mx-auto w-full items-start">
-        
+
         {/* Left Column (Illustration & Info) */}
         <div className="lg:w-[440px] shrink-0 relative h-[820px] -translate-x-8 lg:sticky lg:top-8 z-10">
           {/* Skewed Background & Clipping Container */}
           <div className="absolute inset-0 bg-white/60 backdrop-blur-md border border-white shadow-lg -skew-x-[4deg] rounded-3xl overflow-hidden">
-            
+
             {/* Un-skewed Content Wrapper */}
             <div className="absolute top-0 bottom-0 -left-[40px] -right-[40px] flex flex-col skew-x-[4deg]">
-              
+
               {/* Portrait */}
               <div className="flex-1 relative flex items-center justify-center pt-8">
                 {master.skills && master.skills.length > 1 && (
@@ -167,22 +170,19 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                         ? (master.portraitIco?.[idx] || skillSet.portraitUrl)
                         : undefined;
                       return (
-                        <button 
+                        <button
                           key={idx}
                           onClick={() => setSelectedMode(idx)}
-                          className={`${
-                            isShunSwimsuit
-                              ? `w-12 h-12 rounded-full overflow-hidden border-2 shadow-sm transition-all flex items-center justify-center ${
-                                  selectedMode === idx
-                                    ? 'border-[var(--plana-primary)] ring-2 ring-[var(--plana-primary)]/40 bg-white scale-105'
-                                    : 'border-white/80 bg-white/80 opacity-60 hover:opacity-100'
-                                }`
-                              : `p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${
-                                  selectedMode === idx
-                                    ? 'bg-[var(--plana-primary)] text-white'
-                                    : 'bg-white text-slate-400 hover:bg-slate-50'
-                                }`
-                          }`}
+                          className={`${isShunSwimsuit
+                            ? `w-12 h-12 rounded-full overflow-hidden border-2 shadow-sm transition-all flex items-center justify-center ${selectedMode === idx
+                              ? 'border-[var(--plana-primary)] ring-2 ring-[var(--plana-primary)]/40 bg-white scale-105'
+                              : 'border-white/80 bg-white/80 opacity-60 hover:opacity-100'
+                            }`
+                            : `p-3 rounded-full shadow-sm transition-colors flex items-center justify-center ${selectedMode === idx
+                              ? 'bg-[var(--plana-primary)] text-white'
+                              : 'bg-white text-slate-400 hover:bg-slate-50'
+                            }`
+                            }`}
                           title={skillSet.modeName || defaultModeTitle}
                         >
                           {isShunSwimsuit ? (
@@ -213,7 +213,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                   const portraitUrl = (master.skills && master.skills.length > selectedMode && master.skills[selectedMode].portraitUrl)
                     ? master.skills[selectedMode].portraitUrl
                     : (master.portraitUrls && master.portraitUrls.length > selectedMode + 1 ? master.portraitUrls[selectedMode + 1] : master.portraitUrls?.[1]);
-                  
+
                   if (portraitUrl) {
                     return <img src={`https://api.plan4ai.fyi${portraitUrl}`} className="absolute -bottom-8 translate-y-10 w-[110%] max-w-[110%] h-[110%] object-contain object-bottom pointer-events-none" alt={master.name} />;
                   } else {
@@ -246,7 +246,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     {record.bondRank ? (
                       <div className="relative flex justify-center items-center w-14 h-14 -mr-1">
                         <svg viewBox="0 0 40 40" className="absolute inset-0 w-full h-full drop-shadow-sm">
-                          <path fill="#FFD1E3" stroke="#FF8CB8" strokeWidth="2.5" strokeLinejoin="round" d="M20 34.5l-2.4-2.18C9 22.5 3.3 17.4 3.3 11.2 3.3 6 7.4 2 12.5 2c2.9 0 5.7 1.3 7.5 3.5C21.8 3.3 24.6 2 27.5 2c5.1 0 9.2 4 9.2 9.2 0 6.2-5.7 11.3-14.3 19.1L20 34.5z"/>
+                          <path fill="#FFD1E3" stroke="#FF8CB8" strokeWidth="2.5" strokeLinejoin="round" d="M20 34.5l-2.4-2.18C9 22.5 3.3 17.4 3.3 11.2 3.3 6 7.4 2 12.5 2c2.9 0 5.7 1.3 7.5 3.5C21.8 3.3 24.6 2 27.5 2c5.1 0 9.2 4 9.2 9.2 0 6.2-5.7 11.3-14.3 19.1L20 34.5z" />
                           <text x="20" y="19" textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="900" fill="#334155" stroke="white" strokeWidth="3.5" paintOrder="stroke fill" className="font-sans">
                             {record.bondRank}
                           </text>
@@ -281,7 +281,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     {(() => {
                       const wepStars = record.uniqueWeapon?.stars || 0;
@@ -293,7 +293,14 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                       ].map((stat, i) => (
                         <div key={i} className="flex flex-col items-center bg-white border border-slate-200 rounded-md p-1.5 shadow-sm w-14">
                           <span className="text-[11px] text-slate-500 font-bold mb-0.5">{stat.label}</span>
-                          <img src={`https://api.plan4ai.fyi/uploads/misc/${stat.val}.webp`} className="w-8 h-8 object-contain" alt={stat.val} />
+                          <img
+                            src={`https://api.plan4ai.fyi/uploads/misc/${stat.val}.webp`}
+                            className="w-8 h-8 object-contain"
+                            alt={stat.val}
+                            onError={(e) => {
+                              e.currentTarget.src = getTerrainAffinityImage(stat.val).src;
+                            }}
+                          />
                         </div>
                       ));
                     })()}
@@ -306,14 +313,14 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
         {/* Right Column (Stats & Skills) */}
         <div className="flex-1 flex flex-col pt-4 pr-4 pl-2 -ml-2 pb-10">
-          
+
           {/* Header row: Level & Tabs */}
           <div className="flex justify-between items-end border-b border-[var(--plana-primary)]/20 pb-2 mb-6">
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-black text-slate-500 tracking-wider">LEVEL</span>
               <span className="text-5xl font-black text-[var(--plana-primary)]">{record.level}</span>
             </div>
-            
+
             <div className="flex gap-1 -skew-x-[15deg]">
               <button
                 onClick={() => setActiveTab('detail')}
@@ -332,7 +339,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
           {activeTab === 'detail' && (
             <div className="space-y-6 pb-12">
-              
+
               {/* 1. 상세 스탯 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -388,7 +395,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                               <span className="text-[10px] font-black text-slate-400">IMG</span>
                             )}
                           </div>
-                          
+
                           {/* Skill Info */}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -420,11 +427,11 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                     {['normal', 'passive', 'sub'].map((baseKey, i) => {
                       const sData = (master.summon!.skills as any)?.[baseKey];
                       if (!sData || (!sData.name && !sData.descriptionTemplate)) return null;
-                      
+
                       // 소환수 스킬 레벨은 EX 스킬 레벨을 따라감
                       const lvl = (record.skillLevels as any)?.ex || 1;
                       const isMax = lvl === 5; // EX 스킬 최대 레벨은 5
-                      
+
                       const label = baseKey === 'normal' ? '기본 스킬' : baseKey === 'passive' ? '강화 스킬' : '서브 스킬';
 
                       return (
@@ -438,7 +445,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                                 <span className="text-[10px] font-black text-slate-400">IMG</span>
                               )}
                             </div>
-                            
+
                             {/* Skill Info */}
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
@@ -494,45 +501,100 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
                 </div>
               </div>
 
-              {/* 4. 작용 장비 */}
+              {/* 4. 착용 장비 및 애용품 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-3 h-3 bg-[var(--plana-primary)]"></div>
-                  <h3 className="font-bold text-slate-800 text-base">작용 장비</h3>
+                  <h3 className="font-bold text-slate-800 text-base">착용 장비</h3>
                 </div>
                 <div className="flex gap-4">
                   {['slot1', 'slot2', 'slot3'].map((slot, i) => {
                     const equipData = (record.equipment as any)?.[slot];
+                    const isUnequipped = !equipData;
                     const tierNum = equipData?.tier || 1;
                     const level = equipData?.level || 1;
                     const equipCategory = master[`equipmentSlot${i + 1}` as keyof StudentMaster] as string;
                     const equipLabel = getLabel('EquipmentCategory', equipCategory);
-                    
+
                     const equipmentDef = schema.equipments?.find(e => e.key === equipCategory);
                     const equipImageRaw = equipmentDef?.tiers?.[tierNum - 1]?.iconUrl;
-                    const equipImage = equipImageRaw 
+                    const equipImage = equipImageRaw
                       ? (equipImageRaw.startsWith('img-') ? `https://api.plan4ai.fyi/uploads/equipment/${equipImageRaw}` : (equipImageRaw.startsWith('/') ? `https://api.plan4ai.fyi${equipImageRaw}` : equipImageRaw))
                       : '/images/ui/equip_empty.png';
-                    
+
                     return (
-                      <div key={i} className="w-20 h-24 bg-white shadow-sm flex flex-col justify-between p-2 border border-slate-100 relative group cursor-pointer hover:border-[var(--plana-primary)] transition-colors rounded-xl">
-                        <div className="text-[11px] font-bold text-[var(--plana-primary)] z-10">Lv.{level}</div>
-                        
+                      <div key={i} className={`w-20 h-24 bg-white shadow-sm flex flex-col justify-between p-2 border border-slate-100 relative group cursor-pointer hover:border-[var(--plana-primary)] transition-colors rounded-xl ${isUnequipped ? 'opacity-40' : ''}`}>
+                        <div className="text-[11px] font-bold text-[var(--plana-primary)] z-10">{isUnequipped ? '-' : `Lv.${level}`}</div>
+
                         <div className="absolute inset-0 flex justify-center items-center">
-                          <img src={equipImage} className="w-14 h-14 object-contain group-hover:scale-110 transition-transform drop-shadow-sm" alt={equipLabel} />
+                          <img src={equipImage} className={`w-14 h-14 object-contain group-hover:scale-110 transition-transform drop-shadow-sm ${isUnequipped ? 'grayscale' : ''}`} alt={equipLabel} />
                         </div>
-                        
+
                         <div className="flex justify-end z-10">
                           <div className="text-slate-700 text-[13px] font-black drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
-                            T{tierNum}
+                            {isUnequipped ? '미착용' : `T${tierNum}`}
                           </div>
                         </div>
                       </div>
                     );
                   })}
-                  <div className="flex-1 bg-white/50 border border-slate-200 flex items-center justify-center rounded-xl">
-                    <Lock size={16} className="text-slate-300" />
-                  </div>
+
+                  {/* 애용품 (Favorite Item) */}
+                  {master.hasFavoriteItem ? (
+                    <div className={`flex-1 bg-white border ${favTier > 0 ? 'border-pink-200' : 'border-slate-200'} rounded-2xl flex flex-col p-3 relative shadow-sm`}>
+                      <div className="flex items-center">
+                        <div className="w-16 h-16 mr-4 shrink-0 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-200 p-1">
+                          {master.favoriteItemUrl ? (
+                            <img
+                              src={master.favoriteItemUrl.startsWith('http') ? master.favoriteItemUrl : `https://api.plan4ai.fyi${master.favoriteItemUrl}`}
+                              className={`w-full h-full object-contain drop-shadow-md mix-blend-multiply ${favTier > 0 ? '' : 'grayscale opacity-40'}`}
+                              alt="애용품"
+                            />
+                          ) : (
+                            <span className="text-slate-400 text-[10px] font-bold">이미지 없음</span>
+                          )}
+                        </div>
+                        <div className="flex flex-col justify-center flex-1 py-0.5 min-w-0">
+                          <div className="flex justify-between items-center">
+                            <span className="text-slate-700 font-bold text-sm">애용품</span>
+                            {favTier > 0 ? (
+                              <span className="text-xs font-black text-pink-600 bg-pink-100 px-2.5 py-0.5 rounded-full border border-pink-200 shadow-sm">
+                                T{favTier}
+                              </span>
+                            ) : (
+                              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                미착용
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1">
+                            {favTier > 0 ? `T${favTier} 착용 중` : '미착용 상태'}
+                          </div>
+                        </div>
+                      </div>
+                      {/* 애용품 효과 (T1, T2) */}
+                      {favTier > 0 && ((favTier >= 1 && master.favoriteItemEffects?.t1) || (favTier >= 2 && master.favoriteItemEffects?.t2)) && (
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-1 text-xs text-slate-600">
+                          {favTier >= 1 && master.favoriteItemEffects?.t1 && (
+                            <div className="flex gap-2 items-center">
+                              <span className="text-pink-500 font-black text-[10px] shrink-0">T1</span>
+                              <span className="font-medium text-slate-700">{master.favoriteItemEffects.t1}</span>
+                            </div>
+                          )}
+                          {favTier >= 2 && master.favoriteItemEffects?.t2 && (
+                            <div className="flex gap-2 items-center">
+                              <span className="text-pink-500 font-black text-[10px] shrink-0">T2</span>
+                              <span className="font-medium text-slate-700">{master.favoriteItemEffects.t2}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex-1 bg-white/50 border border-slate-200 flex items-center justify-center rounded-xl" title="애용품 미출시">
+                      <Lock size={16} className="text-slate-300" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -541,7 +603,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
           {activeTab === 'simulator' && (
             <div className="space-y-6 pb-12">
-              <SkillSimulator 
+              <SkillSimulator
                 initialLevels={record.skillLevels}
                 master={master}
                 schema={schema}
@@ -553,7 +615,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
       </div>
 
       {/* Floating Edit Button */}
-      <button 
+      <button
         onClick={() => setIsEditModalOpen(true)}
         className="fixed bottom-10 right-10 z-40 px-6 py-3 bg-[#323646] hover:bg-[#252834] text-white font-bold shadow-lg rounded-xl transition-colors flex items-center gap-2 -skew-x-[15deg]"
       >
@@ -562,7 +624,7 @@ export function StudentDetailView({ master, schema }: StudentDetailViewProps) {
 
       {/* Edit Modal */}
       {schema && (
-        <RegistrationModal 
+        <RegistrationModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           masterData={[master]}

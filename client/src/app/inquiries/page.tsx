@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -48,23 +48,23 @@ export default function InquiriesPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, activeTab]);
 
-  useEffect(() => {
-    if (activeTab === 'MY_INQUIRIES' && user) {
-      fetchMyInquiries();
-    }
-  }, [activeTab, user]);
-
-  const fetchMyInquiries = async () => {
+  const fetchMyInquiries = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get('/inquiries/me');
       setMyInquiries(res.data);
-    } catch (error) {
+    } catch {
       showAlert('오류', '문의 내역을 가져오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [showAlert]);
+
+  useEffect(() => {
+    if (activeTab === 'MY_INQUIRIES' && user) {
+      fetchMyInquiries();
+    }
+  }, [activeTab, user, fetchMyInquiries]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

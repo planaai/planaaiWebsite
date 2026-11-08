@@ -2,7 +2,7 @@
 
 
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -35,14 +35,7 @@ function NoticeDetailPageContent() {
   const currentUser = useAuthStore(state => state.user);
   const isAdmin = currentUser?.role === 'ADMIN';
 
-  useEffect(() => {
-    useAuthStore.getState().checkAuth();
-    if (id) {
-      fetchNotice();
-    }
-  }, [id]);
-
-  const fetchNotice = async () => {
+  const fetchNotice = useCallback(async () => {
     try {
       const res = await api.get(`/notices/${id}`);
       setNotice(res.data);
@@ -53,7 +46,14 @@ function NoticeDetailPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    useAuthStore.getState().checkAuth();
+    if (id) {
+      fetchNotice();
+    }
+  }, [id, fetchNotice]);
 
   const handleDownloadImage = async () => {
     if (!captureRef.current) return;

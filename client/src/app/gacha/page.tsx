@@ -690,7 +690,7 @@ export default function GachaPage() {
                     SESSION TELEMETRY
                   </div>
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-title-v">
-                    세션 모집 통계
+                    모집 통계
                   </h4>
                 </div>
                 <span className="text-[10px] font-mono text-slate-400">

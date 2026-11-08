@@ -1,3 +1,5 @@
+export { getTerrainAffinityImage, getTerrainAffinityUrl, terrainAffinityImages } from '@/data/terrainAffinity';
+
 export function parseTerrainUpgrade(upgradeStr: string | undefined) {
   if (!upgradeStr) return null;
   let terrainKey: 'urban' | 'outdoor' | 'indoor' | null = null;

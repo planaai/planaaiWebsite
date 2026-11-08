@@ -20,6 +20,26 @@ interface HtmlEditorProps {
   minHeight?: string;
 }
 
+interface ToolbarButtonProps {
+  onClick: () => void;
+  isActive?: boolean;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  title?: string;
+}
+
+function ToolbarButton({ onClick, isActive, icon: Icon, title }: ToolbarButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`p-2 rounded hover:bg-gray-100 transition-colors ${isActive ? 'bg-gray-100 text-pink-500' : 'text-gray-600'}`}
+      title={title}
+    >
+      <Icon size={18} />
+    </button>
+  );
+}
+
 export default function HtmlEditor({ value, onChange, placeholder = '내용을 입력하세요...', minHeight = '300px' }: HtmlEditorProps) {
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -116,17 +136,6 @@ export default function HtmlEditor({ value, onChange, placeholder = '내용을 �
   if (!editor) {
     return null;
   }
-
-  const ToolbarButton = ({ onClick, isActive, icon: Icon, title }: any) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`p-2 rounded hover:bg-gray-100 transition-colors ${isActive ? 'bg-gray-100 text-pink-500' : 'text-gray-600'}`}
-      title={title}
-    >
-      <Icon size={18} />
-    </button>
-  );
 
   return (
     <div className="border border-gray-300 rounded-md overflow-hidden bg-white shadow-sm flex flex-col">
