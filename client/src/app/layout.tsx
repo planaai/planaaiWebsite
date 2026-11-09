@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   description: '블루 아카이브 종합 도구 및 시뮬레이터',
 };
 
-// 점검 모드 토글 (true: 점검 공지 표시, false: 정상 운영)
-const IS_MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE !== 'false';
+// 점검 모드 토글 (기본 false, 환경변수가 'true'일 때만 활성화)
+const IS_MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
 
 export default function RootLayout({
   children,
@@ -32,8 +32,8 @@ export default function RootLayout({
             <div className="flex flex-col min-h-screen pt-16">
               <BetaNotice />
               <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
-                <Toaster 
-                  position="bottom-right" 
+                <Toaster
+                  position="bottom-right"
                   toastOptions={{
                     style: {
                       background: 'rgba(255, 255, 255, 0.95)',
@@ -44,7 +44,7 @@ export default function RootLayout({
                     },
                     className: 'font-sans rounded-xl'
                   }}
-                  closeButton 
+                  closeButton
                 />
                 {children}
               </main>

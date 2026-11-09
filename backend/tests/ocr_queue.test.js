@@ -492,6 +492,15 @@ test('12. [Express Route] /api/ocr and /api/ocr/status handling', async () => {
         get statusCode() { return statusCode; },
         set statusCode(code) { statusCode = code; },
         get headersSent() { return headersSent; },
+        on: (event, handler) => {
+          listeners[event] = listeners[event] || [];
+          listeners[event].push(handler);
+        },
+        removeListener: (event, handler) => {
+          if (listeners[event]) {
+            listeners[event] = listeners[event].filter(h => h !== handler);
+          }
+        },
         status: (code) => {
           statusCode = code;
           return res;

@@ -47,6 +47,15 @@ function simulateRoute({ method = 'POST', url = '/', body = {}, headers = {} } =
       get writableEnded() {
         return ended;
       },
+      on: (event, handler) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(handler);
+      },
+      removeListener: (event, handler) => {
+        if (listeners[event]) {
+          listeners[event] = listeners[event].filter((h) => h !== handler);
+        }
+      },
       status: (code) => {
         statusCode = code;
         return res;
@@ -295,5 +304,71 @@ describe('Adversarial Challenge 3: Route Input Validation (POST /api/ocr)', () =
     assert.equal(typeof res.body.metrics.queueLength, 'number');
     assert.equal(typeof res.body.metrics.recentRpm, 'number');
     assert.equal(typeof res.body.metrics.activeCount, 'number');
+  });
+
+  test('3.d: req.close (body stream EOF) does NOT prematurely abort the OCR request with 499, whereas res.close (client disconnect) DOES abort with 499', async () => {
+    const reqListeners = {};
+    const resListeners = {};
+    let statusCode = 200;
+    let headersSent = false;
+    let ended = false;
+
+    const req = {
+      method: 'POST',
+      url: '/',
+      body: { image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' },
+      on: (event, handler) => {
+        reqListeners[event] = reqListeners[event] || [];
+        reqListeners[event].push(handler);
+      },
+      removeListener: (event, handler) => {
+        if (reqListeners[event]) {
+          reqListeners[event] = reqListeners[event].filter((h) => h !== handler);
+        }
+      }
+    };
+
+    let resolvedResponse = null;
+    const responsePromise = new Promise((resolve) => {
+      resolvedResponse = resolve;
+    });
+
+    const res = {
+      get statusCode() { return statusCode; },
+      set statusCode(code) { statusCode = code; },
+      get headersSent() { return headersSent; },
+      get writableEnded() { return ended; },
+      on: (event, handler) => {
+        resListeners[event] = resListeners[event] || [];
+        resListeners[event].push(handler);
+      },
+      removeListener: (event, handler) => {
+        if (resListeners[event]) {
+          resListeners[event] = resListeners[event].filter((h) => h !== handler);
+        }
+      },
+      status: (code) => {
+        statusCode = code;
+        return res;
+      },
+      json: (data) => {
+        headersSent = true;
+        ended = true;
+        resolvedResponse({ status: statusCode, body: data });
+        return res;
+      }
+    };
+
+    ocrRouter(req, res, () => {});
+
+    // 1) Simulate Node 22+ body-parser finishing reading request stream -> emits req 'close'
+    assert.equal(reqListeners['close'] || [].length, 0, 'Must NOT attach abort listener to req.on("close")');
+
+    // 2) Simulate actual client disconnect -> emits res 'close' before response is ended
+    assert.ok(resListeners['close'] && resListeners['close'].length === 1, 'Must attach disconnect listener to res.on("close")');
+    resListeners['close'][0]();
+
+    const finalRes = await responsePromise;
+    assert.equal(finalRes.status, 499, 'Client socket close before writableEnded must return 499');
   });
 });

@@ -333,8 +333,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
         json = JSON.parse(responseText);
       } catch {
         throw new Error(
-          `서버 응답 오류 (HTTP ${res.status}): ${
-            responseText.slice(0, 150) || '서버가 올바른 JSON 응답을 반환하지 않았습니다.'
+          `서버 응답 오류 (HTTP ${res.status}): ${responseText.slice(0, 150) || '서버가 올바른 JSON 응답을 반환하지 않았습니다.'
           }`
         );
       }
@@ -397,10 +396,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
           </div>
           <div>
             <h3 className="text-sm font-black text-[var(--plana-text-main)] flex items-center gap-2">
-              인게임 스크린샷 AI 자동 인식 (OCR)
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--plana-primary)] text-white">
-                DeepSeek Vision
-              </span>
+              인게임 스크린샷 자동 인식(OCR)
             </h3>
             <p className="text-xs text-[var(--plana-text-muted)]">
               학생 상세 스펙 스크린샷을 등록하면 레벨, 스킬, 장비, 전무, 스탯이 폼에 자동 입력됩니다.

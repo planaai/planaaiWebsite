@@ -426,6 +426,8 @@ test('D2. [Adversarial Route Timeout & Error Mapping] Express route maps errors 
         get statusCode() { return statusCode; },
         set statusCode(c) { statusCode = c; },
         get headersSent() { return headersSent; },
+        on: (ev, h) => { listeners[ev] = listeners[ev] || []; listeners[ev].push(h); },
+        removeListener: (ev, h) => { if (listeners[ev]) listeners[ev] = listeners[ev].filter(x => x !== h); },
         status: (code) => { statusCode = code; return res; },
         json: (data) => {
           headersSent = true;

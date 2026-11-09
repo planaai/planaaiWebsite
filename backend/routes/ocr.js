@@ -19,7 +19,8 @@ router.post('/', async (req, res) => {
       clientController.abort();
     }
   };
-  req.on('close', onClientClose);
+  res.on('close', onClientClose);
+  req.on('aborted', onClientClose);
 
   try {
     const { image } = req.body || {};
@@ -88,7 +89,8 @@ router.post('/', async (req, res) => {
       error: err.message || 'OCR 처리 도중 오류가 발생했습니다.'
     });
   } finally {
-    req.removeListener('close', onClientClose);
+    res.removeListener('close', onClientClose);
+    req.removeListener('aborted', onClientClose);
   }
 });
 
