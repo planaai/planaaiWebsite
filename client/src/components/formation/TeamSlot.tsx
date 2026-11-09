@@ -114,11 +114,11 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
   // Helper for portrait URL
   const getSlotPortraitUrl = () => {
     if (!student) return null;
-    if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
-      return student.skills[currentMode].portraitUrl;
-    }
-    
     if (type === 'striker') {
+      if (student.skills && student.skills.length > currentMode) {
+        if (student.skills[currentMode].fullIllustUrl) return student.skills[currentMode].fullIllustUrl;
+        if (student.skills[currentMode].portraitUrl) return student.skills[currentMode].portraitUrl;
+      }
       // Striker uses full illustration (index 1 for mode 0, index 2 for mode 1)
       if (student.portraitUrls && student.portraitUrls.length > currentMode + 1 && student.portraitUrls[currentMode + 1]) {
         return student.portraitUrls[currentMode + 1];
@@ -126,6 +126,10 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
       if (student.portraitUrls && student.portraitUrls.length > 1 && student.portraitUrls[1]) {
         return student.portraitUrls[1];
       }
+    }
+
+    if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
+      return student.skills[currentMode].portraitUrl;
     }
 
     // Special (or fallback for striker) uses small portrait icon (index 0)
@@ -157,7 +161,8 @@ export function TeamSlot({ type, index, student, teamId, isCompact }: Props) {
           <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none">
             {portraitUrl ? (
               (() => {
-                const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
+                const offsetKey = currentMode > 0 ? `${student.name}_${currentMode}` : student.name;
+                const config = imageOffsets[offsetKey] || imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
                 return (
                   <img
                     src={getImageUrl(portraitUrl)}

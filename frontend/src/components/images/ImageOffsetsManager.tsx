@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, Search, RefreshCw, User, Image as ImageIcon } from 'lucide-react';
+import { Save, Search, RefreshCw, User, Image as ImageIcon, Shield, Crosshair } from 'lucide-react';
 import { API } from '../../constants';
 import type { ArchiveData } from '../../types';
 
@@ -22,6 +22,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<ArchiveData | null>(null);
+  const [selectedMode, setSelectedMode] = useState<number>(0);
 
   // Default values to use when a student doesn't have an offset config yet
   const DEFAULT_CONFIG: OffsetConfig = { scale: 200, offsetX: 0, offsetY: 20 };
@@ -77,9 +78,38 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
       return s.master.name.toLowerCase().includes(q);
     });
 
+  const isMultiMode = !!(
+    selectedStudent &&
+    ((selectedStudent.master.skills && selectedStudent.master.skills.length > 1) ||
+      (selectedStudent.master.portraitUrls && selectedStudent.master.portraitUrls.length > 2))
+  );
+  const isShunSwimsuit = selectedStudent ? selectedStudent.master.name.replace(/\s+/g, '') === '슌(수영복)' : false;
+
+  const getOffsetKey = (name: string, mode: number) => (mode > 0 ? `${name}_${mode}` : name);
+
+  const activeOffsetKey = selectedStudent
+    ? getOffsetKey(selectedStudent.master.name, selectedMode)
+    : '';
+
   const activeConfig = selectedStudent 
-    ? (offsets[selectedStudent.master.name] || DEFAULT_CONFIG) 
+    ? (offsets[activeOffsetKey] || offsets[selectedStudent.master.name] || DEFAULT_CONFIG) 
     : DEFAULT_CONFIG;
+
+  const getPreviewIllustUrl = () => {
+    if (!selectedStudent) return null;
+    const master = selectedStudent.master;
+    if (master.skills && master.skills.length > selectedMode) {
+      if (master.skills[selectedMode].fullIllustUrl) return master.skills[selectedMode].fullIllustUrl;
+      if (master.skills[selectedMode].portraitUrl) return master.skills[selectedMode].portraitUrl;
+    }
+    if (master.portraitUrls && master.portraitUrls.length > selectedMode + 1 && master.portraitUrls[selectedMode + 1]) {
+      return master.portraitUrls[selectedMode + 1];
+    }
+    if (master.portraitUrls && master.portraitUrls.length > 1 && master.portraitUrls[1]) {
+      return master.portraitUrls[1];
+    }
+    return null;
+  };
 
   const getImageUrl = (url: string) => {
     if (!url) return '';
@@ -120,18 +150,24 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
           />
         </div>
         <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
-          {filteredData.map(student => (
-            <button
-              key={student.master.id}
-              onClick={() => setSelectedStudent(student)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors ${
-                selectedStudent?.master.id === student.master.id ? 'bg-blue-600/20 text-blue-400 font-bold border border-blue-500/30' : 'text-slate-300 hover:bg-slate-700/50 border border-transparent'
-              }`}
-            >
-              <span>{student.master.name}</span>
-              {offsets[student.master.name] && <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 rounded">Edited</span>}
-            </button>
-          ))}
+          {filteredData.map(student => {
+            const hasEdited = !!(offsets[student.master.name] || offsets[`${student.master.name}_1`]);
+            return (
+              <button
+                key={student.master.id}
+                onClick={() => {
+                  setSelectedStudent(student);
+                  setSelectedMode(0);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors ${
+                  selectedStudent?.master.id === student.master.id ? 'bg-blue-600/20 text-blue-400 font-bold border border-blue-500/30' : 'text-slate-300 hover:bg-slate-700/50 border border-transparent'
+                }`}
+              >
+                <span>{student.master.name}</span>
+                {hasEdited && <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 rounded">Edited</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -146,22 +182,25 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
               {/* Dummy TeamSlot Container */}
               <div className="relative flex flex-col items-center justify-end shrink-0 w-[160px] h-[350px] bg-slate-100 rounded shadow-md mt-4">
                 <div className="absolute inset-0 pb-[80px] flex items-end justify-center pointer-events-none overflow-visible">
-                  {selectedStudent.master.portraitUrls && selectedStudent.master.portraitUrls.length > 1 ? (
-                    <img
-                      src={getImageUrl(selectedStudent.master.portraitUrls[1])}
-                      alt={selectedStudent.master.name}
-                      className="max-w-none object-cover drop-shadow-xl transition-all duration-75"
-                      style={{ 
-                        width: `${activeConfig.scale}%`,
-                        transform: `translate(${activeConfig.offsetX}%, ${activeConfig.offsetY}%)`,
-                        objectPosition: 'center 20%' 
-                      }}
-                    />
-                  ) : (
-                    <div className="w-[100px] h-[100px] bg-slate-200 rounded-full flex items-center justify-center mb-8">
-                      <User size={48} className="text-slate-400" />
-                    </div>
-                  )}
+                  {(() => {
+                    const previewUrl = getPreviewIllustUrl();
+                    return previewUrl ? (
+                      <img
+                        src={getImageUrl(previewUrl)}
+                        alt={selectedStudent.master.name}
+                        className="max-w-none object-cover drop-shadow-xl transition-all duration-75"
+                        style={{ 
+                          width: `${activeConfig.scale}%`,
+                          transform: `translate(${activeConfig.offsetX}%, ${activeConfig.offsetY}%)`,
+                          objectPosition: 'center 20%' 
+                        }}
+                      />
+                    ) : (
+                      <div className="w-[100px] h-[100px] bg-slate-200 rounded-full flex items-center justify-center mb-8">
+                        <User size={48} className="text-slate-400" />
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Dummy Floating Info Badge */}
@@ -173,9 +212,59 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
 
             {/* Controls */}
             <div className="flex-1 flex flex-col gap-6 p-4">
-              <div>
-                <h3 className="text-2xl font-black text-white mb-1">{selectedStudent.master.name}</h3>
-                <p className="text-slate-400 text-sm">이미지 크기와 위치를 조정하세요. (미리보기 화면에 실시간으로 반영됩니다)</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-2xl font-black text-white mb-1">
+                    {selectedStudent.master.name}
+                    {isMultiMode && (
+                      <span className="ml-2 text-base font-bold text-blue-400">
+                        ({isShunSwimsuit ? (selectedMode === 0 ? '성숙한 버전' : '어린 버전') : (selectedStudent.master.skills?.[selectedMode]?.modeName || (selectedMode === 0 ? '방어형' : '공격형'))})
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-slate-400 text-sm">이미지 크기와 위치를 조정하세요. (미리보기 화면에 실시간으로 반영됩니다)</p>
+                </div>
+
+                {isMultiMode && (
+                  <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-700 shrink-0">
+                    {[0, 1].map(modeIdx => {
+                      const modeLabel = isShunSwimsuit
+                        ? (modeIdx === 0 ? '성숙한 버전' : '어린 버전')
+                        : (selectedStudent.master.skills?.[modeIdx]?.modeName || (modeIdx === 0 ? '방어형' : '공격형'));
+                      const shunIcoUrl = isShunSwimsuit
+                        ? (selectedStudent.master.portraitIco?.[modeIdx] || selectedStudent.master.skills?.[modeIdx]?.portraitUrl)
+                        : undefined;
+                      const isActive = selectedMode === modeIdx;
+                      return (
+                        <button
+                          key={modeIdx}
+                          type="button"
+                          onClick={() => setSelectedMode(modeIdx)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-blue-600 text-white shadow-md'
+                              : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          {isShunSwimsuit ? (
+                            shunIcoUrl ? (
+                              <img
+                                src={getImageUrl(shunIcoUrl)}
+                                alt={modeLabel}
+                                className="w-5 h-5 rounded-full object-cover border border-white/40"
+                              />
+                            ) : null
+                          ) : modeIdx === 0 ? (
+                            <Shield size={14} />
+                          ) : (
+                            <Crosshair size={14} />
+                          )}
+                          <span>{modeLabel}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-6 bg-slate-900/50 p-6 rounded-xl border border-slate-700">
@@ -189,7 +278,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                     type="range" 
                     min="50" max="400" step="1"
                     value={activeConfig.scale}
-                    onChange={(e) => updateConfig(selectedStudent.master.name, 'scale', parseInt(e.target.value))}
+                    onChange={(e) => updateConfig(activeOffsetKey, 'scale', parseInt(e.target.value))}
                     className="w-full accent-blue-500"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1">
@@ -207,7 +296,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                     type="range" 
                     min="-100" max="100" step="1"
                     value={activeConfig.offsetX}
-                    onChange={(e) => updateConfig(selectedStudent.master.name, 'offsetX', parseInt(e.target.value))}
+                    onChange={(e) => updateConfig(activeOffsetKey, 'offsetX', parseInt(e.target.value))}
                     className="w-full accent-blue-500"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1">
@@ -225,7 +314,7 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                     type="range" 
                     min="-100" max="100" step="1"
                     value={activeConfig.offsetY}
-                    onChange={(e) => updateConfig(selectedStudent.master.name, 'offsetY', parseInt(e.target.value))}
+                    onChange={(e) => updateConfig(activeOffsetKey, 'offsetY', parseInt(e.target.value))}
                     className="w-full accent-blue-500"
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-1">
@@ -238,9 +327,9 @@ export function ImageOffsetsManager({ data, showToast }: Props) {
                 <button 
                   onClick={() => {
                     if (confirm('기본값으로 초기화하시겠습니까? (저장 전까지는 반영되지 않습니다)')) {
-                       updateConfig(selectedStudent.master.name, 'scale', DEFAULT_CONFIG.scale);
-                       updateConfig(selectedStudent.master.name, 'offsetX', DEFAULT_CONFIG.offsetX);
-                       updateConfig(selectedStudent.master.name, 'offsetY', DEFAULT_CONFIG.offsetY);
+                       updateConfig(activeOffsetKey, 'scale', DEFAULT_CONFIG.scale);
+                       updateConfig(activeOffsetKey, 'offsetX', DEFAULT_CONFIG.offsetX);
+                       updateConfig(activeOffsetKey, 'offsetY', DEFAULT_CONFIG.offsetY);
                     }
                   }}
                   className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg transition-colors"

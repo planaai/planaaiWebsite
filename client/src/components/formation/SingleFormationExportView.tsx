@@ -47,17 +47,21 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
 
   const getSlotPortraitUrl = (student: StudentMaster, type: 'striker' | 'special') => {
     const currentMode = studentModes[student.id] || 0;
-    if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
-      return student.skills[currentMode].portraitUrl;
-    }
-    
     if (type === 'striker') {
+      if (student.skills && student.skills.length > currentMode) {
+        if (student.skills[currentMode].fullIllustUrl) return student.skills[currentMode].fullIllustUrl;
+        if (student.skills[currentMode].portraitUrl) return student.skills[currentMode].portraitUrl;
+      }
       if (student.portraitUrls && student.portraitUrls.length > currentMode + 1 && student.portraitUrls[currentMode + 1]) {
         return student.portraitUrls[currentMode + 1];
       }
       if (student.portraitUrls && student.portraitUrls.length > 1 && student.portraitUrls[1]) {
         return student.portraitUrls[1];
       }
+    }
+
+    if (student.skills && student.skills.length > currentMode && student.skills[currentMode].portraitUrl) {
+      return student.skills[currentMode].portraitUrl;
     }
 
     if (student.portraitUrls && student.portraitUrls.length > 0 && student.portraitUrls[0]) {
@@ -107,8 +111,10 @@ export const SingleFormationExportView = forwardRef<HTMLDivElement, Props>(({ ma
                   </div>
                 );
               }
+              const currentMode = studentModes[student.id] || 0;
+              const offsetKey = currentMode > 0 ? `${student.name}_${currentMode}` : student.name;
               const portraitUrl = getSlotPortraitUrl(student, 'striker');
-              const config = imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
+              const config = imageOffsets[offsetKey] || imageOffsets[student.name] || { scale: 200, offsetX: 0, offsetY: 20 };
               
               return (
                 <div key={`striker-${index}`} className="relative flex flex-col items-center justify-end shrink min-w-0 w-[180px] h-[400px]">
