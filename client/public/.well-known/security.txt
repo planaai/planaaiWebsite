@@ -1,0 +1,3 @@
+Contact: mailto:planaai1228@gmail.com
+Preferred-Languages: ko, en
+Canonical: https://plana.ai/.well-known/security.txt

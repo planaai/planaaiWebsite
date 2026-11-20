@@ -1,0 +1,134 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+coverage/
+
+# Frontend (Next.js / Vite / Cloudflare)
+.next/
+.open-next/
+.wrangler/
+.vercel/
+out/
+build/
+dist/
+dist-ssr/
+next-env.d.ts
+
+# Docs & Tools
+docs/
+tools/
+missing_skill_icons.md
+QA_PROCESS.md
+
+# Backend
+/backend/
+/backend/uploads/
+/backend/data/
+/backend/generated/prisma
+/backend/prisma/*.db
+/backend/prisma/*.db-journal
+/backend/prisma/*.db-shm
+/backend/prisma/*.db-wal
+backend_data_backup/
+databackup/
+uploads/
+*.sql
+*.dump
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Environment Variables
+.env
+.env.*
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Keys and Certificates
+*.pem
+*.key
+*.cert
+
+# OS Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDEs and Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project specific & Temporary
+scratch/
+deploy/
+client-pvp/
+gacha_changes/
+/ico/
+~$*.xlsx
+ip.txt
+
+# TypeScript
+*.tsbuildinfo
+
+# Linter outputs
+lint-results.json
+lint-results.txt
+.eslintcache
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# AI Agent & Memory
+docs-vault/
+.agents/
+.agent/
+.claude/
+.cursor/
+.agentignore
+CLAUDE.local.md
+
+# Security Handover Documents (R1)
+SECURITY_HANDOVER.md
+
+# Sensitive directories and internal operational tools (R2)
+frontend/
+cloudflare-router/
+databackup/
+client/AGENTS.md
+client/CLAUDE.md
+start_servers.bat
+stop_servers.bat
+licenses.txt
+
+

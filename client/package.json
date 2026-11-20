@@ -1,0 +1,49 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack -p 3001",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node --import ./tests/register-loader.mjs --test tests/security_and_utils.test.ts src/lib/ocr/__tests__/studentOcrParser.test.ts",
+    "build:cf-pages": "npx @cloudflare/next-on-pages"
+  },
+  "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
+    "@marsidev/react-turnstile": "^1.5.3",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tiptap/extension-color": "^3.29.2",
+    "@tiptap/extension-image": "^3.29.2",
+    "@tiptap/extension-placeholder": "^3.29.2",
+    "@tiptap/extension-text-align": "^3.29.2",
+    "@tiptap/extension-text-style": "^3.29.2",
+    "@tiptap/extension-underline": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
+    "axios": "^1.18.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "^1.20.0",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@cloudflare/next-on-pages": "^1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "wrangler": "^4"
+  }
+}

@@ -1,0 +1,109 @@
+import type { Metadata } from 'next';
+import './globals.css';
+import { Navbar } from '@/components/ui/Navbar';
+import { AlertProvider } from '@/contexts/AlertContext';
+import { BetaNotice } from '@/components/ui/BetaNotice';
+import { MaintenanceNotice } from '@/components/ui/MaintenanceNotice';
+import { Toaster } from 'sonner';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://plan4ai.fyi'),
+  title: {
+    default: 'Plana.AI',
+    template: '%s • Plana.AI',
+  },
+  description: '블루 아카이브 종합 도구 및 시뮬레이터 (학생도감, 가챠 시뮬레이터, 육성 플래너, AP 계산기)',
+  keywords: [
+    '블루 아카이브',
+    'Blue Archive',
+    '블루아카',
+    '학생도감',
+    '가챠 시뮬레이터',
+    '육성 플래너',
+    'AP 계산기',
+    'Plana.AI',
+    '플라나',
+  ],
+  openGraph: {
+    title: {
+      default: 'Plana.AI',
+      template: '%s • Plana.AI',
+    },
+    description: '블루 아카이브 종합 도구 및 시뮬레이터',
+    url: 'https://plan4ai.fyi',
+    siteName: 'Plana.AI',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: '/images/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Plana.AI Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: {
+      default: 'Plana.AI',
+      template: '%s • Plana.AI',
+    },
+    description: '블루 아카이브 종합 도구 및 시뮬레이터',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/images/logo.png',
+  },
+};
+
+// 점검 모드 토글 (기본 false, 환경변수가 'true'일 때만 활성화)
+const IS_MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="ko">
+      <head>
+      </head>
+      <body className="font-sans min-h-screen selection:bg-[var(--plana-primary-light)]">
+        {IS_MAINTENANCE_MODE ? (
+          <MaintenanceNotice />
+        ) : (
+          <AlertProvider>
+            <Navbar />
+            <div className="flex flex-col min-h-screen pt-16">
+              <BetaNotice />
+              <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
+                <Toaster
+                  position="bottom-right"
+                  toastOptions={{
+                    style: {
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(12px)',
+                      border: '2px solid var(--plana-primary)',
+                      color: 'var(--plana-text-main)',
+                      boxShadow: '0 10px 40px rgba(255,166,201,0.4)'
+                    },
+                    className: 'font-sans rounded-xl'
+                  }}
+                  closeButton
+                />
+                {children}
+              </main>
+              <footer className="w-full text-center py-8 text-xs text-gray-500 border-t border-gray-200 mt-auto">
+                <p>본 사이트는 비상업적 목적을 지닌 비공식 팬메이드 사이트입니다.</p>
+                <p className="mt-1">"블루 아카이브"와 모든 관련 지적재산권은 넥슨 및 넥슨게임즈에 있습니다.</p>
+                <p className="mt-1">본 사이트에는 경기도에서 제공한 경기천년체가 적용되어 있습니다.</p>
+                <p className="mt-3 text-[10px] text-gray-400">&copy; 2026 Plana.AI All Rights Reserved.</p>
+              </footer>
+            </div>
+          </AlertProvider>
+        )}
+      </body>
+    </html>
+  );
+}

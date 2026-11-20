@@ -1,0 +1,148 @@
+import axios from 'axios';
+import type { StudentMaster, SchemaConfig, ArchiveRecord, ArchiveData } from '../types';
+
+export const API_BASE = 'https://api.plan4ai.fyi/api';
+
+const api = axios.create({
+  baseURL: API_BASE,
+});
+
+api.interceptors.request.use(async (config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Add fingerprint header
+    try {
+      const { getDeviceFingerprint } = await import('./fingerprint');
+      const fp = await getDeviceFingerprint();
+      if (fp) {
+        config.headers['X-Device-Fingerprint'] = fp;
+      }
+    } catch (e) {
+      console.warn('Failed to attach device fingerprint');
+    }
+  }
+  return config;
+}, (error) => Promise.reject(error));
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+      // optional: window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export { api };
+
+export const getImageUrl = (url: string | undefined | null) => {
+  if (!url) return '';
+  if (url.startsWith('/images/')) return url;
+  try {
+    const baseUrl = new URL(API_BASE).origin;
+    return url.startsWith('http') ? url : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+  } catch {
+    return url;
+  }
+};
+
+let serverDataPromise: Promise<{ masterData: StudentMaster[]; archiveData: ArchiveRecord[] }> | null = null;
+let schemaPromise: Promise<SchemaConfig | null> | null = null;
+
+export const clearApiCache = () => {
+  serverDataPromise = null;
+  schemaPromise = null;
+};
+
+export const fetchServerData = (
+  retries = 3,
+  forceRefresh = false
+): Promise<{ masterData: StudentMaster[]; archiveData: ArchiveRecord[] }> => {
+  if (serverDataPromise && !forceRefresh) {
+    return serverDataPromise;
+  }
+
+  serverDataPromise = (async () => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const resArchive = await api.get('/archive');
+        const data: ArchiveData[] = resArchive.data.data || [];
+        const masterData = data.map((d) => d.master);
+        const archiveData = data.map((d) => d.archive).filter((a): a is ArchiveRecord => a !== null);
+        return { masterData, archiveData };
+      } catch (error: unknown) {
+        if (i === retries - 1) {
+          console.error('Failed to fetch server data after retries:', error);
+          serverDataPromise = null;
+          return { masterData: [], archiveData: [] };
+        }
+        // 실패 시 1초 대기 후 재시도
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+    serverDataPromise = null;
+    return { masterData: [], archiveData: [] };
+  })();
+
+  return serverDataPromise;
+};
+
+export const fetchSchema = (forceRefresh = false): Promise<SchemaConfig | null> => {
+  if (schemaPromise && !forceRefresh) {
+    return schemaPromise;
+  }
+
+  schemaPromise = (async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/schema`);
+      return res.data;
+    } catch (error) {
+      console.error('Failed to fetch schema:', error);
+      schemaPromise = null;
+      return null;
+    }
+  })();
+
+  return schemaPromise;
+};
+
+export const syncCollectionToServer = async (collections: ArchiveRecord[]) => {
+  const res = await api.post('/collection/sync', { collections });
+  return res.data;
+};
+
+export const fetchCollectionFromServer = async () => {
+  const res = await api.get('/collection');
+  return res.data;
+};
+
+export const loginUser = async (data: Record<string, unknown>) => {
+  const res = await axios.post(`${API_BASE}/auth/login`, data);
+  return res.data;
+};
+
+export const updateProfile = async (nickname: string) => {
+  const res = await api.put('/auth/me', { nickname });
+  return res.data;
+};
+
+export const fetchCurrentUser = async () => {
+  const res = await api.get('/auth/me');
+  return res.data;
+};
+
+export const deleteCollectionFromServer = async () => {
+  const res = await api.delete('/collection');
+  return res.data;
+};
+
+export const fetchGachaStatus = async () => {
+  const res = await api.get('/master/gacha/status');
+  return res.data;
+};

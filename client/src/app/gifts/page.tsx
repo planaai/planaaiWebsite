@@ -1,0 +1,45 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { getCachedServerData, getCachedSchema } from '@/lib/dataCache';
+import type { StudentMaster, SchemaConfig } from '@/types';
+import { GiftsView } from '@/components/archive/GiftsView';
+import { useArchiveStore } from '@/store/archiveStore';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { formatTitle } from '@/lib/seo';
+
+export default function GiftsPage() {
+  useDocumentTitle(formatTitle('선물 도감'));
+  const [masterData, setMasterData] = useState<StudentMaster[]>([]);
+  const [schema, setSchema] = useState<SchemaConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadData() {
+      const [{ masterData, archiveData }, s] = await Promise.all([getCachedServerData(), getCachedSchema()]);
+      if (cancelled) return;
+      setMasterData(masterData);
+      setSchema(s);
+      
+
+      
+      setLoading(false);
+    }
+    loadData();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-slate-700 border-t-pink-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-pink-400 font-bold animate-pulse">선물 도감 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  return (
+    <GiftsView initialMasterData={masterData} schema={schema!} />
+  );
+}

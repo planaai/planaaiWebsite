@@ -1,0 +1,566 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Plus, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
+import { useArchiveStore } from '@/store/archiveStore';
+import { toast } from 'sonner';
+import { getEquipMaxLevel, getWeaponMaxLevel, SKILL_MAX } from '@/lib/equipmentUtils';
+import { StudentOcrUploader } from './StudentOcrUploader';
+import { mapOcrDataToFormValues, type NormalizedStudentOcrData } from '@/lib/ocr/studentOcrParser';
+
+interface RegistrationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  masterData: StudentMaster[];
+  schema: SchemaConfig;
+  initialEditRecord?: ArchiveRecord; // For editing an existing record
+}
+
+type RegistrationForm = Partial<ArchiveRecord> & { 
+  _localId: number; 
+  _isCollapsed: boolean;
+};
+
+export function RegistrationModal({ isOpen, onClose, masterData, schema, initialEditRecord }: RegistrationModalProps) {
+  const [mounted, setMounted] = useState(false);
+  const [forms, setForms] = useState<RegistrationForm[]>([]);
+  const [nextId, setNextId] = useState(1);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize forms when modal opens
+  React.useEffect(() => {
+    setMounted(true);
+    if (isOpen) {
+      if (initialEditRecord) {
+        setForms([{ ...initialEditRecord, _localId: 0, _isCollapsed: false }]);
+      } else {
+        setForms([{ _localId: 0, _isCollapsed: false }]);
+        setNextId(1);
+      }
+    }
+  }, [isOpen, initialEditRecord]);
+
+  if (!isOpen || !mounted) return null;
+
+  const handleAddForm = () => {
+    // Collapse all existing
+    setForms(prev => [
+      ...prev.map(f => ({ ...f, _isCollapsed: true })),
+      { _localId: nextId, _isCollapsed: false }
+    ]);
+    setNextId(prev => prev + 1);
+  };
+
+  const handleUpdateForm = (localId: number, field: string, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+    setForms(prev => prev.map(f => {
+      if (f._localId === localId) {
+        // Handle nested fields like stats.maxHP or skillLevels.ex
+        if (field.includes('.')) {
+          const [obj, key] = field.split('.');
+          return { ...f, [obj]: { ...(f as any)[obj], [key]: value } };
+        }
+        if (field === 'studentId') {
+          if (typeof value === 'number' && !isNaN(value)) {
+            const master = masterData.find(m => m.id === value);
+            return {
+              ...f,
+              studentId: value,
+              // Preserve existing stars (e.g. from OCR extraction) instead of blindly resetting to base stars
+              currentStars: f.currentStars || master?.starNum || 1,
+            };
+          } else {
+            return { ...f, studentId: undefined };
+          }
+        }
+        return { ...f, [field]: value };
+      }
+      return f;
+    }));
+  };
+
+  const toggleCollapse = (localId: number) => {
+    setForms(prev => prev.map(f => f._localId === localId ? { ...f, _isCollapsed: !f._isCollapsed } : f));
+  };
+  const removeForm = (localId: number) => {
+    setForms(prev => prev.filter(f => f._localId !== localId));
+  };
+
+  const handleOcrExtracted = (localId: number, ocrData: NormalizedStudentOcrData) => {
+    const safeMasterData = Array.isArray(masterData) ? masterData : [];
+    const mapped = mapOcrDataToFormValues(ocrData, safeMasterData);
+
+    setForms(prev => prev.map(f => {
+      if (f._localId === localId) {
+        // 기존 수정 모드에서는 studentId를 강제 변경하지 않음 (오인 등록 방지)
+        const nextStudentId = initialEditRecord
+          ? (f.studentId ?? mapped.studentId)
+          : (mapped.studentId !== undefined ? mapped.studentId : f.studentId);
+
+        const matched = mapped.matchedMaster || safeMasterData.find(m => m.id === nextStudentId);
+
+        if (initialEditRecord && mapped.studentId && mapped.studentId !== f.studentId) {
+          toast.warning(
+            `현재 수정 중인 학생과 스크린샷 학생(${ocrData.studentName})이 일치하지 않습니다. 스펙만 반영합니다.`
+          );
+        }
+
+        return {
+          ...f,
+          studentId: nextStudentId,
+          level: mapped.level,
+          currentStars: mapped.currentStars || matched?.starNum || f.currentStars || 3,
+          bondRank: mapped.bondRank !== undefined ? mapped.bondRank : f.bondRank,
+          skillLevels: mapped.skillLevels,
+          equipment: {
+            slot1: mapped.equipment.slot1,
+            slot2: mapped.equipment.slot2,
+            slot3: mapped.equipment.slot3,
+            slot4: mapped.equipment.slot4 !== undefined ? mapped.equipment.slot4 : (f.equipment?.slot4 || null),
+          },
+          uniqueWeapon: mapped.uniqueWeapon,
+          stats: {
+            ...f.stats,
+            ...mapped.stats,
+          },
+          potentialLevels: {
+            ...f.potentialLevels,
+            ...mapped.potentialLevels,
+          },
+        };
+      }
+      return f;
+    }));
+
+    if (!mapped.studentId) {
+      toast.warning(
+        `추출된 학생명 '${ocrData.studentName}'을 학생 목록에서 자동으로 찾지 못했습니다. 학생을 직접 선택해주세요.`
+      );
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    try {
+      const validForms = forms.filter(f => f.studentId && f.level);
+      if (validForms.length === 0) {
+        toast.error('등록할 학생과 레벨을 입력해주세요.');
+        return;
+      }
+
+      const payloads = validForms.map(f => {
+        const { _localId, _isCollapsed, ...rest } = f;
+        const weapon = (!rest.uniqueWeapon || rest.uniqueWeapon.stars === 0) ? null : rest.uniqueWeapon;
+        return {
+          ...rest,
+          level: rest.level || 1,
+          currentStars: rest.currentStars || 1,
+          skillLevels: rest.skillLevels || { ex: 1, normal: 1, passive: 1, sub: 1 },
+          equipment: {
+            slot1: rest.equipment?.slot1 ?? null,
+            slot2: rest.equipment?.slot2 ?? null,
+            slot3: rest.equipment?.slot3 ?? null,
+            slot4: rest.equipment?.slot4 ?? null,
+          },
+          uniqueWeapon: weapon,
+          stats: rest.stats || {},
+          capturedAt: rest.capturedAt || new Date().toISOString(),
+        };
+      });
+
+      const store = useArchiveStore.getState();
+      payloads.forEach(p => store.setRecord(p.studentId!, p as ArchiveRecord));
+      
+      // Force sync to server if authenticated
+      if (typeof window !== 'undefined' && localStorage.getItem('auth_token')) {
+        store.syncToServer().catch(console.error);
+      }
+
+      toast.success(
+        initialEditRecord
+          ? '학생 정보가 수정되었습니다.'
+          : `${payloads.length}명의 학생 정보가 성공적으로 등록되었습니다.`
+      );
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error('잠시 후에 다시 시도해 주세요');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/20 animate-fade-in">
+      <div className="bg-white border border-[var(--plana-border)] w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex justify-between items-center p-5 border-b border-[var(--plana-border)] bg-slate-50">
+          <h2 className="text-xl font-black text-[var(--plana-text-main)] flex items-center gap-2">
+            {initialEditRecord ? '학생 정보 수정' : '새로운 학생 등록'}
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-[var(--plana-accent)] transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+
+
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/50">
+          {forms.length > 0 && (
+            <div className="space-y-4">
+              {forms.map((form, index) => {
+
+
+                const selectedMaster = masterData.find(m => m.id === form.studentId);
+                
+                return (
+                  <div key={form._localId} className="bg-white border border-[var(--plana-border)] rounded-xl overflow-hidden transition-all duration-300 shadow-sm">
+                    {/* Accordion Header */}
+                    <div 
+                      className={`flex justify-between items-center p-4 cursor-pointer hover:bg-slate-50 ${form._isCollapsed ? '' : 'border-b border-[var(--plana-border)] bg-slate-50/50'}`}
+                      onClick={() => toggleCollapse(form._localId)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+                          {selectedMaster?.portraitUrls && selectedMaster.portraitUrls.length > 0 ? (
+                            <img src={`https://api.plan4ai.fyi${selectedMaster.portraitUrls[0]}`} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-400">?</div>
+                          )}
+                        </div>
+                        <span className="font-bold text-[var(--plana-text-main)]">
+                          {selectedMaster ? selectedMaster.name : '학생을 선택해주세요'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+
+                        {!initialEditRecord && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); removeForm(form._localId); }}
+                            className="text-xs text-red-500 hover:text-red-600 px-2 py-1 rounded bg-red-50 hover:bg-red-100"
+                          >
+                            삭제
+                          </button>
+                        )}
+                        {form._isCollapsed ? <ChevronDown size={20} className="text-slate-400" /> : <ChevronUp size={20} className="text-slate-400" />}
+                      </div>
+                    </div>
+
+                    {/* Accordion Body */}
+                    {!form._isCollapsed && (
+                      <div className="p-5 flex flex-col gap-6">
+                        {/* 0. 인게임 스크린샷 AI 자동인식 (OCR) */}
+                        <StudentOcrUploader
+                          onOcrExtracted={(ocrData) => handleOcrExtracted(form._localId, ocrData)}
+                          disabled={isSaving}
+                        />
+
+                        <div className="w-full space-y-6">
+                          {/* 1. Student Selection */}
+                        <div>
+                          <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">학생 선택</label>
+                          <select 
+                            value={form.studentId || ''} 
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10);
+                              handleUpdateForm(form._localId, 'studentId', isNaN(v) ? undefined : v);
+                            }}
+                            className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-3 text-[var(--plana-text-main)] focus:outline-none focus:border-[var(--plana-accent)]"
+                            disabled={!!initialEditRecord}
+                          >
+                            <option value="">-- 학생 선택 --</option>
+                            {masterData.map(m => (
+                              <option key={m.id} value={m.id}>[{m.school}] {m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* 2. Basic Info */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">레벨</label>
+                            <input 
+                              type="number" min={1} max={90} value={form.level || ''} 
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                handleUpdateForm(form._localId, 'level', isNaN(val) ? undefined : val);
+                              }} 
+                              className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">성급</label>
+                            <select value={form.currentStars || 3} onChange={(e) => handleUpdateForm(form._localId, 'currentStars', parseInt(e.target.value))} className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none">
+                              {[1,2,3,4,5].map(s => <option key={s} value={s}>{s}성</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">인연 랭크</label>
+                            <input 
+                              type="number" min={1} max={100} value={form.bondRank || ''} 
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                handleUpdateForm(form._localId, 'bondRank', isNaN(val) ? undefined : val);
+                              }} 
+                              className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none" 
+                            />
+                          </div>
+                        </div>
+
+                        {/* 3. Skills */}
+                        <div>
+                          <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">스킬 레벨 (EX / 기본 / 강화 / 서브)</label>
+                          <div className="grid grid-cols-4 gap-4">
+                            {(['ex', 'normal', 'passive', 'sub'] as const).map((sk) => (
+                              <div key={sk} className="flex gap-1 items-center">
+                                <input 
+                                  type="number" 
+                                  min={1} 
+                                  max={sk === 'ex' ? 5 : 10} 
+                                  placeholder={sk.toUpperCase()}
+                                  value={form.skillLevels?.[sk] || ''} 
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    handleUpdateForm(form._localId, `skillLevels.${sk}`, isNaN(val) ? undefined : val);
+                                  }} 
+                                  className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-2 py-2 text-[var(--plana-text-main)] text-center focus:border-[var(--plana-accent)] focus:outline-none" 
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateForm(form._localId, `skillLevels.${sk}`, SKILL_MAX[sk])}
+                                  className="w-7 h-7 flex-shrink-0 bg-[var(--plana-primary-light)] text-[var(--plana-primary)] text-xs font-bold rounded hover:bg-[var(--plana-primary)] hover:text-white transition-colors"
+                                >
+                                  M
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 4. Equipment & Weapon */}
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">장비 (티어 / 레벨)</label>
+                            <div className="grid grid-cols-1 gap-3">
+                              {['slot1', 'slot2', 'slot3'].map((eq) => {
+                                const isUnequipped = !form.equipment?.[eq as keyof typeof form.equipment];
+                                return (
+                                <div key={eq} className="space-y-1">
+                                  <label className="flex items-center gap-2 cursor-pointer w-max">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={isUnequipped} 
+                                      onChange={(e) => {
+                                        handleUpdateForm(form._localId, `equipment.${eq}`, e.target.checked ? null : { tier: 1, level: 1 });
+                                      }}
+                                      className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
+                                    />
+                                    <span className="text-[10px] text-slate-500 font-bold">미착용</span>
+                                  </label>
+                                  <div className={`flex gap-2 items-center transition-opacity ${isUnequipped ? 'opacity-40 pointer-events-none' : ''}`}>
+                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">T</span>
+                                      <input 
+                                        type="number" min={1} max={10}
+                                        placeholder="티어"
+                                        value={form.equipment?.[eq as keyof typeof form.equipment]?.tier || ''}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value);
+                                          const newTier = isNaN(val) ? 1 : val;
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: newTier, level: getEquipMaxLevel(newTier) });
+                                        }}
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                      />
+                                      <button type="button" onClick={() => handleUpdateForm(form._localId, `equipment.${eq}`, { tier: 10, level: getEquipMaxLevel(10) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
+                                    </div>
+                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                      <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
+                                      <input 
+                                        type="number" min={1} max={90}
+                                        placeholder="레벨"
+                                        value={form.equipment?.[eq as keyof typeof form.equipment]?.level || ''}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value);
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1, level: isNaN(val) ? undefined : val });
+                                        }}
+                                        className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                      />
+                                      <button type="button" onClick={() => {
+                                          const t = form.equipment?.[eq as keyof typeof form.equipment]?.tier || 1;
+                                          handleUpdateForm(form._localId, `equipment.${eq}`, { tier: t, level: getEquipMaxLevel(t) });
+                                      }} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )})}
+
+                              {/* 애용품 (Favorite Item / slot4) */}
+                              <div className="space-y-1 pt-2 border-t border-slate-200">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-pink-600">애용품</span>
+                                  <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={!form.equipment?.slot4}
+                                      onChange={(e) => {
+                                        handleUpdateForm(form._localId, 'equipment.slot4', e.target.checked ? null : { tier: 1, level: 1 });
+                                      }}
+                                      className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
+                                    />
+                                    <span className="text-[10px] text-slate-500 font-bold">미착용</span>
+                                  </label>
+                                </div>
+                                <div className={`flex gap-2 items-center transition-opacity ${!form.equipment?.slot4 ? 'opacity-40 pointer-events-none' : ''}`}>
+                                  <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                    <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2.5 bg-[var(--plana-primary-light)]/30 flex items-center">티어</span>
+                                    <select
+                                      value={form.equipment?.slot4?.tier || 1}
+                                      onChange={(e) => {
+                                        const t = parseInt(e.target.value);
+                                        handleUpdateForm(form._localId, 'equipment.slot4', { tier: isNaN(t) ? 1 : t, level: 1 });
+                                      }}
+                                      className="w-full bg-transparent px-2 py-1.5 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                    >
+                                      <option value={1}>T1</option>
+                                      <option value={2}>T2</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">전용 무기 (성급 / 레벨)</label>
+                            <div className="space-y-1">
+                              <label className="flex items-center gap-2 cursor-pointer w-max">
+                                <input 
+                                  type="checkbox" 
+                                  checked={!form.uniqueWeapon || form.uniqueWeapon.stars === 0} 
+                                  onChange={(e) => {
+                                    handleUpdateForm(form._localId, 'uniqueWeapon', e.target.checked ? null : { stars: 1, level: 1 });
+                                  }}
+                                  className="w-3.5 h-3.5 text-[var(--plana-primary)] rounded focus:ring-[var(--plana-primary)]"
+                                />
+                                <span className="text-[10px] text-slate-500 font-bold">미착용(미해금)</span>
+                              </label>
+                              <div className={`flex gap-2 items-center transition-opacity ${(!form.uniqueWeapon || form.uniqueWeapon.stars === 0) ? 'opacity-40 pointer-events-none' : ''}`}>
+                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <select 
+                                    value={form.uniqueWeapon?.stars || 1} 
+                                    onChange={(e) => {
+                                      const star = parseInt(e.target.value, 10);
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...(form.uniqueWeapon || { level: 1 }), stars: isNaN(star) ? 1 : star });
+                                    }} 
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                  >
+                                    <option value={1}>1성</option>
+                                    <option value={2}>2성</option>
+                                    <option value={3}>3성</option>
+                                    <option value={4}>4성</option>
+                                  </select>
+                                  <button type="button" onClick={() => handleUpdateForm(form._localId, 'uniqueWeapon', { stars: 4, level: getWeaponMaxLevel(4) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
+                                </div>
+                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
+                                  <input 
+                                    type="number" min={1} max={60} placeholder="레벨"
+                                    value={form.uniqueWeapon?.level || ''}
+                                    onChange={(e) => {
+                                      const val = parseInt(e.target.value);
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { ...form.uniqueWeapon, stars: form.uniqueWeapon?.stars || 1, level: isNaN(val) ? undefined : val });
+                                    }}
+                                    className="w-full bg-transparent px-2 py-2 text-[var(--plana-text-main)] text-sm focus:outline-none min-w-0"
+                                  />
+                                  <button type="button" onClick={() => {
+                                      const s = form.uniqueWeapon?.stars || 1;
+                                      handleUpdateForm(form._localId, 'uniqueWeapon', { stars: s, level: getWeaponMaxLevel(s) });
+                                  }} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 5. Stats & Potential */}
+                        <div>
+                          <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">상세 스탯 및 능력 개방</label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {[
+                              { k: 'maxHP', l: '체력' },
+                              { k: 'attackPower', l: '공격력' },
+                              { k: 'defensePower', l: '방어력' },
+                              { k: 'healPower', l: '치유력' },
+                            ].map(st => (
+                              <div key={st.k} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <div className="text-xs text-[var(--plana-text-muted)] mb-1 font-bold">{st.l}</div>
+                                <input 
+                                  type="number" placeholder="스탯 값"
+                                  value={form.stats?.[st.k] || ''}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    handleUpdateForm(form._localId, `stats.${st.k}`, isNaN(val) ? undefined : val);
+                                  }}
+                                  className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-sm text-[var(--plana-text-main)] mb-2 focus:border-[var(--plana-accent)] focus:outline-none"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] text-pink-600 bg-pink-100 px-1 rounded font-bold whitespace-nowrap">능력 개방</span>
+                                  <input 
+                                    type="number" min={0} max={25} placeholder="Lv"
+                                    value={form.potentialLevels?.[st.k] || ''}
+                                    onChange={(e) => {
+                                      const val = parseInt(e.target.value);
+                                      handleUpdateForm(form._localId, `potentialLevels.${st.k}`, isNaN(val) || val <= 0 ? undefined : val);
+                                    }}
+                                    className="w-full bg-white border border-pink-200 rounded px-2 py-1 text-xs text-[var(--plana-text-main)] focus:border-pink-400 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {!initialEditRecord && (
+                <button 
+                  onClick={handleAddForm}
+                  className="w-full py-4 border-2 border-dashed border-[var(--plana-border)] rounded-xl text-[var(--plana-primary-dark)] font-bold hover:bg-[var(--plana-primary-light)] hover:text-[var(--plana-text-main)] transition-colors flex items-center justify-center gap-2 bg-white/50"
+                >
+                  <Plus size={20} /> 계속해서 다른 학생 추가하기
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t border-[var(--plana-border)] bg-slate-50 flex justify-end gap-3">
+          <button onClick={onClose} className="px-6 py-2.5 rounded-lg font-bold text-[var(--plana-text-muted)] hover:bg-slate-200 transition-colors">
+            취소
+          </button>
+          <button 
+            onClick={handleSaveAll}
+            disabled={
+              isSaving || 
+              forms.filter(f => f.studentId || f.level).length === 0 || 
+              forms.filter(f => f.studentId || f.level).some(f => !f.studentId || !f.level)
+            }
+            className="px-8 py-2.5 bg-[var(--plana-primary)] hover:bg-[var(--plana-accent)] text-white font-black rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_10px_rgba(188,163,240,0.3)]"
+          >
+            <Save size={18} /> {isSaving ? '저장 중...' : (initialEditRecord ? '수정 내용 저장' : '모두 저장')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(modalContent, document.body);
+}
