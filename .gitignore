@@ -27,6 +27,8 @@ docs/
 tools/
 missing_skill_icons.md
 QA_PROCESS.md
+frontend/README.md
+client/README.md
 
 # Backend
 /backend/
