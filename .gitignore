@@ -122,7 +122,6 @@ CLAUDE.local.md
 SECURITY_HANDOVER.md
 
 # Sensitive directories and internal operational tools (R2)
-frontend/
 cloudflare-router/
 databackup/
 client/AGENTS.md
