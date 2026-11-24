@@ -28,6 +28,39 @@ const ALLOWED_TAG_ATTRS: Record<string, Set<string>> = {
 const SAFE_URL_PATTERN = /^(https?:|\/|#|mailto:|data:image\/(png|jpe?g|webp|gif|avif);base64,)/i;
 const DANGEROUS_STYLE_PATTERN = /(expression|javascript|behavior|vbscript|url\s*\(|-moz-binding)/i;
 
+const DEFAULT_API_ORIGIN = 'https://api.plan4ai.fyi';
+const LEGACY_UPLOAD_URL_EXACT = /^https?:\/\/(?:api\.)?planaai\.kro\.kr(\/uploads\/.*)$/i;
+const LEGACY_UPLOAD_URL_GLOBAL = /https?:\/\/(?:api\.)?planaai\.kro\.kr(\/uploads\/[^"'\s<>)]+)/gi;
+
+function getApiOrigin(): string {
+  const raw = (process.env.NEXT_PUBLIC_API_URL ?? '').trim().replace(/\/+$/, '');
+  if (!raw) return DEFAULT_API_ORIGIN;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return DEFAULT_API_ORIGIN;
+  }
+}
+
+function normalizeUploadUrl(url: string, resolveRelativeUploads = false): string {
+  const legacyMatch = url.match(LEGACY_UPLOAD_URL_EXACT);
+  if (legacyMatch) {
+    return `${getApiOrigin()}${legacyMatch[1]}`;
+  }
+  if (resolveRelativeUploads && url.startsWith('/uploads/')) {
+    return `${getApiOrigin()}${url}`;
+  }
+  return url;
+}
+
+export function normalizeLegacyUploadUrls(html: string | null | undefined): string {
+  if (!html || typeof html !== 'string') {
+    return '';
+  }
+  const origin = getApiOrigin();
+  return html.replace(LEGACY_UPLOAD_URL_GLOBAL, `${origin}$1`);
+}
+
 function cleanAttributeValue(val: string): string {
   return val.replace(/[\u0000-\u001f\u007f-\u009f\s]+/g, ' ').trim();
 }
@@ -72,7 +105,8 @@ function parseAndCleanAttributes(tagName: string, rawAttrs: string): string {
       if (!SAFE_URL_PATTERN.test(normalizedUri)) {
         continue;
       }
-      cleanedList.push(`${attrName}="${attrVal.replace(/"/g, '&quot;')}"`);
+      const finalUri = normalizeUploadUrl(attrVal, tagName === 'img' && attrName === 'src');
+      cleanedList.push(`${attrName}="${finalUri.replace(/"/g, '&quot;')}"`);
       continue;
     }
 

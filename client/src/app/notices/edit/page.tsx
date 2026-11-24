@@ -3,8 +3,9 @@
 
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams,  } from 'next/navigation';
+import { useRouter, useSearchParams, } from 'next/navigation';
 import { api } from '@/lib/api';
+import { normalizeLegacyUploadUrls } from '@/lib/sanitize';
 import { useAuthStore } from '@/store/authStore';
 import { useAlert } from '@/contexts/AlertContext';
 
@@ -21,7 +22,7 @@ function EditNoticePageContent() {
   const id = searchParams.get('id') as string;
   const { user } = useAuthStore();
   const { showAlert } = useAlert();
-  
+
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<'UPDATE' | 'EVENT' | 'GENERAL'>('GENERAL');
   const [content, setContent] = useState('');
@@ -41,7 +42,7 @@ function EditNoticePageContent() {
         const res = await api.get(`/notices/${id}`);
         setTitle(res.data.title);
         setCategory(res.data.category);
-        setContent(res.data.content);
+        setContent(normalizeLegacyUploadUrls(res.data.content));
       } catch (error) {
         console.error('Failed to fetch notice:', error);
         showAlert('오류', '공지사항을 불러오는데 실패했습니다.');
@@ -91,7 +92,7 @@ function EditNoticePageContent() {
   return (
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8 text-[var(--plana-primary)]">공지사항 수정</h1>
-      
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex gap-4">
@@ -107,7 +108,7 @@ function EditNoticePageContent() {
                 <option value="EVENT">이벤트</option>
               </select>
             </div>
-            
+
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
               <input
@@ -120,7 +121,7 @@ function EditNoticePageContent() {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
             <HtmlEditor
@@ -130,7 +131,7 @@ function EditNoticePageContent() {
               minHeight="400px"
             />
           </div>
-          
+
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"

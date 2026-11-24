@@ -14,7 +14,7 @@ export default function InquiriesPage() {
   const { showAlert } = useAlert();
   const user = useAuthStore(state => state.user);
   const checkAuth = useAuthStore(state => state.checkAuth);
-  
+
   const [activeTab, setActiveTab] = useState<Tab>('WRITE_BUG');
   const [loading, setLoading] = useState(false);
 
@@ -70,7 +70,7 @@ export default function InquiriesPage() {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
       setImages(prev => [...prev, ...filesArray]);
-      
+
       const newUrls = filesArray.map(file => URL.createObjectURL(file));
       setImagePreviewUrls(prev => [...prev, ...newUrls]);
     }
@@ -97,7 +97,7 @@ export default function InquiriesPage() {
       showAlert('알림', '캐릭터/아이템 이름을 입력해주세요.');
       return;
     }
-    
+
     if ((activeTab === 'WRITE_BUG' || activeTab === 'WRITE_SUGGESTION') && (!title.trim() || !content.trim())) {
       showAlert('알림', '제목과 내용을 모두 입력해주세요.');
       return;
@@ -111,7 +111,7 @@ export default function InquiriesPage() {
     try {
       setLoading(true);
       const formData = new FormData();
-      
+
       let category = 'BUG_REPORT';
       if (activeTab === 'WRITE_RESOURCE') category = 'RESOURCE_SUPPORT';
       if (activeTab === 'WRITE_SUGGESTION') category = 'SUGGESTION';
@@ -134,13 +134,13 @@ export default function InquiriesPage() {
       });
 
       showAlert('성공', '문의가 성공적으로 접수되었습니다.');
-      
+
       // 폼 초기화
       setTitle('');
       setContent('');
       setImages([]);
       setImagePreviewUrls([]);
-      
+
       // 내 문의 내역으로 이동
       setActiveTab('MY_INQUIRIES');
     } catch (error) {
@@ -151,7 +151,7 @@ export default function InquiriesPage() {
   };
 
   const getCategoryLabel = (cat: string) => {
-    switch(cat) {
+    switch (cat) {
       case 'BUG_REPORT': return '오류 제보';
       case 'RESOURCE_SUPPORT': return '리소스 지원';
       case 'SUGGESTION': return '건의사항';
@@ -172,7 +172,7 @@ export default function InquiriesPage() {
   return (
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-8 text-[var(--plana-primary)]">문의사항</h1>
-      
+
       {/* 탭 영역 */}
       <div className="flex flex-wrap gap-2 mb-8 border-b border-gray-200 pb-4">
         {[
@@ -190,11 +190,10 @@ export default function InquiriesPage() {
               setImages([]);
               setImagePreviewUrls([]);
             }}
-            className={`px-5 py-2.5 rounded-t-lg font-bold transition-colors ${
-              activeTab === tab.id 
-              ? 'bg-[var(--plana-primary)] text-white shadow-md' 
-              : 'bg-white text-gray-500 hover:bg-pink-50'
-            }`}
+            className={`px-5 py-2.5 rounded-t-lg font-bold transition-colors ${activeTab === tab.id
+                ? 'bg-[var(--plana-primary)] text-white shadow-md'
+                : 'bg-white text-gray-500 hover:bg-pink-50'
+              }`}
           >
             {tab.label}
           </button>
@@ -204,7 +203,7 @@ export default function InquiriesPage() {
       {/* 작성 폼 영역 */}
       {activeTab !== 'MY_INQUIRIES' && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-          
+
           <div className="mb-6 pb-4 border-b border-gray-100">
             <h2 className="text-xl font-bold text-gray-800">
               {activeTab === 'WRITE_BUG' ? '오류 제보 작성' : activeTab === 'WRITE_SUGGESTION' ? '건의사항 작성' : '이미지 리소스 지원'}
@@ -214,115 +213,115 @@ export default function InquiriesPage() {
               {activeTab === 'WRITE_SUGGESTION' && '사이트 발전을 위한 좋은 아이디어가 있다면 자유롭게 남겨주세요.'}
               {activeTab === 'WRITE_RESOURCE' && '누락된 캐릭터 전신 일러스트나 아이템 등의 이미지를 지원해주세요.'}
             </p>
-            
+
             {activeTab === 'WRITE_BUG' && (
               <div className="mt-4">
-                <Link href="/notices/4" target="_blank" className="inline-flex items-center px-4 py-2 bg-pink-50 text-[var(--plana-primary)] text-sm font-bold rounded-lg border border-pink-100 hover:bg-pink-100 transition-colors">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  오류 제보 전 드리는 말씀
-                </Link>
+                  <Link href="/notices/detail?id=4" target="_blank" className="inline-flex items-center px-4 py-2 bg-pink-50 text-[var(--plana-primary)] text-sm font-bold rounded-lg border border-pink-100 hover:bg-pink-100 transition-colors">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    오류 제보 전 드리는 말씀
+                  </Link>
               </div>
             )}
-            
+
             {activeTab === 'WRITE_RESOURCE' && (
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link href="/notices/5" target="_blank" className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors">
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  엔비디아 그래픽카드 전용
-                </Link>
-                <Link href="/notices/6" target="_blank" className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 text-sm font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  라데온 그래픽카드 전용
-                </Link>
-              </div>
+                  <Link href="/notices/detail?id=5" target="_blank" className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-100 hover:bg-green-100 transition-colors">
+                    <ImageIcon className="w-4 h-4 mr-2" />
+                    엔비디아 그래픽카드 전용
+                  </Link>
+                    <Link href="/notices/detail?id=6" target="_blank" className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 text-sm font-bold rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      라데온 그래픽카드 전용
+                    </Link>
+                  </div>
             )}
-          </div>
+              </div>
 
           {activeTab === 'WRITE_RESOURCE' && (
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">분류 <span className="text-red-500">*</span></label>
-              <select 
-                value={subCategory} 
-                onChange={e => setSubCategory(e.target.value as any)}
-                className="w-full md:w-1/3 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
-              >
-                <option value="FULL_BODY">전신 일러스트</option>
-                <option value="ITEM">아이템/장비</option>
-                <option value="ETC">기타</option>
-              </select>
-            </div>
-          )}
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">분류 <span className="text-red-500">*</span></label>
+                <select
+                  value={subCategory}
+                  onChange={e => setSubCategory(e.target.value as any)}
+                  className="w-full md:w-1/3 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
+                >
+                  <option value="FULL_BODY">전신 일러스트</option>
+                  <option value="ITEM">아이템/장비</option>
+                  <option value="ETC">기타</option>
+                </select>
+              </div>
+            )}
 
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              {activeTab === 'WRITE_RESOURCE' ? '캐릭터 / 아이템 이름' : '제목'} <span className="text-red-500">*</span>
-            </label>
-            <input 
-              type="text" 
-              value={title} 
-              onChange={e => setTitle(e.target.value)}
-              placeholder={activeTab === 'WRITE_RESOURCE' ? '예: [전신] 호시노 (수영복)' : '제목을 입력하세요'}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
-            />
-          </div>
-
-          {activeTab !== 'WRITE_RESOURCE' && (
             <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">내용 <span className="text-red-500">*</span></label>
-              <textarea 
-                value={content} 
-                onChange={e => setContent(e.target.value)}
-                placeholder="상세 내용을 입력하세요"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 h-48 resize-none focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                {activeTab === 'WRITE_RESOURCE' ? '캐릭터 / 아이템 이름' : '제목'} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder={activeTab === 'WRITE_RESOURCE' ? '예: [전신] 호시노 (수영복)' : '제목을 입력하세요'}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
               />
             </div>
-          )}
 
-          <div className="mb-8">
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              이미지 첨부 {activeTab === 'WRITE_RESOURCE' && <span className="text-red-500">*</span>}
-            </label>
-            <div className="flex flex-wrap gap-4 items-start">
-              <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-[var(--plana-primary-light)] transition-colors">
-                <Camera className="text-gray-400 mb-1" size={24} />
-                <span className="text-xs text-gray-500 font-medium">{images.length}장</span>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handleImageChange}
+            {activeTab !== 'WRITE_RESOURCE' && (
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">내용 <span className="text-red-500">*</span></label>
+                <textarea
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  placeholder="상세 내용을 입력하세요"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 h-48 resize-none focus:ring-2 focus:ring-[var(--plana-primary-light)] focus:border-transparent outline-none"
                 />
-              </label>
-              
-              {imagePreviewUrls.map((url, idx) => (
-                <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group">
-                  <img src={url} alt="preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <button 
-                      type="button" 
-                      onClick={() => removeImage(idx)}
-                      className="text-white text-xs font-bold px-2 py-1 bg-red-500 rounded"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 mt-2">※ 다중 이미지 첨부가 가능합니다. 최대 10MB 이하의 이미지 파일만 업로드해주세요.</p>
-          </div>
+              </div>
+            )}
 
-          <div className="flex justify-end">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="flex items-center gap-2 bg-[var(--plana-primary)] text-white px-8 py-3 rounded-lg font-bold hover:bg-pink-500 transition-colors shadow-md disabled:opacity-50"
-            >
-              <Send size={18} />
-              {loading ? '등록 중...' : '문의 등록하기'}
-            </button>
-          </div>
+            <div className="mb-8">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                이미지 첨부 {activeTab === 'WRITE_RESOURCE' && <span className="text-red-500">*</span>}
+              </label>
+              <div className="flex flex-wrap gap-4 items-start">
+                <label className="w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-[var(--plana-primary-light)] transition-colors">
+                  <Camera className="text-gray-400 mb-1" size={24} />
+                  <span className="text-xs text-gray-500 font-medium">{images.length}장</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+
+                {imagePreviewUrls.map((url, idx) => (
+                  <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group">
+                    <img src={url} alt="preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="text-white text-xs font-bold px-2 py-1 bg-red-500 rounded"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">※ 다중 이미지 첨부가 가능합니다. 최대 10MB 이하의 이미지 파일만 업로드해주세요.</p>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 bg-[var(--plana-primary)] text-white px-8 py-3 rounded-lg font-bold hover:bg-pink-500 transition-colors shadow-md disabled:opacity-50"
+              >
+                <Send size={18} />
+                {loading ? '등록 중...' : '문의 등록하기'}
+              </button>
+            </div>
         </form>
       )}
 
@@ -337,15 +336,14 @@ export default function InquiriesPage() {
             <div className="divide-y divide-gray-100">
               {myInquiries.map(inq => (
                 <div key={inq.id} className="p-0">
-                  <div 
+                  <div
                     className="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => setExpandedId(expandedId === inq.id ? null : inq.id)}
                   >
                     <div className="flex items-center gap-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        inq.status === 'ANSWERED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {inq.status === 'ANSWERED' ? <span className="flex items-center gap-1"><Check size={12}/>답변 완료</span> : <span className="flex items-center gap-1"><Clock size={12}/>답변 대기</span>}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${inq.status === 'ANSWERED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                        {inq.status === 'ANSWERED' ? <span className="flex items-center gap-1"><Check size={12} />답변 완료</span> : <span className="flex items-center gap-1"><Clock size={12} />답변 대기</span>}
                       </span>
                       <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">
                         {getCategoryLabel(inq.category)}

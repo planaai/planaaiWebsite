@@ -51,6 +51,10 @@ export const getImageUrl = (url: string | undefined | null) => {
   if (url.startsWith('/images/')) return url;
   try {
     const baseUrl = new URL(API_BASE).origin;
+    const legacyMatch = url.match(/^https?:\/\/(?:api\.)?planaai\.kro\.kr(\/uploads\/.*)$/i);
+    if (legacyMatch) {
+      return `${baseUrl}${legacyMatch[1]}`;
+    }
     return url.startsWith('http') ? url : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
   } catch {
     return url;
