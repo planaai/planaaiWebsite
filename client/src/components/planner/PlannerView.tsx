@@ -57,7 +57,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
   return (
     <div className="space-y-5 slide-in-right-anim">
       {/* Shittim Chest Command Header */}
-      <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+      <div className="bg-white/85 backdrop-blur-md rounded-2xl p-5 border border-[var(--plana-border)] shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-xl bg-[var(--plana-primary-light)]/35 border border-[var(--plana-border)] flex items-center justify-center text-[var(--plana-primary-dark)] shrink-0">
@@ -129,7 +129,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
               setCalcResult(null);
               setCombinedResult(null);
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/85 backdrop-blur-md border border-slate-200/80 text-xs font-bold text-slate-600 hover:text-sky-600 hover:border-sky-300 transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/85 backdrop-blur-md border border-slate-200/80 text-xs font-bold text-slate-600 hover:text-[var(--plana-primary-dark)] hover:border-[var(--plana-primary-dark)]/60 transition-all"
           >
             <ArrowLeft size={14} /> 육성 목록으로 돌아가기
           </button>
@@ -154,8 +154,8 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
           )}
         </div>
       ) : plans.length === 0 ? (
-        <div className="bg-white/85 backdrop-blur-md rounded-2xl border border-dashed border-slate-300 p-14 flex flex-col items-center justify-center text-center">
-          <div className="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-500 flex items-center justify-center mb-4">
+        <div className="bg-white/85 backdrop-blur-md rounded-2xl border border-dashed border-[var(--plana-border)] p-14 flex flex-col items-center justify-center text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--plana-primary-light)]/35 border border-[var(--plana-border)] text-[var(--plana-primary-dark)] flex items-center justify-center mb-4">
             <BookOpen size={28} />
           </div>
           <p className="text-lg font-bold text-slate-800 mb-1">등록된 육성 계획이 없습니다</p>
@@ -165,7 +165,7 @@ export function PlannerView({ masterData, schema }: PlannerViewProps) {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white rounded-xl font-bold text-sm shadow-sm shadow-sky-500/20 transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[var(--plana-primary-dark)] hover:bg-pink-500 text-white rounded-xl font-bold text-sm shadow-sm shadow-pink-500/20 transition-all active:scale-[0.98]"
           >
             <Plus size={16} /> 첫 학생 추가하기
           </button>

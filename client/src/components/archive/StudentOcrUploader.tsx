@@ -609,10 +609,10 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
     const borderClass = slotError
       ? 'border-rose-400 bg-rose-50/40'
       : isDragOver
-        ? 'border-sky-500 bg-sky-50/50 ring-2 ring-sky-500/25'
+        ? 'border-[var(--plana-primary-dark)] bg-pink-50/50 ring-2 ring-[var(--plana-primary)]/30'
         : isFocused
-          ? 'border-sky-500 ring-2 ring-sky-500/20 bg-white'
-          : 'border-slate-200/80 bg-white/80 hover:border-sky-500/40';
+          ? 'border-[var(--plana-primary-dark)] ring-2 ring-[var(--plana-primary)]/25 bg-white'
+          : 'border-slate-200/80 bg-white/80 hover:border-[var(--plana-primary-dark)]/50';
 
     return (
       <div
@@ -634,13 +634,13 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
           setDragOverSlot((prev) => (prev === cfg.key ? null : prev));
         }}
         onDrop={(e) => handleDrop(cfg.key, e)}
-        className={`rounded-xl border p-2.5 transition-all duration-200 flex flex-col gap-2 cursor-pointer focus:outline-none group ${borderClass} ${isPrimary ? 'h-full justify-between' : ''}`}
+        className={`rounded-xl border p-2.5 transition-all duration-200 flex flex-col gap-2 cursor-pointer focus:outline-none group ${borderClass} ${isPrimary ? 'h-full' : ''}`}
       >
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
             <span
               className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold -skew-x-6 rounded-xs ${cfg.required
-                ? 'bg-sky-500 text-white'
+                ? 'bg-[var(--plana-primary-dark)] text-white'
                 : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}
             >
@@ -651,7 +651,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
 
           <div className="flex items-center gap-1">
             {isFocused && (
-              <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-bold text-[var(--plana-primary-dark)] bg-pink-50 border border-[var(--plana-border)] px-1.5 py-0.5 rounded">
                 Ctrl+V 대상
               </span>
             )}
@@ -670,7 +670,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
         </div>
 
         <div
-          className={`relative w-full aspect-video rounded-lg overflow-hidden border border-slate-200/80 bg-slate-100 flex items-center justify-center ${isPrimary ? 'min-h-[150px]' : ''
+          className={`relative w-full rounded-lg overflow-hidden border border-slate-200/80 bg-slate-100 flex items-center justify-center ${isPrimary ? 'flex-1 min-h-[190px]' : 'aspect-video'
             }`}
         >
           {item ? (
@@ -688,7 +688,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
                   openFilePicker(cfg.key);
                 }}
                 disabled={isLoading || disabled}
-                className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-white/90 backdrop-blur-xs border border-slate-200 text-[10px] font-bold text-slate-700 hover:border-sky-500/40 transition-all duration-200 active:scale-[0.98]"
+                className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-white/90 backdrop-blur-xs border border-slate-200 text-[10px] font-bold text-slate-700 hover:border-[var(--plana-primary-dark)]/50 transition-all duration-200 active:scale-[0.98]"
               >
                 변경
               </button>
@@ -708,7 +708,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/65 via-slate-900/20 to-transparent flex flex-col items-center justify-end p-2 text-center">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-slate-800 shadow-xs">
-                  <Upload size={11} className="text-sky-500" />
+                  <Upload size={11} className="text-[var(--plana-primary-dark)]" />
                   클릭 · 드래그 · Ctrl+V
                 </span>
                 <span className="text-[10px] text-white/95 font-medium mt-1 drop-shadow-xs">
@@ -733,7 +733,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
     <div className="bg-white/90 backdrop-blur-md border border-[var(--plana-border)] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
+          <div className="w-8 h-8 rounded-lg bg-[var(--plana-primary-light)]/35 border border-[var(--plana-border)] flex items-center justify-center text-[var(--plana-primary-dark)]">
             <Sparkles size={17} />
           </div>
           <div>
@@ -753,7 +753,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
             </span>
           )}
           {engineStatus === 'online' && (
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               OCR 엔진 정상
             </span>
           )}
@@ -785,7 +785,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
           <button
             type="button"
             onClick={() => void checkEngineStatus(true)}
-            className="px-2.5 py-1 rounded-md bg-white border border-amber-300 text-[11px] font-bold text-amber-800 hover:border-sky-500/40 transition-all duration-200 active:scale-[0.98]"
+            className="px-2.5 py-1 rounded-md bg-white border border-amber-300 text-[11px] font-bold text-amber-800 hover:border-[var(--plana-primary-dark)]/50 transition-all duration-200 active:scale-[0.98]"
           >
             재확인
           </button>
@@ -809,12 +809,12 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
       </div>
 
       {isLoading && (
-        <div className="animate-pulse rounded-xl border border-sky-200 bg-sky-50/70 p-3 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-sky-800">
-            <Loader2 size={14} className="animate-spin text-sky-500" />
+        <div className="animate-pulse rounded-xl border border-[var(--plana-border)] bg-pink-50/60 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-rose-900">
+            <Loader2 size={14} className="animate-spin text-[var(--plana-primary-dark)]" />
             <span>화면 판별 및 ROI OCR 정밀 분석 중...</span>
           </div>
-          <div className="h-2 w-2/3 rounded-full bg-sky-200/80" />
+          <div className="h-2 w-2/3 rounded-full bg-[var(--plana-primary-light)]/80" />
         </div>
       )}
 
@@ -867,7 +867,7 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
             type="button"
             onClick={() => void handleExecuteOcr()}
             disabled={!slots.main || isLoading || disabled}
-            className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-600 hover:to-cyan-500 text-white font-bold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] shadow-xs flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="px-5 py-2.5 bg-gradient-to-r from-[var(--plana-primary-dark)] to-[var(--plana-primary)] hover:from-pink-500 hover:to-[var(--plana-primary-dark)] text-white font-bold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] shadow-sm shadow-pink-500/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLoading ? (
               <>

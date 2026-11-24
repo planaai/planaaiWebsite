@@ -33,7 +33,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   const renderItem = (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
     <div
       key={item.name}
-      className="bg-white p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between hover:border-sky-400/60 transition-colors shadow-2xs"
+      className="bg-white p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between hover:border-[var(--plana-primary-dark)]/60 transition-colors shadow-2xs"
     >
       <div className="flex items-center gap-2.5 overflow-hidden flex-1">
         {item.iconUrl ? (
@@ -56,7 +56,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
   const showSection = (tab: CategoryTab) => activeTab === 'all' || activeTab === tab;
 
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-[var(--plana-border)] shadow-xs overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80 bg-slate-50/70">
         <div>
@@ -103,7 +103,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
             </span>
             <div className="text-sm font-bold text-slate-700 tabular-nums mt-1.5">
               스킬·오파츠 <span className="text-rose-500">{skillItemCount}종</span> · 경험치·전무{' '}
-              <span className="text-sky-600">{growthItemCount}종</span>
+              <span className="text-purple-600">{growthItemCount}종</span>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
               data.secret > 0) && (
               <section className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-4 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
-                  <span className="w-1.5 h-3.5 rounded-full bg-sky-500" />
+                  <span className="w-1.5 h-3.5 rounded-full bg-[var(--plana-primary-dark)]" />
                   BD · 기술노트 · 비의서
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -177,7 +177,7 @@ export function PlannerCalcResult({ data, title, isCombined = false, schema, onC
             {data.expReports && Object.values(data.expReports).some((item: any) => item.amount > 0) && (
               <section className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-4 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
-                  <span className="w-1.5 h-3.5 rounded-full bg-sky-500" />
+                  <span className="w-1.5 h-3.5 rounded-full bg-[var(--plana-primary-dark)]" />
                   경험치 보고서
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
