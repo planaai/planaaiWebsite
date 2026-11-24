@@ -3,7 +3,7 @@ from __future__ import annotations
 import hmac
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.datastructures import UploadFile
@@ -67,7 +67,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not expected or not hmac.compare_digest(token.encode("utf-8"), expected.encode("utf-8")):
             raise ApiError(403, "FORBIDDEN", "Invalid X-Engine-Token header.")
 
-    @app.get("/healthz")
+    api_router = APIRouter()
+
+    @api_router.get("/healthz")
     async def healthz() -> dict:
         return {
             "ok": pipeline.models_loaded,
@@ -76,11 +78,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "studentNamesCount": pipeline.student_names_count,
         }
 
-    @app.post("/v1/students/reload", dependencies=[Depends(require_engine_token)])
+    @api_router.post("/v1/students/reload", dependencies=[Depends(require_engine_token)])
     async def reload_students() -> dict:
         return await pipeline.reload_students()
 
-    @app.post("/v1/recognize", dependencies=[Depends(require_engine_token)])
+    @api_router.post("/v1/recognize", dependencies=[Depends(require_engine_token)])
     async def recognize(request: Request) -> dict:
         form = await request.form()
         slot_bytes: dict[str, bytes] = {}
@@ -103,6 +105,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise ApiError(400, "MISSING_MAIN", "Required 'main' screenshot slot is missing.")
 
         return await pipeline.recognize(slot_bytes)
+
+    app.include_router(api_router)
+    app.include_router(api_router, prefix="/ocr")
 
     return app
 
