@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type KeyboardEvent } from 'react';
 import axios from 'axios';
 import {
   Terminal,
@@ -181,10 +181,50 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
     }
   };
 
+  const handleTextareaTab = (
+    e: KeyboardEvent<HTMLTextAreaElement>,
+    applyValue: (next: string) => void
+  ) => {
+    if (e.key !== 'Tab') return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    const { selectionStart, selectionEnd, value } = el;
+
+    if (e.shiftKey) {
+      const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+      const linePrefix = value.slice(lineStart, selectionStart);
+      const removeCount = linePrefix.startsWith('  ') ? 2 : linePrefix.startsWith(' ') || linePrefix.startsWith('\t') ? 1 : 0;
+      if (removeCount === 0) return;
+      const next = value.slice(0, lineStart) + value.slice(lineStart + removeCount);
+      applyValue(next);
+      requestAnimationFrame(() => {
+        el.selectionStart = Math.max(lineStart, selectionStart - removeCount);
+        el.selectionEnd = Math.max(lineStart, selectionEnd - removeCount);
+      });
+      return;
+    }
+
+    const next = value.slice(0, selectionStart) + '  ' + value.slice(selectionEnd);
+    applyValue(next);
+    requestAnimationFrame(() => {
+      el.selectionStart = selectionStart + 2;
+      el.selectionEnd = selectionStart + 2;
+    });
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await axios.put(`${API}/api/api-docs`, docs);
+      const payload: ApiDocsConfig = {
+        ...docs,
+        endpoints: docs.endpoints.map((ep) => ({
+          ...ep,
+          notes: (ep.notes || [])
+            .map((s) => s.replace(/\s+$/, ''))
+            .filter((s) => s.trim().length > 0),
+        })),
+      };
+      const res = await axios.put(`${API}/api/api-docs`, payload);
       if (res.data?.data) {
         setDocs(res.data.data);
       }
@@ -338,12 +378,13 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
         </div>
         <div className="text-xs">
           <label className="block text-amber-400 font-bold mb-1">상단 사전 공지 (비공식 안내 문구)</label>
-          <input
-            type="text"
+          <textarea
+            rows={3}
             value={docs.disclaimer || ''}
             onChange={(e) => setDocs({ ...docs, disclaimer: e.target.value })}
+            onKeyDown={(e) => handleTextareaTab(e, (next) => setDocs({ ...docs, disclaimer: next }))}
             placeholder="PlanaAI에서 제공하는 OpenAPI는 넥슨이나 블루 아카이브로부터 공식적으로 지원을 받아 만들어지지 않았으며 자체 구축한 비공식 API임을 알려드립니다."
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-200"
+            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-amber-200 leading-relaxed"
           />
         </div>
       </div>
@@ -482,6 +523,7 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
                   rows={4}
                   value={currentEp.description}
                   onChange={(e) => updateEndpoint({ description: e.target.value })}
+                  onKeyDown={(e) => handleTextareaTab(e, (next) => updateEndpoint({ description: next }))}
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white leading-relaxed"
                 />
               </div>
@@ -568,11 +610,11 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
                   value={(currentEp.notes || []).join('\n')}
                   onChange={(e) =>
                     updateEndpoint({
-                      notes: e.target.value
-                        .split('\n')
-                        .map((s) => s.trim())
-                        .filter(Boolean),
+                      notes: e.target.value.split('\n'),
                     })
+                  }
+                  onKeyDown={(e) =>
+                    handleTextareaTab(e, (next) => updateEndpoint({ notes: next.split('\n') }))
                   }
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200"
                 />
@@ -594,8 +636,8 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
                         type="button"
                         onClick={() => setActiveCodeTab(lang)}
                         className={`relative py-1 bg-transparent text-xs font-mono font-bold uppercase cursor-pointer ${activeCodeTab === lang
-                            ? 'text-cyan-400'
-                            : 'text-slate-500 hover:text-slate-300'
+                          ? 'text-cyan-400'
+                          : 'text-slate-500 hover:text-slate-300'
                           }`}
                       >
                         <span>{lang}</span>
@@ -617,6 +659,16 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
                         [activeCodeTab]: e.target.value,
                       },
                     })
+                  }
+                  onKeyDown={(e) =>
+                    handleTextareaTab(e, (next) =>
+                      updateEndpoint({
+                        codeExamples: {
+                          ...currentEp.codeExamples,
+                          [activeCodeTab]: next,
+                        },
+                      })
+                    )
                   }
                   spellCheck={false}
                   className="w-full p-3 bg-slate-900 border border-slate-800 rounded-lg font-mono text-xs text-slate-100 leading-relaxed focus:outline-none focus:border-cyan-500"
@@ -643,6 +695,7 @@ export function ApiDocsAdminManager({ showToast }: ApiDocsAdminManagerProps) {
                   rows={12}
                   value={currentEp.responseExample || ''}
                   onChange={(e) => updateEndpoint({ responseExample: e.target.value })}
+                  onKeyDown={(e) => handleTextareaTab(e, (next) => updateEndpoint({ responseExample: next }))}
                   spellCheck={false}
                   className="w-full p-3 bg-slate-900 border border-slate-800 rounded-lg font-mono text-xs text-emerald-100 leading-relaxed focus:outline-none focus:border-emerald-500"
                 />
