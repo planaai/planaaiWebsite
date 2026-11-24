@@ -13,7 +13,7 @@ export function MaintenanceNotice() {
         <p className="mt-4 text-xs sm:text-sm text-slate-600 leading-relaxed break-keep">
           더 나은 서비스를 위해 업데이트를 진행하고 있습니다.
           <br className="hidden sm:inline" />
-          {' '}재오픈 시점은 추후 커뮤니티를 통한 공지로 알려드리겠습니다.
+          {' '}점검 일정은 해당 링크를 참고해주시기 바랍니다. https://x.com/PlanaAI/status/2124537659561549869
         </p>
       </div>
     </div>
