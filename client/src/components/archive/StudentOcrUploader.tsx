@@ -1,206 +1,399 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import {
-  Upload,
   Loader2,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   X,
   Sparkles,
-  Info,
-  ImagePlus,
+  RefreshCw,
   Square,
+  Trash2,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { API_BASE } from '@/lib/api';
-import type { NormalizedStudentOcrData } from '@/lib/ocr/studentOcrParser';
+import type {
+  NormalizedStudentOcrData,
+  OcrErrorResponse,
+  OcrMeta,
+  OcrSceneType,
+  OcrSlotName,
+} from '@/lib/ocr/studentOcrParser';
 
 interface StudentOcrUploaderProps {
-  onOcrExtracted: (data: NormalizedStudentOcrData) => void;
+  onOcrExtracted: (data: NormalizedStudentOcrData, meta?: OcrMeta) => void;
   disabled?: boolean;
 }
 
-interface ImageMetadata {
-  dataUrl: string;
-  fileName: string;
+interface SlotFileState {
+  file: File;
+  previewUrl: string;
   width: number;
   height: number;
   sizeKb: number;
 }
 
-interface OcrApiResponse {
-  success: boolean;
-  data?: NormalizedStudentOcrData;
-  error?: string;
-  code?: string;
-  model?: string;
+interface SlotConfig {
+  key: OcrSlotName;
+  label: string;
+  required: boolean;
+  expectedScene: OcrSceneType;
+  guideSrc: string;
+  hint: string;
+}
+
+const SLOT_CONFIGS: readonly SlotConfig[] = [
+  {
+    key: 'main',
+    label: '학생 상세',
+    required: true,
+    expectedScene: 'student_info',
+    guideSrc: '/guides/ocr/student_info.png',
+    hint: '기본 정보 메인 화면 (필수)',
+  },
+  {
+    key: 'equip1',
+    label: '장비 1',
+    required: false,
+    expectedScene: 'equipment_modal',
+    guideSrc: '/guides/ocr/equipment_modal.png',
+    hint: '1번 장비 모달 (선택)',
+  },
+  {
+    key: 'equip2',
+    label: '장비 2',
+    required: false,
+    expectedScene: 'equipment_modal',
+    guideSrc: '/guides/ocr/equipment_modal.png',
+    hint: '2번 장비 모달 (선택)',
+  },
+  {
+    key: 'equip3',
+    label: '장비 3',
+    required: false,
+    expectedScene: 'equipment_modal',
+    guideSrc: '/guides/ocr/equipment_modal.png',
+    hint: '3번 장비 모달 (선택)',
+  },
+  {
+    key: 'favorite',
+    label: '애용품',
+    required: false,
+    expectedScene: 'favorite_popup',
+    guideSrc: '/guides/ocr/favorite_popup.png',
+    hint: '애용품 팝업 (선택)',
+  },
+];
+
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
+const MIN_WIDTH = 1280;
+const MIN_HEIGHT = 720;
+const RATIO_16_9 = 16 / 9;
+const RATIO_21_9 = 21 / 9;
+const RATIO_TOLERANCE = 0.02;
+const ALLOWED_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+const ALLOWED_EXT_RE = /\.(png|jpe?g|webp)$/i;
+
+const SCENE_LABELS: Record<string, string> = {
+  student_info: '학생 상세',
+  equipment_modal: '장비 모달',
+  favorite_popup: '애용품 팝업',
+  unknown: '알 수 없는 화면',
+};
+
+const NEEDS_REVIEW_LABELS: Record<string, string> = {
+  studentName: '학생명',
+  level: '레벨',
+  starGrade: '성급',
+  bondRank: '인연 랭크',
+  'skills.ex': 'EX 스킬',
+  'skills.normal': '기본 스킬',
+  'skills.passive': '강화 스킬',
+  'skills.sub': '서브 스킬',
+  'equipments[0].tier': '장비1 티어',
+  'equipments[0].level': '장비1 레벨',
+  'equipments[1].tier': '장비2 티어',
+  'equipments[1].level': '장비2 레벨',
+  'equipments[2].tier': '장비3 티어',
+  'equipments[2].level': '장비3 레벨',
+  favoriteItem: '애용품',
+  'favoriteItem.tier': '애용품 티어',
+  weapon: '전용무기',
+  'weapon.starGrade': '전용무기 성급',
+  'weapon.level': '전용무기 레벨',
+  'stats.hp.value': '체력',
+  'stats.hp.releaseLevel': '체력 능력개방',
+  'stats.atk.value': '공격력',
+  'stats.atk.releaseLevel': '공격력 능력개방',
+  'stats.def.value': '방어력',
+  'stats.def.releaseLevel': '방어력 능력개방',
+  'stats.heal.value': '치유력',
+  'stats.heal.releaseLevel': '치유력 능력개방',
+};
+
+const EMPTY_SLOTS: Record<OcrSlotName, SlotFileState | null> = {
+  main: null,
+  equip1: null,
+  equip2: null,
+  equip3: null,
+  favorite: null,
+};
+
+const EMPTY_PREVIEW_URLS: Record<OcrSlotName, string | null> = {
+  main: null,
+  equip1: null,
+  equip2: null,
+  equip3: null,
+  favorite: null,
+};
+
+async function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  if (typeof createImageBitmap === 'function') {
+    let bitmap: ImageBitmap | null = null;
+    try {
+      bitmap = await createImageBitmap(file);
+      return { width: bitmap.width, height: bitmap.height };
+    } catch {
+      // Fallback to HTMLImageElement below
+    } finally {
+      bitmap?.close();
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const tempUrl = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      URL.revokeObjectURL(tempUrl);
+      resolve({
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(tempUrl);
+      reject(new Error('이미지 규격을 읽지 못했습니다.'));
+    };
+    img.src = tempUrl;
+  });
+}
+
+function isSupportedAspectRatio(width: number, height: number): boolean {
+  if (width <= 0 || height <= 0) return false;
+  const ratio = width / height;
+  const match16x9 = Math.abs(ratio - RATIO_16_9) / RATIO_16_9 <= RATIO_TOLERANCE;
+  const match21x9 = Math.abs(ratio - RATIO_21_9) / RATIO_21_9 <= RATIO_TOLERANCE;
+  return match16x9 || match21x9;
+}
+
+function formatReviewField(path: string): string {
+  return NEEDS_REVIEW_LABELS[path] || path;
+}
+
+function formatSlotError(json: OcrErrorResponse): { slot?: OcrSlotName; message: string } {
+  const detail = json.detail;
+  if (json.code === 'SCENE_MISMATCH' && detail?.slot) {
+    const rawDetected = detail.detected ? SCENE_LABELS[detail.detected] || detail.detected : '알 수 없는 화면';
+    const rawExpected = detail.expected ? SCENE_LABELS[detail.expected] || detail.expected : '지정된 화면';
+    const detectedLabel = rawDetected.endsWith('화면') ? rawDetected : `${rawDetected} 화면`;
+    const expectedLabel = rawExpected.endsWith('화면') ? rawExpected : `${rawExpected} 화면`;
+    return {
+      slot: detail.slot,
+      message:
+        json.message ||
+        json.error ||
+        `${expectedLabel}이 필요하지만 ${detectedLabel}이 감지되었습니다.`,
+    };
+  }
+  if (json.code === 'SLOT_DUPLICATE' && detail?.slot) {
+    return {
+      slot: detail.slot,
+      message:
+        json.message ||
+        json.error ||
+        `장비 ${detail.activeSlot ?? ''}번 모달이 '${detail.conflictingWith ?? ''}' 슬롯과 중복됩니다.`,
+    };
+  }
+  return {
+    slot: detail?.slot,
+    message: json.error || json.message || 'OCR 처리에 실패했습니다.',
+  };
 }
 
 export function StudentOcrUploader({ onOcrExtracted, disabled = false }: StudentOcrUploaderProps) {
-  const [imageMeta, setImageMeta] = useState<ImageMetadata | null>(null);
+  const [slots, setSlots] = useState<Record<OcrSlotName, SlotFileState | null>>(EMPTY_SLOTS);
+  const [focusedSlot, setFocusedSlot] = useState<OcrSlotName>('main');
+  const [dragOverSlot, setDragOverSlot] = useState<OcrSlotName | null>(null);
+  const [slotErrors, setSlotErrors] = useState<Partial<Record<OcrSlotName, string>>>({});
+  const [engineStatus, setEngineStatus] = useState<'checking' | 'online' | 'offline'>('checking');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [lastExtractedName, setLastExtractedName] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<{ studentName: string; meta: OcrMeta } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const pendingSlotRef = useRef<OcrSlotName>('main');
   const abortControllerRef = useRef<AbortController | null>(null);
+  const statusAbortRef = useRef<AbortController | null>(null);
+  const previewUrlsRef = useRef<Record<OcrSlotName, string | null>>({ ...EMPTY_PREVIEW_URLS });
+  const isMountedRef = useRef(true);
+  const slotSeqRef = useRef<Record<OcrSlotName, number>>({
+    main: 0,
+    equip1: 0,
+    equip2: 0,
+    equip3: 0,
+    favorite: 0,
+  });
 
-  // 컴포넌트 언마운트 시 진행 중인 요청 취소
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
+  const revokeSlotUrl = useCallback((slot: OcrSlotName) => {
+    const existing = previewUrlsRef.current[slot];
+    if (existing) {
+      URL.revokeObjectURL(existing);
+      previewUrlsRef.current[slot] = null;
+    }
   }, []);
 
-  /**
-   * 고해상도 스크린샷 최적화 및 캔버스 다운스케일링 (메모리 절약 및 NIM 페이로드 최적화)
-   */
-  const processAndSetImage = useCallback((file: File) => {
-    const isImageMime = file.type.startsWith('image/');
-    const isImageExt = /\.(png|jpe?g|webp|bmp)$/i.test(file.name || '');
-
-    if (!isImageMime && !isImageExt) {
-      toast.error('이미지 파일(PNG, JPG, WebP)만 업로드할 수 있습니다.');
-      return;
+  const checkEngineStatus = useCallback(async (showChecking = false) => {
+    statusAbortRef.current?.abort();
+    const controller = new AbortController();
+    statusAbortRef.current = controller;
+    if (showChecking) {
+      setEngineStatus('checking');
     }
 
-    if (file.size === 0) {
-      toast.error('빈 이미지 파일입니다.');
-      return;
+    try {
+      const res = await fetch(`${API_BASE}/ocr/status`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        setEngineStatus('offline');
+        return;
+      }
+      const json = (await res.json()) as { healthy?: boolean };
+      setEngineStatus(json?.healthy === true ? 'online' : 'offline');
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setEngineStatus('offline');
     }
+  }, []);
 
-    if (file.size > 30 * 1024 * 1024) {
-      toast.error('파일 크기가 30MB를 초과하여 처리할 수 없습니다.');
-      return;
-    }
+  useEffect(() => {
+    isMountedRef.current = true;
+    void checkEngineStatus(false);
+    const previewUrls = previewUrlsRef.current;
+    return () => {
+      isMountedRef.current = false;
+      abortControllerRef.current?.abort();
+      statusAbortRef.current?.abort();
+      (Object.keys(previewUrls) as OcrSlotName[]).forEach((slot) => {
+        const url = previewUrls[slot];
+        if (url) {
+          URL.revokeObjectURL(url);
+          previewUrls[slot] = null;
+        }
+      });
+    };
+  }, [checkEngineStatus]);
 
-    // 메모리 절약을 위해 FileReader 대신 createObjectURL 사용
-    const blobUrl = URL.createObjectURL(file);
-    const img = new Image();
+  const assignFileToSlot = useCallback(
+    async (slot: OcrSlotName, file: File) => {
+      const seq = (slotSeqRef.current[slot] += 1);
+      setFocusedSlot(slot);
 
-    img.onload = () => {
-      URL.revokeObjectURL(blobUrl);
+      const isAllowedMime = file.type ? ALLOWED_MIMES.has(file.type.toLowerCase()) : false;
+      const isAllowedExt = !file.type && ALLOWED_EXT_RE.test(file.name || '');
 
-      const origW = img.naturalWidth || img.width;
-      const origH = img.naturalHeight || img.height;
-
-      if (!origW || !origH || origW <= 0 || origH <= 0) {
-        toast.error('이미지 규격을 확인할 수 없습니다.');
+      if (!isAllowedMime && !isAllowedExt) {
+        const msg = 'PNG, JPG, WebP 형식의 이미지 파일만 업로드할 수 있습니다.';
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
         return;
       }
 
-      const maxDim = 1920;
-      let targetW = origW;
-      let targetH = origH;
-
-      if (Math.max(origW, origH) > maxDim) {
-        const scale = maxDim / Math.max(origW, origH);
-        targetW = Math.max(1, Math.round(origW * scale));
-        targetH = Math.max(1, Math.round(origH * scale));
+      if (file.size <= 0) {
+        const msg = '빈 이미지 파일은 업로드할 수 없습니다.';
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
+        return;
       }
 
+      if (file.size > MAX_FILE_BYTES) {
+        const msg = '파일 크기는 8MB 이하여야 합니다.';
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
+        return;
+      }
+
+      let dims: { width: number; height: number };
       try {
-        const canvas = document.createElement('canvas');
-        canvas.width = targetW;
-        canvas.height = targetH;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          throw new Error('Canvas 2D context unavailable');
-        }
-
-        ctx.drawImage(img, 0, 0, targetW, targetH);
-        let quality = 0.88;
-        let optimizedDataUrl = canvas.toDataURL('image/jpeg', quality);
-        let approxSizeKb = Math.round((optimizedDataUrl.length * 3) / 4 / 1024);
-
-        // 페이로드가 1MB를 초과하는 경우 점진적 압축 (NIM 권장 규격 맞춤)
-        while (approxSizeKb > 1000 && quality > 0.5) {
-          quality -= 0.1;
-          optimizedDataUrl = canvas.toDataURL('image/jpeg', quality);
-          approxSizeKb = Math.round((optimizedDataUrl.length * 3) / 4 / 1024);
-        }
-
-        // 품질을 최저치(0.5)까지 낮추어도 1MB를 초과하는 경우 캔버스 규격 축소
-        if (approxSizeKb > 1000) {
-          const downscale = 1280 / Math.max(targetW, targetH);
-          if (downscale < 1) {
-            targetW = Math.max(1, Math.round(targetW * downscale));
-            targetH = Math.max(1, Math.round(targetH * downscale));
-            canvas.width = targetW;
-            canvas.height = targetH;
-            ctx.drawImage(img, 0, 0, targetW, targetH);
-            optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-            approxSizeKb = Math.round((optimizedDataUrl.length * 3) / 4 / 1024);
-          }
-        }
-
-        setImageMeta({
-          dataUrl: optimizedDataUrl,
-          fileName: file.name || 'clipboard_screenshot.jpg',
-          width: targetW,
-          height: targetH,
-          sizeKb: approxSizeKb,
-        });
-        setErrorMessage(null);
-        setLastExtractedName(null);
-        toast.info('스크린샷이 준비되었습니다. [OCR 추출 실행] 버튼을 눌러주세요.');
+        dims = await readImageDimensions(file);
       } catch {
-        // 캔버스 실패 시 원본이 2MB 이하일 때만 FileReader 폴백
-        if (file.size <= 2 * 1024 * 1024) {
-          const fallbackReader = new FileReader();
-          fallbackReader.onload = (e) => {
-            const rawUrl = e.target?.result as string;
-            if (rawUrl) {
-              setImageMeta({
-                dataUrl: rawUrl,
-                fileName: file.name || 'screenshot.png',
-                width: origW,
-                height: origH,
-                sizeKb: Math.round(file.size / 1024),
-              });
-              setErrorMessage(null);
-              setLastExtractedName(null);
-              toast.info('스크린샷이 준비되었습니다. [OCR 추출 실행] 버튼을 눌러주세요.');
-            }
-          };
-          fallbackReader.readAsDataURL(file);
-        } else {
-          toast.error('고해상도 이미지 변환에 실패했습니다. 이미지 용량을 줄이거나 다른 형식으로 시도해주세요.');
-        }
+        if (!isMountedRef.current || slotSeqRef.current[slot] !== seq) return;
+        const msg = '이미지 파일을 디코딩할 수 없습니다.';
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
+        return;
       }
-    };
 
-    img.onerror = () => {
-      URL.revokeObjectURL(blobUrl);
-      toast.error('이미지 데이터를 디코딩하지 못했습니다.');
-    };
+      if (!isMountedRef.current || slotSeqRef.current[slot] !== seq) return;
 
-    img.src = blobUrl;
-  }, []);
+      if (dims.width < MIN_WIDTH || dims.height < MIN_HEIGHT) {
+        const msg = `최소 1280×720 이상 해상도가 필요합니다 (현재 ${dims.width}×${dims.height}).`;
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
+        return;
+      }
 
-  // 클립보드 붙여넣기 (Ctrl+V) 이벤트 리스너 등록
+      if (!isSupportedAspectRatio(dims.width, dims.height)) {
+        const msg = `16:9 또는 21:9 비율의 인게임 스크린샷만 지원됩니다 (현재 ${dims.width}×${dims.height}).`;
+        setSlotErrors((prev) => ({ ...prev, [slot]: msg }));
+        toast.error(msg);
+        return;
+      }
+
+      revokeSlotUrl(slot);
+      const previewUrl = URL.createObjectURL(file);
+      previewUrlsRef.current[slot] = previewUrl;
+
+      setSlots((prev) => ({
+        ...prev,
+        [slot]: {
+          file,
+          previewUrl,
+          width: dims.width,
+          height: dims.height,
+          sizeKb: Math.max(1, Math.round(file.size / 1024)),
+        },
+      }));
+      setSlotErrors((prev) => {
+        const next = { ...prev };
+        delete next[slot];
+        return next;
+      });
+      setGlobalError(null);
+      setLastResult(null);
+    },
+    [revokeSlotUrl]
+  );
+
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       if (disabled || isLoading || e.defaultPrevented) return;
 
-      // 사용자가 텍스트 입력 필드(input, textarea)에 포커스 중인 경우 붙여넣기 가로채기 방지
       const target = e.target as HTMLElement | null;
       const isInputFocused =
         target &&
         (target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
           target.isContentEditable);
 
-      if (isInputFocused) {
-        return;
-      }
+      if (isInputFocused) return;
 
-      // 1) 클립보드 items 확인
       const items = e.clipboardData?.items;
       if (items) {
         for (let i = 0; i < items.length; i++) {
@@ -209,21 +402,20 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
             const file = item.getAsFile();
             if (file) {
               e.preventDefault();
-              processAndSetImage(file);
+              void assignFileToSlot(focusedSlot, file);
               return;
             }
           }
         }
       }
 
-      // 2) 윈도우 파일 복사(files) 폴백 확인
       const files = e.clipboardData?.files;
       if (files && files.length > 0) {
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp)$/i.test(file.name || '')) {
+          if (file.type.startsWith('image/') || ALLOWED_EXT_RE.test(file.name || '')) {
             e.preventDefault();
-            processAndSetImage(file);
+            void assignFileToSlot(focusedSlot, file);
             return;
           }
         }
@@ -232,150 +424,173 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
 
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [disabled, isLoading, processAndSetImage]);
+  }, [disabled, isLoading, focusedSlot, assignFileToSlot]);
+
+  const openFilePicker = (slot: OcrSlotName) => {
+    if (disabled || isLoading) return;
+    setFocusedSlot(slot);
+    pendingSlotRef.current = slot;
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      processAndSetImage(file);
+      void assignFileToSlot(pendingSlotRef.current, file);
     }
-    // 동일한 파일 재선택 허용
     if (e.target) e.target.value = '';
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (slot: OcrSlotName, e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    setDragOverSlot(null);
     if (disabled || isLoading) return;
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      processAndSetImage(file);
+      void assignFileToSlot(slot, file);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
+  const handleClearSlot = (slot: OcrSlotName, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isLoading) return;
+    slotSeqRef.current[slot] += 1;
+    revokeSlotUrl(slot);
+    setSlots((prev) => ({ ...prev, [slot]: null }));
+    setSlotErrors((prev) => {
+      const next = { ...prev };
+      delete next[slot];
+      return next;
+    });
+    setGlobalError(null);
+    setLastResult(null);
   };
 
-  const handleClearImage = () => {
-    if (isLoading && abortControllerRef.current) {
-      abortControllerRef.current.abort();
+  const handleClearAll = () => {
+    if (isLoading) {
+      abortControllerRef.current?.abort();
     }
-    setImageMeta(null);
-    setErrorMessage(null);
-    setLastExtractedName(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    (Object.keys(previewUrlsRef.current) as OcrSlotName[]).forEach((slot) => {
+      slotSeqRef.current[slot] += 1;
+      revokeSlotUrl(slot);
+    });
+    setSlots({ ...EMPTY_SLOTS });
+    setSlotErrors({});
+    setGlobalError(null);
+    setLastResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleCancelOcr = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    abortControllerRef.current?.abort();
   };
 
-  /**
-   * 명시적 추출 실행 버튼 클릭 시에만 API 요청 발생
-   */
   const handleExecuteOcr = async () => {
-    if (!imageMeta || isLoading || disabled) return;
+    if (!slots.main || isLoading || disabled) return;
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     setIsLoading(true);
-    setErrorMessage(null);
+    setGlobalError(null);
+    setSlotErrors({});
 
-    const toastId = toast.loading('OCR 분석 중...');
+    const toastId = toast.loading('5슬롯 OCR 분석 중...');
 
     try {
-      const endpoint = API_BASE ? `${API_BASE}/ocr` : '/api/ocr';
-      let res: Response;
-
-      try {
-        res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            image: imageMeta.dataUrl,
-          }),
-          signal: controller.signal,
-        });
-      } catch (fetchErr: unknown) {
-        if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
-          throw fetchErr;
+      const formData = new FormData();
+      formData.append('main', slots.main.file);
+      (['equip1', 'equip2', 'equip3', 'favorite'] as const).forEach((slotKey) => {
+        const entry = slots[slotKey];
+        if (entry) {
+          formData.append(slotKey, entry.file);
         }
-        // API_BASE 호출 실패 시 로컬 /api/ocr 폴백 시도
-        if (endpoint !== '/api/ocr') {
-          res = await fetch('/api/ocr', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              image: imageMeta.dataUrl,
-            }),
-            signal: controller.signal,
-          });
-        } else {
-          throw fetchErr;
+      });
+
+      const headers: HeadersInit = {};
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
         }
       }
 
+      const res = await fetch(`${API_BASE}/ocr`, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal: controller.signal,
+      });
+
+      if (res.status === 499) {
+        toast.info('OCR 요청이 취소되었습니다.', { id: toastId });
+        return;
+      }
+
       const responseText = await res.text();
-      let json: OcrApiResponse;
+      if (res.status === 502 || res.status === 503 || res.status === 530) {
+        setEngineStatus('offline');
+      }
+
+      let json: {
+        success?: boolean;
+        data?: NormalizedStudentOcrData;
+        meta?: OcrMeta;
+      } & Partial<OcrErrorResponse>;
+
       try {
         json = JSON.parse(responseText);
       } catch {
         throw new Error(
-          `서버 응답 오류 (HTTP ${res.status}): ${responseText.slice(0, 150) || '서버가 올바른 JSON 응답을 반환하지 않았습니다.'
-          }`
+          `서버 응답 오류 (HTTP ${res.status}): ${responseText.slice(0, 150) || '올바른 JSON 응답이 아닙니다.'}`
         );
       }
 
-      if (!res.ok || !json.success) {
-        if (res.status === 499) {
-          toast.info('OCR 요청이 취소되었습니다.', { id: toastId });
-          return;
+      if (!res.ok || json.success === false) {
+        if (res.status === 422) {
+          const mapped = formatSlotError(json as OcrErrorResponse);
+          if (mapped.slot) {
+            setSlotErrors({ [mapped.slot]: mapped.message });
+          }
+          throw new Error(mapped.message);
         }
-        if (res.status === 429 || json.code === 'QUEUE_FULL') {
-          throw new Error(
-            json.error || '호출 제한(40 RPM)에 도달했거나 대기열이 가득 찼습니다. 잠시 후 다시 시도해주세요.'
-          );
+        if (res.status === 429 || json.code === 'QUEUE_FULL' || json.code === 'RATE_LIMITED') {
+          throw new Error(json.error || json.message || '요청 제한에 도달했거나 대기열이 가득 찼습니다. 잠시 후 다시 시도해주세요.');
         }
-        if (res.status === 504 || json.code === 'QUEUE_TIMEOUT') {
-          throw new Error(json.error || '대기열 처리 시간이 초과되었습니다. 다시 시도해주세요.');
+        if (res.status === 504 || json.code === 'QUEUE_TIMEOUT' || json.code === 'ENGINE_TIMEOUT') {
+          throw new Error(json.error || json.message || 'OCR 처리 시간이 초과되었습니다. 다시 시도해주세요.');
         }
-        throw new Error(json.error || `OCR 요청 실패 (HTTP ${res.status})`);
+        throw new Error(json.error || json.message || `OCR 요청 실패 (HTTP ${res.status})`);
       }
 
       if (!json.data) {
         throw new Error('추출된 학생 스펙 데이터가 없습니다.');
       }
 
-      const extractedData: NormalizedStudentOcrData = json.data;
-      setLastExtractedName(extractedData.studentName || '알 수 없음');
+      const extractedData = json.data;
+      const meta = json.meta;
+      if (meta) {
+        setLastResult({ studentName: extractedData.studentName || '알 수 없음', meta });
+      }
+      setEngineStatus('online');
+
       toast.success(
         extractedData.studentName
-          ? `[${extractedData.studentName}] 스펙이 성공적으로 추출되어 폼에 반영되었습니다!`
-          : '학생 스펙이 성공적으로 추출되었습니다!',
+          ? `[${extractedData.studentName}] 스펙이 추출되어 폼에 반영되었습니다.`
+          : '학생 스펙이 추출되었습니다.',
         { id: toastId }
       );
 
-      // 상위 폼에 데이터 주입
-      onOcrExtracted(extractedData);
+      onOcrExtracted(extractedData, meta);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') {
         toast.info('OCR 요청이 취소되었습니다.', { id: toastId });
         return;
       }
       const errMsg = err instanceof Error ? err.message : 'OCR 처리 도중 오류가 발생했습니다.';
-      setErrorMessage(errMsg);
+      setGlobalError(errMsg);
       toast.error(errMsg, { id: toastId });
     } finally {
       setIsLoading(false);
@@ -383,29 +598,200 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
     }
   };
 
+  const filledCount = (Object.keys(slots) as OcrSlotName[]).filter((k) => Boolean(slots[k])).length;
+
+  const renderSlotCard = (cfg: SlotConfig, isPrimary = false) => {
+    const item = slots[cfg.key];
+    const slotError = slotErrors[cfg.key];
+    const isFocused = focusedSlot === cfg.key;
+    const isDragOver = dragOverSlot === cfg.key;
+
+    const borderClass = slotError
+      ? 'border-rose-400 bg-rose-50/40'
+      : isDragOver
+        ? 'border-sky-500 bg-sky-50/50 ring-2 ring-sky-500/25'
+        : isFocused
+          ? 'border-sky-500 ring-2 ring-sky-500/20 bg-white'
+          : 'border-slate-200/80 bg-white/80 hover:border-sky-500/40';
+
+    return (
+      <div
+        key={cfg.key}
+        tabIndex={0}
+        onFocus={() => setFocusedSlot(cfg.key)}
+        onClick={() => {
+          setFocusedSlot(cfg.key);
+          if (!item) openFilePicker(cfg.key);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!disabled && !isLoading) setDragOverSlot(cfg.key);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragOverSlot((prev) => (prev === cfg.key ? null : prev));
+        }}
+        onDrop={(e) => handleDrop(cfg.key, e)}
+        className={`rounded-xl border p-2.5 transition-all duration-200 flex flex-col gap-2 cursor-pointer focus:outline-none group ${borderClass} ${isPrimary ? 'h-full justify-between' : ''}`}
+      >
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold -skew-x-6 rounded-xs ${cfg.required
+                ? 'bg-sky-500 text-white'
+                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                }`}
+            >
+              <span className="skew-x-6">{cfg.required ? '필수' : '선택'}</span>
+            </span>
+            <span className="text-xs font-bold text-slate-900 truncate">{cfg.label}</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {isFocused && (
+              <span className="text-[10px] font-bold text-sky-600 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded">
+                Ctrl+V 대상
+              </span>
+            )}
+            {item && (
+              <button
+                type="button"
+                onClick={(e) => handleClearSlot(cfg.key, e)}
+                disabled={isLoading || disabled}
+                title={`${cfg.label} 이미지 제거`}
+                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 active:scale-[0.98] disabled:opacity-40"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div
+          className={`relative w-full aspect-video rounded-lg overflow-hidden border border-slate-200/80 bg-slate-100 flex items-center justify-center ${isPrimary ? 'min-h-[150px]' : ''
+            }`}
+        >
+          {item ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.previewUrl}
+                alt={`${cfg.label} 미리보기`}
+                className="w-full h-full object-contain bg-slate-900/5"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openFilePicker(cfg.key);
+                }}
+                disabled={isLoading || disabled}
+                className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded bg-white/90 backdrop-blur-xs border border-slate-200 text-[10px] font-bold text-slate-700 hover:border-sky-500/40 transition-all duration-200 active:scale-[0.98]"
+              >
+                변경
+              </button>
+              <div className="absolute bottom-1.5 right-1.5 bg-slate-900/75 backdrop-blur-xs text-[10px] text-white font-mono px-1.5 py-0.5 rounded tabular-nums">
+                {item.width}×{item.height} · {item.sizeKb.toLocaleString()}KB
+              </div>
+            </>
+          ) : (
+            <>
+              <Image
+                src={cfg.guideSrc}
+                alt={`${cfg.label} 촬영 예시`}
+                width={480}
+                height={270}
+                unoptimized
+                className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/65 via-slate-900/20 to-transparent flex flex-col items-center justify-end p-2 text-center">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-[10px] font-bold text-slate-800 shadow-xs">
+                  <Upload size={11} className="text-sky-500" />
+                  클릭 · 드래그 · Ctrl+V
+                </span>
+                <span className="text-[10px] text-white/95 font-medium mt-1 drop-shadow-xs">
+                  {cfg.hint}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {slotError && (
+          <p className="text-[11px] font-semibold text-rose-600 flex items-start gap-1 leading-snug">
+            <AlertCircle size={13} className="shrink-0 mt-0.5" />
+            <span>{slotError}</span>
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className="bg-gradient-to-br from-white to-[var(--plana-primary-light)]/10 border border-[var(--plana-border)] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4"
-    >
-      {/* 상단 헤더: API 키/모델 설정 제거된 정갈한 테크니컬 디자인 */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--plana-border)]/60 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[var(--plana-primary-light)]/40 flex items-center justify-center text-[var(--plana-primary-dark)]">
-            <Sparkles size={18} />
+    <div className="bg-white/90 backdrop-blur-md border border-[var(--plana-border)] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
+            <Sparkles size={17} />
           </div>
           <div>
-            <h3 className="text-sm font-black text-[var(--plana-text-main)] flex items-center gap-2">
-              인게임 스크린샷 자동 인식(OCR)
+            <h3 className="font-title-v text-sm font-bold tracking-tight text-slate-900">
+              인게임 스크린샷 자동 인식 (5슬롯 OCR)
             </h3>
-            <p className="text-xs text-[var(--plana-text-muted)]">
-              학생 상세 스펙 스크린샷을 등록하면 레벨, 스킬, 장비, 전무, 스탯이 폼에 자동 입력됩니다.
+            <p className="text-xs text-slate-500">
+              원본 스크린샷을 미리보기에 있는것처럼 첨부해주세요(지원 해상도 : FHD,QHD). 장비1 장비2 장비3은 각각 1슬롯 2슬롯 3슬롯을 첨부해주세요. 애용품은 해당 학생이 장착을 했을경우 선택적으로 업로드를 해주시면 됩니다.
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-1.5">
+          {engineStatus === 'checking' && (
+            <span className="animate-pulse px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+              엔진 확인 중...
+            </span>
+          )}
+          {engineStatus === 'online' && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-600 border border-sky-500/20">
+              OCR 엔진 정상
+            </span>
+          )}
+          {engineStatus === 'offline' && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+              OCR 서버 오프라인
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => void checkEngineStatus(true)}
+            disabled={engineStatus === 'checking' || isLoading}
+            title="OCR 엔진 상태 재확인"
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={engineStatus === 'checking' ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
-      {/* 숨겨진 파일 인풋 */}
+      {engineStatus === 'offline' && (
+        <div className="rounded-xl border border-amber-300/80 bg-amber-50/70 px-3.5 py-2.5 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+            <span>
+              현재 OCR 서버에 연결할 수 없습니다(점검 중). 아래 폼에서 학생 정보를 직접 입력하여 등록할 수 있습니다.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => void checkEngineStatus(true)}
+            className="px-2.5 py-1 rounded-md bg-white border border-amber-300 text-[11px] font-bold text-amber-800 hover:border-sky-500/40 transition-all duration-200 active:scale-[0.98]"
+          >
+            재확인
+          </button>
+        </div>
+      )}
+
       <input
         ref={fileInputRef}
         type="file"
@@ -415,143 +801,111 @@ export function StudentOcrUploader({ onOcrExtracted, disabled = false }: Student
         className="hidden"
       />
 
-      {/* 이미지 미선택 시 드롭다운 업로드 영역 */}
-      {!imageMeta ? (
-        <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onClick={() => !disabled && !isLoading && fileInputRef.current?.click()}
-          className="border-2 border-dashed border-[var(--plana-border)] hover:border-[var(--plana-primary)] bg-white/70 hover:bg-white rounded-xl p-6 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2 group"
-        >
-          <div className="w-12 h-12 rounded-full bg-[var(--plana-primary-light)]/30 group-hover:bg-[var(--plana-primary-light)]/60 flex items-center justify-center text-[var(--plana-primary)] transition-colors">
-            <Upload size={22} className="group-hover:scale-110 transition-transform" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-[var(--plana-text-main)]">
-              클릭하여 스크린샷 이미지 업로드 또는 드래그 앤 드롭
-            </p>
-            <p className="text-xs text-[var(--plana-text-muted)] mt-1">
-              클립보드 스크린샷 복사 후 창 어디서나 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-700 font-mono text-[10px] font-bold">Ctrl+V</kbd> 로 바로 붙여넣을 수도 있습니다.
-            </p>
-          </div>
-          <span className="text-[11px] text-slate-400 mt-1">지원 형식: PNG, JPG, WebP (최대 1920px 자동 최적화)</span>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div className="md:col-span-5">{renderSlotCard(SLOT_CONFIGS[0], true)}</div>
+        <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {SLOT_CONFIGS.slice(1).map((cfg) => renderSlotCard(cfg, false))}
         </div>
-      ) : (
-        /* 이미지 선택 완료 시: 화이트 테마 프리뷰 박스 (Shittim Chest Technical Glassmorphism) */
-        <div className="bg-white/95 rounded-xl p-4 text-slate-800 space-y-3.5 shadow-xs border border-slate-200/80 backdrop-blur-xs">
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {/* 썸네일 미리보기 컨테이너 */}
-            <div className="relative w-full sm:w-60 h-36 bg-slate-50 rounded-lg overflow-hidden border border-slate-200/80 flex items-center justify-center flex-shrink-0 group">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageMeta.dataUrl}
-                alt="학생 스펙 스크린샷 미리보기"
-                className="w-full h-full object-contain"
-              />
-              <div className="absolute bottom-1 right-1 bg-slate-900/75 backdrop-blur-xs text-[10px] text-white font-mono px-1.5 py-0.5 rounded tabular-nums">
-                {imageMeta.width}×{imageMeta.height}
-              </div>
+      </div>
+
+      {isLoading && (
+        <div className="animate-pulse rounded-xl border border-sky-200 bg-sky-50/70 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-sky-800">
+            <Loader2 size={14} className="animate-spin text-sky-500" />
+            <span>화면 판별 및 ROI OCR 정밀 분석 중...</span>
+          </div>
+          <div className="h-2 w-2/3 rounded-full bg-sky-200/80" />
+        </div>
+      )}
+
+      {globalError && (
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-800 flex items-start gap-2.5 animate-fade-in">
+          <AlertCircle size={16} className="text-rose-500 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <strong className="block text-rose-900 font-bold mb-0.5">OCR 추출 실패</strong>
+            <p className="text-[11px] text-rose-700 leading-relaxed">{globalError}</p>
+          </div>
+        </div>
+      )}
+
+      {lastResult && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-2 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-emerald-900">
+            <div className="flex items-center gap-2 font-bold">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <span>[{lastResult.studentName}] 데이터 추출 및 폼 반영 완료</span>
             </div>
-
-            {/* 이미지 메타데이터 및 액션 */}
-            <div className="flex-1 space-y-2.5 w-full">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="text-xs font-bold text-slate-800 truncate max-w-[260px]">
-                    {imageMeta.fileName}
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 tabular-nums">
-                    전송 규격: 약 {imageMeta.sizeKb} KB ({imageMeta.width}×{imageMeta.height}px)
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClearImage}
-                  disabled={isLoading || disabled}
-                  className="text-xs text-slate-500 hover:text-rose-600 font-semibold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 transition-colors flex items-center gap-1 disabled:opacity-50 border border-slate-200/60"
-                  title="이미지 제거"
-                >
-                  <X size={14} /> 취소
-                </button>
-              </div>
-
-              {/* 안내 문구 (이모지 대신 Lucide Info 아이콘 사용) */}
-              {!lastExtractedName && !errorMessage && !isLoading && (
-                <div className="text-[11px] text-sky-800 bg-sky-50/80 px-3 py-2 rounded-lg border border-sky-200/70 flex items-center gap-2">
-                  <Info size={14} className="text-sky-500 flex-shrink-0" />
-                  <span>
-                    프리뷰가 준비되었습니다. 아래 <strong className="text-sky-700 font-bold">[OCR 추출 실행]</strong> 버튼을 누르면 인게임 스펙 분석이 시작됩니다.
-                  </span>
-                </div>
-              )}
-
-              {/* 추출 성공 알림 배지 (라이트 에메랄드 테마) */}
-              {lastExtractedName && (
-                <div className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3 py-2 rounded-lg flex items-center gap-2 font-medium">
-                  <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
-                  <span>
-                    <strong>[{lastExtractedName}]</strong> 데이터 추출 및 폼 반영 완료! 입력값을 확인해주세요.
-                  </span>
-                </div>
-              )}
-
-              {/* 명시적 추출 실행 버튼 */}
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleExecuteOcr}
-                  disabled={isLoading || disabled}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-[var(--plana-primary-dark)] to-pink-500 hover:from-pink-600 hover:to-rose-500 text-white font-bold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(255,105,180,0.35)] flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin text-white" />
-                      <span>OCR 분석 중...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} className="text-white" />
-                      <span>OCR 추출 실행</span>
-                    </>
-                  )}
-                </button>
-
-                {isLoading && (
-                  <button
-                    type="button"
-                    onClick={handleCancelOcr}
-                    className="text-xs text-rose-700 hover:text-rose-900 px-3 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 transition-colors border border-rose-200 cursor-pointer font-semibold flex items-center gap-1.5"
-                  >
-                    <Square size={13} className="fill-rose-700 text-rose-700" />
-                    <span>추출 중단</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                  className="text-xs text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50 border border-slate-200/80 font-semibold flex items-center gap-1.5"
-                >
-                  <ImagePlus size={14} className="text-slate-600" />
-                  <span>다른 이미지 선택</span>
-                </button>
-              </div>
-            </div>
+            <span className="font-mono text-[11px] text-emerald-700 tabular-nums">
+              {lastResult.meta.preset} · {Math.round(lastResult.meta.elapsedMs).toLocaleString()}ms
+              {lastResult.meta.studentMatch.score < 0.95 &&
+                ` · 매칭 ${Math.round(lastResult.meta.studentMatch.score * 100)}%`}
+            </span>
           </div>
 
-          {/* 에러 피드백 (라이트 로즈 테마) */}
-          {errorMessage && (
-            <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800 flex items-start gap-2.5 animate-fade-in shadow-2xs">
-              <AlertCircle size={16} className="text-rose-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <strong className="block text-rose-900 font-bold mb-0.5">추출 실패 안내</strong>
-                <p className="text-[11px] text-rose-700 leading-relaxed">{errorMessage}</p>
-              </div>
+          {lastResult.meta.needsReview.length > 0 && (
+            <div className="pt-1.5 border-t border-emerald-200/80 flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                <AlertTriangle size={12} className="text-amber-600" />
+                검수 필요 항목:
+              </span>
+              {lastResult.meta.needsReview.map((field) => (
+                <span
+                  key={field}
+                  className="px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-[10px] font-bold text-amber-900"
+                >
+                  {formatReviewField(field)}
+                </span>
+              ))}
             </div>
           )}
         </div>
       )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void handleExecuteOcr()}
+            disabled={!slots.main || isLoading || disabled}
+            className="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-400 hover:from-sky-600 hover:to-cyan-500 text-white font-bold text-sm rounded-xl transition-all duration-200 active:scale-[0.98] shadow-xs flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>OCR 분석 중...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={16} />
+                <span>OCR 추출 실행</span>
+              </>
+            )}
+          </button>
+
+          {isLoading && (
+            <button
+              type="button"
+              onClick={handleCancelOcr}
+              className="text-xs text-rose-700 hover:text-rose-900 px-3 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 transition-all duration-200 active:scale-[0.98] border border-rose-200 cursor-pointer font-semibold flex items-center gap-1.5"
+            >
+              <Square size={12} className="fill-rose-700" />
+              <span>추출 중단</span>
+            </button>
+          )}
+        </div>
+
+        {filledCount > 0 && (
+          <button
+            type="button"
+            onClick={handleClearAll}
+            disabled={disabled}
+            className="text-xs text-slate-600 hover:text-rose-600 px-3 py-2 rounded-lg bg-slate-100 hover:bg-rose-50 transition-all duration-200 active:scale-[0.98] border border-slate-200 font-semibold flex items-center gap-1.5"
+          >
+            <Trash2 size={13} />
+            <span className="tabular-nums">전체 비우기 ({filledCount})</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

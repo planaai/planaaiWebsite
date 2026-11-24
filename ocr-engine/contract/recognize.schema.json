@@ -1,0 +1,324 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://plana.ai/schemas/ocr-recognize.schema.json",
+  "title": "Plana.AI Student OCR Recognize Response",
+  "description": "Contract schema for POST /v1/recognize (ocr-engine) and POST /api/ocr (backend)",
+  "oneOf": [
+    { "$ref": "#/definitions/SuccessResponse" },
+    { "$ref": "#/definitions/ErrorResponse" }
+  ],
+  "definitions": {
+    "SlotName": {
+      "type": "string",
+      "enum": ["main", "equip1", "equip2", "equip3", "favorite"]
+    },
+    "SceneName": {
+      "type": "string",
+      "enum": ["student_info", "equipment_modal", "favorite_popup"]
+    },
+    "SkillLevels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ex", "normal", "passive", "sub"],
+      "properties": {
+        "ex": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "normal": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "passive": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "sub": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "EquipmentSlotBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slot", "unequipped", "tier", "level"],
+      "properties": {
+        "slot": { "type": "integer", "enum": [1, 2, 3] },
+        "unequipped": { "type": "boolean" },
+        "tier": { "type": ["integer", "null"], "minimum": 1 },
+        "level": { "type": ["integer", "null"], "minimum": 1 }
+      },
+      "if": {
+        "type": "object",
+        "properties": { "unequipped": { "const": true } },
+        "required": ["unequipped"]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "tier": { "type": "null" },
+          "level": { "type": "null" }
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "tier": { "type": "integer", "minimum": 1 },
+          "level": { "type": ["integer", "null"], "minimum": 1 }
+        }
+      }
+    },
+    "EquipmentSlot1": {
+      "allOf": [
+        { "$ref": "#/definitions/EquipmentSlotBase" },
+        { "type": "object", "properties": { "slot": { "const": 1 } } }
+      ]
+    },
+    "EquipmentSlot2": {
+      "allOf": [
+        { "$ref": "#/definitions/EquipmentSlotBase" },
+        { "type": "object", "properties": { "slot": { "const": 2 } } }
+      ]
+    },
+    "EquipmentSlot3": {
+      "allOf": [
+        { "$ref": "#/definitions/EquipmentSlotBase" },
+        { "type": "object", "properties": { "slot": { "const": 3 } } }
+      ]
+    },
+    "FavoriteItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unequipped", "tier"],
+      "properties": {
+        "unequipped": { "type": "boolean" },
+        "tier": { "type": ["integer", "null"], "minimum": 1, "maximum": 2 }
+      },
+      "if": {
+        "type": "object",
+        "properties": { "unequipped": { "const": true } },
+        "required": ["unequipped"]
+      },
+      "then": {
+        "type": "object",
+        "properties": { "tier": { "type": "null" } }
+      },
+      "else": {
+        "type": "object",
+        "properties": { "tier": { "type": "integer", "minimum": 1, "maximum": 2 } }
+      }
+    },
+    "UniqueWeapon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unequipped", "starGrade", "level"],
+      "properties": {
+        "unequipped": { "type": "boolean" },
+        "starGrade": { "type": ["integer", "null"], "minimum": 1, "maximum": 4 },
+        "level": { "type": ["integer", "null"], "minimum": 1, "maximum": 60 }
+      },
+      "if": {
+        "type": "object",
+        "properties": { "unequipped": { "const": true } },
+        "required": ["unequipped"]
+      },
+      "then": {
+        "type": "object",
+        "properties": {
+          "starGrade": { "type": "null" },
+          "level": { "type": "null" }
+        }
+      },
+      "else": {
+        "type": "object",
+        "properties": {
+          "starGrade": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "level": { "type": "integer", "minimum": 1, "maximum": 60 }
+        }
+      }
+    },
+    "StatEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "releaseLevel"],
+      "properties": {
+        "value": { "type": ["integer", "null"], "minimum": 0 },
+        "releaseLevel": { "type": ["integer", "null"], "minimum": 1, "maximum": 25 }
+      }
+    },
+    "NormalizedStudentOcrData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "studentName",
+        "level",
+        "starGrade",
+        "bondRank",
+        "skills",
+        "equipments",
+        "favoriteItem",
+        "weapon",
+        "stats"
+      ],
+      "properties": {
+        "studentName": { "type": "string" },
+        "level": { "type": "integer", "minimum": 1, "maximum": 90 },
+        "starGrade": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "bondRank": { "type": ["integer", "null"], "minimum": 1, "maximum": 100 },
+        "skills": { "$ref": "#/definitions/SkillLevels" },
+        "equipments": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            { "$ref": "#/definitions/EquipmentSlot1" },
+            { "$ref": "#/definitions/EquipmentSlot2" },
+            { "$ref": "#/definitions/EquipmentSlot3" }
+          ],
+          "additionalItems": false
+        },
+        "favoriteItem": { "$ref": "#/definitions/FavoriteItem" },
+        "weapon": { "$ref": "#/definitions/UniqueWeapon" },
+        "stats": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hp", "atk", "def", "heal"],
+          "properties": {
+            "hp": { "$ref": "#/definitions/StatEntry" },
+            "atk": { "$ref": "#/definitions/StatEntry" },
+            "def": { "$ref": "#/definitions/StatEntry" },
+            "heal": { "$ref": "#/definitions/StatEntry" }
+          }
+        }
+      }
+    },
+    "OcrMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "preset",
+        "scenes",
+        "fieldSources",
+        "needsReview",
+        "studentMatch",
+        "elapsedMs"
+      ],
+      "properties": {
+        "engine": { "type": "string", "minLength": 1 },
+        "preset": { "type": "string", "minLength": 1 },
+        "scenes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["main"],
+          "properties": {
+            "main": { "const": "student_info" },
+            "equip1": { "const": "equipment_modal" },
+            "equip2": { "const": "equipment_modal" },
+            "equip3": { "const": "equipment_modal" },
+            "favorite": { "const": "favorite_popup" }
+          }
+        },
+        "fieldSources": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/SlotName" }
+        },
+        "needsReview": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "studentMatch": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["raw", "score"],
+          "properties": {
+            "raw": { "type": "string" },
+            "score": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "elapsedMs": { "type": "number", "minimum": 0 }
+      }
+    },
+    "SuccessResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data", "meta"],
+      "properties": {
+        "success": { "const": true },
+        "data": { "$ref": "#/definitions/NormalizedStudentOcrData" },
+        "meta": { "$ref": "#/definitions/OcrMeta" }
+      }
+    },
+    "SceneMismatchDetail": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["slot", "detected"],
+      "properties": {
+        "slot": { "$ref": "#/definitions/SlotName" },
+        "detected": {
+          "type": ["string", "null"],
+          "enum": ["student_info", "equipment_modal", "favorite_popup", "unknown", null]
+        },
+        "expected": { "$ref": "#/definitions/SceneName" }
+      }
+    },
+    "SlotDuplicateDetail": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["slot", "activeSlot", "conflictingWith"],
+      "properties": {
+        "slot": { "type": "string", "enum": ["equip1", "equip2", "equip3"] },
+        "activeSlot": { "type": "integer", "enum": [1, 2, 3] },
+        "conflictingWith": { "type": "string", "enum": ["equip1", "equip2", "equip3"] }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["message"],
+          "properties": {
+            "message": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["error"],
+          "properties": {
+            "error": { "type": "string", "minLength": 1 }
+          }
+        }
+      ],
+      "properties": {
+        "success": { "const": false },
+        "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+        "message": { "type": "string", "minLength": 1 },
+        "error": { "type": "string", "minLength": 1 },
+        "detail": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": { "code": { "const": "SCENE_MISMATCH" } },
+            "required": ["code"]
+          },
+          "then": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": { "$ref": "#/definitions/SceneMismatchDetail" }
+            }
+          }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": { "code": { "const": "SLOT_DUPLICATE" } },
+            "required": ["code"]
+          },
+          "then": {
+            "type": "object",
+            "required": ["detail"],
+            "properties": {
+              "detail": { "$ref": "#/definitions/SlotDuplicateDetail" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

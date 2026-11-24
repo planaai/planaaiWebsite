@@ -2,13 +2,17 @@
 
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronUp, Save, AlertTriangle } from 'lucide-react';
 import type { StudentMaster, SchemaConfig, ArchiveRecord } from '@/types';
 import { useArchiveStore } from '@/store/archiveStore';
 import { toast } from 'sonner';
 import { getEquipMaxLevel, getWeaponMaxLevel, SKILL_MAX } from '@/lib/equipmentUtils';
 import { StudentOcrUploader } from './StudentOcrUploader';
-import { mapOcrDataToFormValues, type NormalizedStudentOcrData } from '@/lib/ocr/studentOcrParser';
+import {
+  mapOcrDataToFormValues,
+  type NormalizedStudentOcrData,
+  type OcrMeta,
+} from '@/lib/ocr/studentOcrParser';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -18,10 +22,52 @@ interface RegistrationModalProps {
   initialEditRecord?: ArchiveRecord; // For editing an existing record
 }
 
-type RegistrationForm = Partial<ArchiveRecord> & { 
-  _localId: number; 
+type RegistrationForm = Partial<ArchiveRecord> & {
+  _localId: number;
   _isCollapsed: boolean;
+  _needsReview?: string[];
 };
+
+const FORM_TO_OCR_PREFIX: Record<string, string> = {
+  studentId: 'studentName',
+  level: 'level',
+  currentStars: 'starGrade',
+  bondRank: 'bondRank',
+  'skillLevels.ex': 'skills.ex',
+  'skillLevels.normal': 'skills.normal',
+  'skillLevels.passive': 'skills.passive',
+  'skillLevels.sub': 'skills.sub',
+  'equipment.slot1': 'equipments[0]',
+  'equipment.slot2': 'equipments[1]',
+  'equipment.slot3': 'equipments[2]',
+  'equipment.slot4': 'favoriteItem',
+  uniqueWeapon: 'weapon',
+  'stats.maxHP': 'stats.hp.value',
+  'stats.attackPower': 'stats.atk.value',
+  'stats.defensePower': 'stats.def.value',
+  'stats.healPower': 'stats.heal.value',
+  'potentialLevels.maxHP': 'stats.hp.releaseLevel',
+  'potentialLevels.attackPower': 'stats.atk.releaseLevel',
+  'potentialLevels.defensePower': 'stats.def.releaseLevel',
+  'potentialLevels.healPower': 'stats.heal.releaseLevel',
+};
+
+const REVIEW_CLS = 'border-amber-400 ring-2 ring-amber-400/30 bg-amber-50/40';
+
+function hasReview(reviewList: string[] | undefined, path: string): boolean {
+  return Boolean(
+    reviewList?.some((r) => r === path || r.startsWith(`${path}.`) || path.startsWith(`${r}.`))
+  );
+}
+
+function clearReviewForField(reviewList: string[] | undefined, field: string): string[] | undefined {
+  if (!reviewList?.length) return reviewList;
+  const prefix = FORM_TO_OCR_PREFIX[field];
+  if (!prefix) return reviewList;
+  return reviewList.filter(
+    (r) => r !== prefix && !r.startsWith(`${prefix}.`) && !prefix.startsWith(`${r}.`)
+  );
+}
 
 export function RegistrationModal({ isOpen, onClose, masterData, schema, initialEditRecord }: RegistrationModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -56,28 +102,34 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
   const handleUpdateForm = (localId: number, field: string, value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     setForms(prev => prev.map(f => {
       if (f._localId === localId) {
+        const nextReview = clearReviewForField(f._needsReview, field);
         // Handle nested fields like stats.maxHP or skillLevels.ex
         if (field.includes('.')) {
           const [obj, key] = field.split('.');
-          return { ...f, [obj]: { ...(f as any)[obj], [key]: value } };
+          return { ...f, _needsReview: nextReview, [obj]: { ...(f as any)[obj], [key]: value } };
         }
         if (field === 'studentId') {
           if (typeof value === 'number' && !isNaN(value)) {
             const master = masterData.find(m => m.id === value);
             return {
               ...f,
+              _needsReview: nextReview,
               studentId: value,
               // Preserve existing stars (e.g. from OCR extraction) instead of blindly resetting to base stars
               currentStars: f.currentStars || master?.starNum || 1,
             };
           } else {
-            return { ...f, studentId: undefined };
+            return { ...f, _needsReview: nextReview, studentId: undefined };
           }
         }
-        return { ...f, [field]: value };
+        return { ...f, _needsReview: nextReview, [field]: value };
       }
       return f;
     }));
+  };
+
+  const clearNeedsReview = (localId: number) => {
+    setForms(prev => prev.map(f => f._localId === localId ? { ...f, _needsReview: [] } : f));
   };
 
   const toggleCollapse = (localId: number) => {
@@ -87,7 +139,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
     setForms(prev => prev.filter(f => f._localId !== localId));
   };
 
-  const handleOcrExtracted = (localId: number, ocrData: NormalizedStudentOcrData) => {
+  const handleOcrExtracted = (localId: number, ocrData: NormalizedStudentOcrData, meta?: OcrMeta) => {
     const safeMasterData = Array.isArray(masterData) ? masterData : [];
     const mapped = mapOcrDataToFormValues(ocrData, safeMasterData);
 
@@ -99,6 +151,8 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
           : (mapped.studentId !== undefined ? mapped.studentId : f.studentId);
 
         const matched = mapped.matchedMaster || safeMasterData.find(m => m.id === nextStudentId);
+        const isDifferentNewStudent =
+          !initialEditRecord && Boolean(f.studentId && mapped.studentId && f.studentId !== mapped.studentId);
 
         if (initialEditRecord && mapped.studentId && mapped.studentId !== f.studentId) {
           toast.warning(
@@ -108,10 +162,16 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
 
         return {
           ...f,
+          _needsReview: meta?.needsReview ?? [],
           studentId: nextStudentId,
           level: mapped.level,
           currentStars: mapped.currentStars || matched?.starNum || f.currentStars || 3,
-          bondRank: mapped.bondRank !== undefined ? mapped.bondRank : f.bondRank,
+          bondRank:
+            mapped.bondRank !== undefined
+              ? mapped.bondRank
+              : isDifferentNewStudent
+                ? undefined
+                : f.bondRank,
           skillLevels: mapped.skillLevels,
           equipment: {
             slot1: mapped.equipment.slot1,
@@ -150,7 +210,10 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
       }
 
       const payloads = validForms.map(f => {
-        const { _localId, _isCollapsed, ...rest } = f;
+        const { _localId, _isCollapsed, _needsReview, ...rest } = f;
+        void _localId;
+        void _isCollapsed;
+        void _needsReview;
         const weapon = (!rest.uniqueWeapon || rest.uniqueWeapon.stars === 0) ? null : rest.uniqueWeapon;
         return {
           ...rest,
@@ -255,9 +318,27 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                       <div className="p-5 flex flex-col gap-6">
                         {/* 0. 인게임 스크린샷 AI 자동인식 (OCR) */}
                         <StudentOcrUploader
-                          onOcrExtracted={(ocrData) => handleOcrExtracted(form._localId, ocrData)}
+                          onOcrExtracted={(ocrData, meta) => handleOcrExtracted(form._localId, ocrData, meta)}
                           disabled={isSaving}
                         />
+
+                        {(form._needsReview?.length ?? 0) > 0 && (
+                          <div className="rounded-xl border border-amber-300 bg-amber-50/80 px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-900">
+                            <div className="flex items-center gap-2 font-semibold">
+                              <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+                              <span className="tabular-nums">
+                                OCR 확인 필요 항목 ({form._needsReview!.length}개): 강조된 입력칸을 확인해주세요.
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => clearNeedsReview(form._localId)}
+                              className="px-2.5 py-1 rounded-md bg-white border border-amber-300 text-[11px] font-bold text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
+                            >
+                              확인 완료
+                            </button>
+                          </div>
+                        )}
 
                         <div className="w-full space-y-6">
                           {/* 1. Student Selection */}
@@ -269,7 +350,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                               const v = parseInt(e.target.value, 10);
                               handleUpdateForm(form._localId, 'studentId', isNaN(v) ? undefined : v);
                             }}
-                            className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-3 text-[var(--plana-text-main)] focus:outline-none focus:border-[var(--plana-accent)]"
+                            className={`w-full bg-white border rounded-lg px-4 py-3 text-[var(--plana-text-main)] focus:outline-none focus:border-[var(--plana-accent)] ${hasReview(form._needsReview, 'studentName') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}
                             disabled={!!initialEditRecord}
                           >
                             <option value="">-- 학생 선택 --</option>
@@ -289,12 +370,12 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                 const val = parseInt(e.target.value);
                                 handleUpdateForm(form._localId, 'level', isNaN(val) ? undefined : val);
                               }} 
-                              className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none" 
+                              className={`w-full bg-white border rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none ${hasReview(form._needsReview, 'level') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`} 
                             />
                           </div>
                           <div>
                             <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">성급</label>
-                            <select value={form.currentStars || 3} onChange={(e) => handleUpdateForm(form._localId, 'currentStars', parseInt(e.target.value))} className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none">
+                            <select value={form.currentStars || 3} onChange={(e) => handleUpdateForm(form._localId, 'currentStars', parseInt(e.target.value))} className={`w-full bg-white border rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none ${hasReview(form._needsReview, 'starGrade') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                               {[1,2,3,4,5].map(s => <option key={s} value={s}>{s}성</option>)}
                             </select>
                           </div>
@@ -306,7 +387,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                 const val = parseInt(e.target.value);
                                 handleUpdateForm(form._localId, 'bondRank', isNaN(val) ? undefined : val);
                               }} 
-                              className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none" 
+                              className={`w-full bg-white border rounded-lg px-4 py-2 text-[var(--plana-text-main)] focus:border-[var(--plana-accent)] focus:outline-none ${hasReview(form._needsReview, 'bondRank') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`} 
                             />
                           </div>
                         </div>
@@ -327,7 +408,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                     const val = parseInt(e.target.value);
                                     handleUpdateForm(form._localId, `skillLevels.${sk}`, isNaN(val) ? undefined : val);
                                   }} 
-                                  className="w-full bg-white border border-[var(--plana-border)] rounded-lg px-2 py-2 text-[var(--plana-text-main)] text-center focus:border-[var(--plana-accent)] focus:outline-none" 
+                                  className={`w-full bg-white border rounded-lg px-2 py-2 text-[var(--plana-text-main)] text-center focus:border-[var(--plana-accent)] focus:outline-none ${hasReview(form._needsReview, `skills.${sk}`) ? REVIEW_CLS : 'border-[var(--plana-border)]'}`} 
                                 />
                                 <button
                                   type="button"
@@ -346,8 +427,10 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                           <div>
                             <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">장비 (티어 / 레벨)</label>
                             <div className="grid grid-cols-1 gap-3">
-                              {['slot1', 'slot2', 'slot3'].map((eq) => {
+                              {['slot1', 'slot2', 'slot3'].map((eq, eqIdx) => {
                                 const isUnequipped = !form.equipment?.[eq as keyof typeof form.equipment];
+                                const tierReview = hasReview(form._needsReview, `equipments[${eqIdx}].tier`);
+                                const levelReview = hasReview(form._needsReview, `equipments[${eqIdx}].level`);
                                 return (
                                 <div key={eq} className="space-y-1">
                                   <label className="flex items-center gap-2 cursor-pointer w-max">
@@ -362,7 +445,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                     <span className="text-[10px] text-slate-500 font-bold">미착용</span>
                                   </label>
                                   <div className={`flex gap-2 items-center transition-opacity ${isUnequipped ? 'opacity-40 pointer-events-none' : ''}`}>
-                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                    <div className={`flex-[2] flex items-stretch bg-white border rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)] ${tierReview ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                                       <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">T</span>
                                       <input 
                                         type="number" min={1} max={10}
@@ -377,7 +460,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                       />
                                       <button type="button" onClick={() => handleUpdateForm(form._localId, `equipment.${eq}`, { tier: 10, level: getEquipMaxLevel(10) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors flex-shrink-0 flex items-center justify-center">M</button>
                                     </div>
-                                    <div className="flex-[2] flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                    <div className={`flex-[2] flex items-stretch bg-white border rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)] ${levelReview ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                                       <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
                                       <input 
                                         type="number" min={1} max={90}
@@ -415,7 +498,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                   </label>
                                 </div>
                                 <div className={`flex gap-2 items-center transition-opacity ${!form.equipment?.slot4 ? 'opacity-40 pointer-events-none' : ''}`}>
-                                  <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                  <div className={`flex-1 flex items-stretch bg-white border rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)] ${hasReview(form._needsReview, 'favoriteItem') || hasReview(form._needsReview, 'favoriteItem.tier') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                                     <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2.5 bg-[var(--plana-primary-light)]/30 flex items-center">티어</span>
                                     <select
                                       value={form.equipment?.slot4?.tier || 1}
@@ -448,7 +531,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                 <span className="text-[10px] text-slate-500 font-bold">미착용(미해금)</span>
                               </label>
                               <div className={`flex gap-2 items-center transition-opacity ${(!form.uniqueWeapon || form.uniqueWeapon.stars === 0) ? 'opacity-40 pointer-events-none' : ''}`}>
-                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                <div className={`flex-1 flex items-stretch bg-white border rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)] ${hasReview(form._needsReview, 'weapon.starGrade') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                                   <select 
                                     value={form.uniqueWeapon?.stars || 1} 
                                     onChange={(e) => {
@@ -464,7 +547,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                   </select>
                                   <button type="button" onClick={() => handleUpdateForm(form._localId, 'uniqueWeapon', { stars: 4, level: getWeaponMaxLevel(4) })} className="px-2 bg-slate-100 text-slate-500 hover:bg-[var(--plana-primary)] hover:text-white text-xs font-bold transition-colors border-l border-slate-200 flex-shrink-0 flex items-center justify-center">M</button>
                                 </div>
-                                <div className="flex-1 flex items-stretch bg-white border border-[var(--plana-border)] rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)]">
+                                <div className={`flex-1 flex items-stretch bg-white border rounded-lg overflow-hidden focus-within:border-[var(--plana-accent)] ${hasReview(form._needsReview, 'weapon.level') ? REVIEW_CLS : 'border-[var(--plana-border)]'}`}>
                                   <span className="text-xs text-[var(--plana-primary-dark)] font-bold px-2 bg-[var(--plana-primary-light)]/30 flex items-center">Lv</span>
                                   <input 
                                     type="number" min={1} max={60} placeholder="레벨"
@@ -490,21 +573,21 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                           <label className="block text-xs font-bold text-[var(--plana-primary-dark)] mb-2">상세 스탯 및 능력 개방</label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {[
-                              { k: 'maxHP', l: '체력' },
-                              { k: 'attackPower', l: '공격력' },
-                              { k: 'defensePower', l: '방어력' },
-                              { k: 'healPower', l: '치유력' },
+                              { k: 'maxHP', l: '체력', ocr: 'hp' },
+                              { k: 'attackPower', l: '공격력', ocr: 'atk' },
+                              { k: 'defensePower', l: '방어력', ocr: 'def' },
+                              { k: 'healPower', l: '치유력', ocr: 'heal' },
                             ].map(st => (
                               <div key={st.k} className="bg-slate-50 p-3 rounded-lg border border-slate-200">
                                 <div className="text-xs text-[var(--plana-text-muted)] mb-1 font-bold">{st.l}</div>
                                 <input 
                                   type="number" placeholder="스탯 값"
-                                  value={form.stats?.[st.k] || ''}
+                                  value={form.stats?.[st.k] ?? ''}
                                   onChange={(e) => {
                                     const val = parseInt(e.target.value);
                                     handleUpdateForm(form._localId, `stats.${st.k}`, isNaN(val) ? undefined : val);
                                   }}
-                                  className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-sm text-[var(--plana-text-main)] mb-2 focus:border-[var(--plana-accent)] focus:outline-none"
+                                  className={`w-full bg-white border rounded px-2 py-1.5 text-sm text-[var(--plana-text-main)] mb-2 focus:border-[var(--plana-accent)] focus:outline-none ${hasReview(form._needsReview, `stats.${st.ocr}.value`) ? REVIEW_CLS : 'border-slate-200'}`}
                                 />
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] text-pink-600 bg-pink-100 px-1 rounded font-bold whitespace-nowrap">능력 개방</span>
@@ -515,7 +598,7 @@ export function RegistrationModal({ isOpen, onClose, masterData, schema, initial
                                       const val = parseInt(e.target.value);
                                       handleUpdateForm(form._localId, `potentialLevels.${st.k}`, isNaN(val) || val <= 0 ? undefined : val);
                                     }}
-                                    className="w-full bg-white border border-pink-200 rounded px-2 py-1 text-xs text-[var(--plana-text-main)] focus:border-pink-400 focus:outline-none"
+                                    className={`w-full bg-white border rounded px-2 py-1 text-xs text-[var(--plana-text-main)] focus:border-pink-400 focus:outline-none ${hasReview(form._needsReview, `stats.${st.ocr}.releaseLevel`) ? REVIEW_CLS : 'border-pink-200'}`}
                                   />
                                 </div>
                               </div>

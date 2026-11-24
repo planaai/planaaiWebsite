@@ -1,4 +1,10 @@
-# Dependencies
+# ==============================================================================
+# Plana.AI Project Root .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Dependencies & Package Managers
+# ------------------------------------------------------------------------------
 node_modules/
 .pnp
 .pnp.*
@@ -8,10 +14,9 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# Testing
-coverage/
-
-# Frontend (Next.js / Vite / Cloudflare)
+# ------------------------------------------------------------------------------
+# Frontend Builds (Next.js / Vite / Cloudflare Pages / Vercel)
+# ------------------------------------------------------------------------------
 .next/
 .open-next/
 .wrangler/
@@ -21,16 +26,11 @@ build/
 dist/
 dist-ssr/
 next-env.d.ts
+*.tsbuildinfo
 
-# Docs & Tools
-docs/
-tools/
-missing_skill_icons.md
-QA_PROCESS.md
-frontend/README.md
-client/README.md
-
-# Backend
+# ------------------------------------------------------------------------------
+# Backend & Live Server Data (Protected)
+# ------------------------------------------------------------------------------
 /backend/
 /backend/uploads/
 /backend/data/
@@ -45,7 +45,43 @@ uploads/
 *.sql
 *.dump
 
-# Logs
+# ------------------------------------------------------------------------------
+# Environment Variables & Secrets
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.local
+!.env.example
+!ocr-engine/.env.example
+
+# ------------------------------------------------------------------------------
+# Python & Machine Learning
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# OCR Engine Models & Golden Set Images (Heavy binary assets)
+ocr-engine/models/*.onnx
+ocr-engine/tests/golden/*
+!ocr-engine/tests/golden/README.md
+
+# ------------------------------------------------------------------------------
+# Security, Certificates & Keys
+# ------------------------------------------------------------------------------
+*.pem
+*.key
+*.cert
+SECURITY_HANDOVER.md
+ip.txt
+
+# ------------------------------------------------------------------------------
+# Logs & Testing Output
+# ------------------------------------------------------------------------------
 logs/
 *.log
 npm-debug.log*
@@ -54,31 +90,20 @@ yarn-error.log*
 pnpm-debug.log*
 .pnpm-debug.log*
 lerna-debug.log*
+coverage/
+lint-results.json
+lint-results.txt
+.eslintcache
 
-# Environment Variables
-.env
-.env.*
-*.local
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-env/
-
-# Keys and Certificates
-*.pem
-*.key
-*.cert
-
-# OS Files
+# ------------------------------------------------------------------------------
+# Operating System & Editors
+# ------------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
 Desktop.ini
+~$*.xlsx
 
-# IDEs and Editors
+# Editors & IDEs
 .idea/
 .vscode/*
 !.vscode/extensions.json
@@ -88,30 +113,17 @@ Desktop.ini
 *.sln
 *.sw?
 
-# Project specific & Temporary
-scratch/
-deploy/
-client-pvp/
-gacha_changes/
-/ico/
-~$*.xlsx
-ip.txt
-
-# TypeScript
-*.tsbuildinfo
-
-# Linter outputs
-lint-results.json
-lint-results.txt
-.eslintcache
-
-# Archives
+# ------------------------------------------------------------------------------
+# Compressed Archives
+# ------------------------------------------------------------------------------
 *.tar.gz
 *.zip
 *.rar
 *.7z
 
-# AI Agent & Memory
+# ------------------------------------------------------------------------------
+# AI Agent, Scratch & Knowledge Vault
+# ------------------------------------------------------------------------------
 docs-vault/
 .agents/
 .agent/
@@ -119,17 +131,24 @@ docs-vault/
 .cursor/
 .agentignore
 CLAUDE.local.md
+scratch/
 
-# Security Handover Documents (R1)
-SECURITY_HANDOVER.md
-
-# Sensitive directories and internal operational tools (R2)
+# ------------------------------------------------------------------------------
+# Sensitive Internal Tools & Repositories
+# ------------------------------------------------------------------------------
+docs/
+tools/
+missing_skill_icons.md
+QA_PROCESS.md
+frontend/README.md
+client/README.md
+deploy/
+client-pvp/
+gacha_changes/
+/ico/
 cloudflare-router/
-databackup/
 client/AGENTS.md
 client/CLAUDE.md
 start_servers.bat
 stop_servers.bat
 licenses.txt
-
-

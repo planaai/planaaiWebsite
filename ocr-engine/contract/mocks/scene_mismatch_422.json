@@ -1,0 +1,9 @@
+{
+  "code": "SCENE_MISMATCH",
+  "message": "equip2 슬롯에는 equipment_modal 화면이 필요하지만 student_info 화면이 감지되었습니다.",
+  "detail": {
+    "slot": "equip2",
+    "detected": "student_info",
+    "expected": "equipment_modal"
+  }
+}

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Users, BookOpen, Gift, Sparkles, Target, User, Calculator, Layout, BatteryCharging, Terminal, Info, ChevronDown, ChevronRight, Folder, MessageSquare, Compass, Trophy, Download } from 'lucide-react';
-import { useAlert } from '@/contexts/AlertContext';
 
 const menuGroups = [
   {
@@ -31,7 +30,7 @@ const menuGroups = [
     items: [
       { num: '11', title: '공지사항', path: '/notices', icon: Info },
       { num: '12', title: '문의사항', path: '/inquiries', icon: MessageSquare },
-      { num: '13', title: 'API', path: '#', icon: Terminal, isComingSoon: true },
+      { num: '13', title: 'API', path: '/api-docs', icon: Terminal },
       { num: '14', title: '계정', path: '/account', icon: User },
       { num: '15', title: '명예의 전당', path: '/hall-of-fame', icon: Trophy },
     ]
@@ -39,7 +38,6 @@ const menuGroups = [
 ];
 
 export default function LobbyPage() {
-  const { showAlert } = useAlert();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     '정보 & 도감': false,
     '플래너 & 유틸리티': false,
@@ -132,12 +130,6 @@ export default function LobbyPage() {
                             <Link
                               key={item.num}
                               href={item.path}
-                              onClick={(e) => {
-                                if (item.isComingSoon) {
-                                  e.preventDefault();
-                                  showAlert('알림', '선생님, 해당 기능은 준비중입니다.');
-                                }
-                              }}
                               className="group relative block w-full h-[4.5rem] bg-[var(--plana-bg-panel)]/90 backdrop-blur-xl border border-[var(--plana-border)] shadow-md transition-all duration-300 transform -skew-x-12 hover:translate-x-4 hover:border-[var(--plana-primary)] hover:bg-white/95 hover:shadow-[0_0_30px_rgba(255,166,201,0.6)] slide-in-right-anim"
                               style={{
                                 animationDelay: isExpanded ? `${(itemIdx * 0.08)}s` : '0s'

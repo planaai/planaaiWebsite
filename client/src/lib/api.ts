@@ -1,7 +1,12 @@
 import axios from 'axios';
 import type { StudentMaster, SchemaConfig, ArchiveRecord, ArchiveData } from '../types';
 
-export const API_BASE = 'https://api.plan4ai.fyi/api';
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL ?? '').trim().replace(/\/+$/, '');
+export const API_BASE = !rawApiUrl
+  ? 'https://api.plan4ai.fyi/api'
+  : rawApiUrl.endsWith('/api')
+    ? rawApiUrl
+    : `${rawApiUrl}/api`;
 
 const api = axios.create({
   baseURL: API_BASE,

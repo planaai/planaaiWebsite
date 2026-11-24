@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search } from 'lucide-react';
 import { StudentMaster } from '@/types';
 import { getImageUrl } from './utils';
@@ -21,10 +22,10 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
     return true;
   });
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-4">
-      <div className="bg-white/95 rounded-2xl border border-slate-200 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-        
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-[var(--plana-border)] shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+
         {/* Header */}
         <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white">
           <h2 className="text-xl font-bold text-slate-800">육성할 학생 선택</h2>
@@ -37,9 +38,9 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
         <div className="p-4 border-b border-slate-200 bg-slate-50">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="학생 이름 검색..." 
+            <input
+              type="text"
+              placeholder="학생 이름 검색..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--plana-primary)] transition-colors shadow-sm"
@@ -58,37 +59,36 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
               {filteredArchive.map((archive) => {
                 const master = masterData.find(m => m.id === archive.studentId);
                 if (!master) return null;
-                
+
                 const hasPlan = plans.some(p => p.studentId === master.id);
-                
+
                 return (
-                  <button 
-                    key={master.id} 
+                  <button
+                    key={master.id}
                     disabled={hasPlan}
                     onClick={() => {
                       onSelect(master.id, archive);
                       onClose();
                     }}
-                    className={`flex flex-col items-center p-3 rounded-xl border transition-all ${
-                      hasPlan 
-                        ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed' 
+                    className={`flex flex-col items-center p-3 rounded-xl border transition-all ${hasPlan
+                        ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
                         : 'bg-white border-slate-200 hover:border-pink-300 hover:bg-pink-50 hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/20 shadow-sm'
-                    }`}
+                      }`}
                   >
                     <div className="relative mb-2">
                       {master.portraitUrls && master.portraitUrls.length > 0 ? (
-                        <img 
-                          src={getImageUrl(master.portraitUrls[0])} 
-                          alt={master.name} 
-                          className={`w-16 h-16 object-cover rounded-full bg-white ring-2 ${hasPlan ? 'ring-slate-200' : 'ring-pink-300'}`} 
+                        <img
+                          src={getImageUrl(master.portraitUrls[0])}
+                          alt={master.name}
+                          className={`w-16 h-16 object-cover rounded-full bg-white ring-2 ${hasPlan ? 'ring-slate-200' : 'ring-pink-300'}`}
                         />
                       ) : (
                         <div className={`w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-400 ring-2 ${hasPlan ? 'ring-slate-200' : 'ring-pink-300'}`}>No Img</div>
                       )}
                     </div>
-                    
+
                     <span className="text-sm font-bold text-slate-700 truncate w-full text-center">{master.name}</span>
-                    
+
                     {hasPlan ? (
                       <span className="mt-1 text-[10px] text-slate-400 font-bold">등록됨</span>
                     ) : (
@@ -103,4 +103,6 @@ export function StudentSelectModal({ masterData, archiveData, plans, onSelect, o
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
