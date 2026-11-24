@@ -57,11 +57,15 @@ export default function LobbyPage() {
       {/* Central Content Wrapper */}
       <div className="w-full max-w-[1400px] flex flex-col md:flex-row items-center justify-center gap-12 md:gap-24 px-2 sm:px-6 md:px-12">
 
-          {/* Left side: Huge Logo & Official X Link */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 fade-in-anim">
+        {/* Left side: Huge Logo & Official X Link */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-6">
             <img
               src="/images/logo.png"
               alt="PLANA.AI Logo"
+              width={500}
+              height={500}
+              fetchPriority="high"
+              decoding="sync"
               className="w-full max-w-[350px] md:max-w-[450px] lg:max-w-[500px] h-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.9)] transform transition-transform duration-700 hover:scale-105"
             />
             <a
