@@ -42,7 +42,7 @@ function getCategoryBadge(category: NoticeSummary['category']) {
     case 'UPDATE':
       return {
         label: '업데이트',
-        className: 'bg-sky-500/10 text-sky-500 border border-sky-500/20',
+        className: 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
       };
     case 'EVENT':
       return {
@@ -52,7 +52,7 @@ function getCategoryBadge(category: NoticeSummary['category']) {
     default:
       return {
         label: '일반',
-        className: 'bg-slate-500/10 text-slate-500 dark:text-zinc-400 border border-slate-500/20 dark:border-white/10',
+        className: 'bg-slate-500/10 text-slate-600 border border-slate-500/20',
       };
   }
 }
@@ -140,57 +140,57 @@ export function LatestNoticePopup() {
       className={`fixed right-4 sm:right-6 ${topPositionClass} z-50 w-[calc(100vw-2rem)] sm:w-[360px] max-w-[380px] transition-all duration-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
         }`}
     >
-        <div className="relative bg-white/90 dark:bg-zinc-900/80 backdrop-blur-md border border-slate-200/80 dark:border-white/10 hover:border-sky-500/40 dark:hover:border-sky-400/40 shadow-xs rounded-sm overflow-hidden transition-all duration-200">
-          <div className="h-[2px] w-full bg-gradient-to-r from-rose-400 via-rose-400/70 to-sky-400/70" />
+      <div className="relative bg-white/90 backdrop-blur-md border border-slate-200/80 hover:border-sky-500/40 shadow-sm rounded-xl overflow-hidden transition-all duration-200">
+        <div className="h-[2px] w-full bg-gradient-to-r from-rose-400 via-rose-400/70 to-sky-400/70" />
 
-                  <div className="flex items-center justify-between gap-2 px-3.5 py-2 bg-slate-50/80 dark:bg-zinc-950/60 border-b border-slate-200/80 dark:border-white/10">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-xs bg-rose-400/15 text-rose-500 border border-rose-400/25 text-[10px] font-bold tracking-wider uppercase -skew-x-6 shrink-0">
-                        <span className="skew-x-6 inline-flex items-center gap-1">
-                          <Bell size={10} />
-                          NEW NOTICE
-                        </span>
-                </span>
-                <span className={`inline-flex px-1.5 py-0.5 rounded-xs text-[10px] font-bold tracking-wide whitespace-nowrap ${badge.className}`}>
-                  {badge.label}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 tabular-nums">
-                  #{String(notice.id).padStart(3, '0')}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleDismiss}
-                  aria-label="공지 알림 닫기"
-                  className="p-1 rounded-xs text-slate-400 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-200/60 dark:hover:bg-white/10 active:scale-[0.98] transition-all duration-200 cursor-pointer"
-                >
-                  <X size={15} />
-                </button>
-              </div>
-            </div>
-
-          <Link
-            href={`/notices/detail?id=${notice.id}`}
-            onClick={handleDismiss}
-            className="group block px-3.5 py-3 active:scale-[0.99] transition-all duration-200"
-          >
-            <p className="font-[family-name:var(--font-title-v)] text-[15px] font-bold tracking-tight text-slate-900 dark:text-zinc-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors duration-200 line-clamp-2 leading-snug">
-              {notice.title}
-            </p>
-            <div className="mt-3 pt-2.5 border-t border-dashed border-slate-200/80 dark:border-white/10 flex items-center justify-between text-xs">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 dark:text-zinc-500 tabular-nums">
-                {format(new Date(notice.createdAt), 'yyyy.MM.dd')}
+        <div className="flex items-center justify-between gap-2 px-3.5 py-2 bg-slate-50/90 border-b border-slate-200/80">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-xs bg-rose-400/15 text-rose-500 border border-rose-400/25 text-[10px] font-bold tracking-wider uppercase -skew-x-6 shrink-0">
+              <span className="skew-x-6 inline-flex items-center gap-1">
+                <Bell size={10} />
+                NEW NOTICE
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold tracking-wide text-sky-500 group-hover:text-sky-600 dark:text-sky-400 dark:group-hover:text-sky-300 transition-colors duration-200">
-                공지 확인하기
-                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform duration-200" />
-              </span>
-            </div>
-          </Link>
+            </span>
+            <span className={`inline-flex px-1.5 py-0.5 rounded-xs text-[10px] font-bold tracking-wide whitespace-nowrap ${badge.className}`}>
+              {badge.label}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 tabular-nums">
+              #{String(notice.id).padStart(3, '0')}
+            </span>
+            <button
+              type="button"
+              onClick={handleDismiss}
+              aria-label="공지 알림 닫기"
+              className="p-1 rounded-xs text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+            >
+              <X size={15} />
+            </button>
+          </div>
         </div>
+
+        <Link
+          href={`/notices/detail?id=${notice.id}`}
+          onClick={handleDismiss}
+          className="group block px-3.5 py-3 active:scale-[0.99] transition-all duration-200"
+        >
+          <p className="font-[family-name:var(--font-title-v)] text-[15px] font-bold tracking-tight text-slate-900 group-hover:text-sky-600 transition-colors duration-200 line-clamp-2 leading-snug">
+            {notice.title}
+          </p>
+          <div className="mt-3 pt-2.5 border-t border-dashed border-slate-200/80 flex items-center justify-between text-xs">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 tabular-nums">
+              {format(new Date(notice.createdAt), 'yyyy.MM.dd')}
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold tracking-wide text-sky-500 group-hover:text-sky-600 transition-colors duration-200">
+              공지 확인하기
+              <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform duration-200" />
+            </span>
+          </div>
+        </Link>
+      </div>
     </aside>
   );
 }
