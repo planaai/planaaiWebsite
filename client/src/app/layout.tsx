@@ -58,7 +58,8 @@ export const metadata: Metadata = {
 };
 
 // 점검 모드 토글 (기본 false, 환경변수가 'true'일 때만 활성화)
-const IS_MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+//const IS_MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+const IS_MAINTENANCE_MODE = true;
 
 export default function RootLayout({
   children,
