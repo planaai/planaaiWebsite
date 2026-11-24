@@ -1,0 +1,55 @@
+{
+  "data": {
+    "studentName": "아루",
+    "level": 90,
+    "starGrade": 5,
+    "bondRank": null,
+    "skills": {
+      "ex": 5,
+      "normal": 10,
+      "passive": 7,
+      "sub": 10
+    },
+    "equipments": [
+      { "slot": 1, "unequipped": false, "tier": 9, "level": 65 },
+      { "slot": 2, "unequipped": false, "tier": 8, "level": null },
+      { "slot": 3, "unequipped": true, "tier": null, "level": null }
+    ],
+    "favoriteItem": {
+      "unequipped": true,
+      "tier": null
+    },
+    "weapon": {
+      "unequipped": false,
+      "starGrade": 3,
+      "level": 50
+    },
+    "stats": {
+      "hp": { "value": 41250, "releaseLevel": null },
+      "atk": { "value": 6840, "releaseLevel": 15 },
+      "def": { "value": 118, "releaseLevel": null },
+      "heal": { "value": 3420, "releaseLevel": null }
+    }
+  },
+  "meta": {
+    "engine": "plana-ocr@1.0.0",
+    "preset": "FHD",
+    "scenes": {
+      "main": "student_info",
+      "equip1": "equipment_modal"
+    },
+    "fieldSources": {
+      "equipments[0]": "equip1",
+      "equipments[1]": "main"
+    },
+    "needsReview": [
+      "bondRank",
+      "equipments[1].level"
+    ],
+    "studentMatch": {
+      "raw": "아루",
+      "score": 0.96
+    },
+    "elapsedMs": 1420
+  }
+}

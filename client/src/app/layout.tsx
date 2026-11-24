@@ -4,6 +4,7 @@ import { Navbar } from '@/components/ui/Navbar';
 import { AlertProvider } from '@/contexts/AlertContext';
 import { BetaNotice } from '@/components/ui/BetaNotice';
 import { MaintenanceNotice } from '@/components/ui/MaintenanceNotice';
+import { LatestNoticePopup } from '@/components/ui/LatestNoticePopup';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
@@ -76,6 +77,7 @@ export default function RootLayout({
         ) : (
           <AlertProvider>
             <Navbar />
+            <LatestNoticePopup />
             <div className="flex flex-col min-h-screen pt-16">
               <BetaNotice />
               <main className="flex-1 w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">

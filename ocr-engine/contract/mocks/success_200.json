@@ -1,0 +1,57 @@
+{
+  "data": {
+    "studentName": "하나코(수영복)",
+    "level": 90,
+    "starGrade": 5,
+    "bondRank": 20,
+    "skills": {
+      "ex": 5,
+      "normal": 10,
+      "passive": 10,
+      "sub": 10
+    },
+    "equipments": [
+      { "slot": 1, "unequipped": false, "tier": 9, "level": 65 },
+      { "slot": 2, "unequipped": false, "tier": 9, "level": 65 },
+      { "slot": 3, "unequipped": false, "tier": 9, "level": 65 }
+    ],
+    "favoriteItem": {
+      "unequipped": false,
+      "tier": 2
+    },
+    "weapon": {
+      "unequipped": false,
+      "starGrade": 3,
+      "level": 50
+    },
+    "stats": {
+      "hp": { "value": 52341, "releaseLevel": 25 },
+      "atk": { "value": 4021, "releaseLevel": null },
+      "def": { "value": 312, "releaseLevel": null },
+      "heal": { "value": 6123, "releaseLevel": null }
+    }
+  },
+  "meta": {
+    "engine": "plana-ocr@1.0.0",
+    "preset": "FHD",
+    "scenes": {
+      "main": "student_info",
+      "equip1": "equipment_modal",
+      "equip2": "equipment_modal",
+      "equip3": "equipment_modal",
+      "favorite": "favorite_popup"
+    },
+    "fieldSources": {
+      "equipments[0]": "equip1",
+      "equipments[1]": "equip2",
+      "equipments[2]": "equip3",
+      "favoriteItem": "favorite"
+    },
+    "needsReview": [],
+    "studentMatch": {
+      "raw": "하나코(수영복)",
+      "score": 1.0
+    },
+    "elapsedMs": 1840
+  }
+}

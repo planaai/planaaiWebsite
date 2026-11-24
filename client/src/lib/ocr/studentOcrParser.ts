@@ -26,7 +26,7 @@ export interface UniqueWeapon {
 }
 
 export interface StatEntry {
-  value: number;
+  value: number | null;
   releaseLevel: number | null;
 }
 
@@ -47,302 +47,40 @@ export interface NormalizedStudentOcrData {
   };
 }
 
-export function toOptionalInt(val: unknown): number | null {
-  if (val === null || val === undefined || typeof val === 'boolean') {
-    return null;
-  }
-  if (typeof val === 'number') {
-    return isNaN(val) ? null : Math.floor(val);
-  }
-  const text = String(val).trim();
-  if (!text || ['null', 'none', 'empty', '-', 'undefined'].includes(text.toLowerCase())) {
-    return null;
-  }
-  const cleaned = text.replace(/,/g, '');
-  const match = cleaned.match(/\d+/);
-  return match ? parseInt(match[0], 10) : null;
-}
+export type OcrSlotName = 'main' | 'equip1' | 'equip2' | 'equip3' | 'favorite';
+export type OcrSceneType = 'student_info' | 'equipment_modal' | 'favorite_popup';
 
-export function toSkillLevel(val: unknown, isEx: boolean): number {
-  const maxLv = isEx ? 5 : 10;
-  if (typeof val === 'string') {
-    const upper = val.trim().toUpperCase();
-    if (upper === 'M' || upper.includes('MAX')) {
-      return maxLv;
-    }
-  }
-  const parsed = toOptionalInt(val);
-  if (parsed === null) {
-    return 1;
-  }
-  return Math.max(1, Math.min(maxLv, parsed));
-}
-
-export function extractJsonObject(rawText: string): Record<string, any> {
-  // 1. Strip <think>...</think> tag from reasoning models (including unclosed tags before JSON)
-  let cleaned = rawText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-  if (cleaned.includes('<think>')) {
-    cleaned = cleaned.replace(/<think>[\s\S]*?(?=\{)/gi, '').trim();
-    cleaned = cleaned.replace(/<think>[\s\S]*$/gi, '').trim();
-  }
-
-  // 2. Strip markdown fences ```json ... ``` or ``` ... ``` anywhere in text (including unclosed fences)
-  cleaned = cleaned.replace(/```(?:json)?\s*([\s\S]*?)(?:```|$)/gi, '$1').trim();
-
-  const tryParse = (str: string): Record<string, any> | null => {
-    try {
-      const parsed = JSON.parse(str);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return parsed as Record<string, any>;
-      }
-    } catch {
-      // ignore
-    }
-
-    // Try sanitizing comments, trailing commas, single quotes, unquoted keys
-    try {
-      const sanitized = str
-        .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
-        .replace(/\/\/.*$/gm, '') // Remove single-line comments
-        .replace(/,(\s*,)+/g, ',') // Remove duplicated commas
-        .replace(/,\s*([\]}])/g, '$1'); // Remove trailing commas
-      let parsed = null;
-      try {
-        parsed = JSON.parse(sanitized);
-      } catch {
-        // Fallback 1: replace single quotes around keys/values with double quotes
-        const doubleQuoted = sanitized
-          .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"')
-          .replace(/,\s*([\]}])/g, '$1');
-        try {
-          parsed = JSON.parse(doubleQuoted);
-        } catch {
-          // Fallback 2: quote unquoted object keys (e.g. { studentName: "아루" } -> { "studentName": "아루" })
-          const quotedKeys = doubleQuoted.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
-          parsed = JSON.parse(quotedKeys);
-        }
-      }
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return parsed as Record<string, any>;
-      }
-    } catch {
-      // ignore
-    }
-    return null;
+export interface OcrMeta {
+  engine: string;
+  preset: string;
+  scenes: {
+    main: 'student_info';
+    equip1?: 'equipment_modal';
+    equip2?: 'equipment_modal';
+    equip3?: 'equipment_modal';
+    favorite?: 'favorite_popup';
   };
-
-  // 3. Try parsing cleaned text directly
-  const direct = tryParse(cleaned);
-  if (direct) return direct;
-
-  // 4. Fallback: find outermost '{' and '}'
-  const startIdx = cleaned.indexOf('{');
-  const endIdx = cleaned.lastIndexOf('}');
-  if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
-    throw new Error("응답에서 유효한 JSON 객체('{...}')를 찾을 수 없습니다.");
-  }
-
-  const candidate = cleaned.slice(startIdx, endIdx + 1);
-  const candidateParsed = tryParse(candidate);
-  if (candidateParsed) {
-    return candidateParsed;
-  }
-
-  throw new Error('추출된 JSON 최상위 구조를 해석할 수 없습니다.');
+  fieldSources: Record<string, OcrSlotName>;
+  needsReview: string[];
+  studentMatch: {
+    raw: string;
+    score: number;
+  };
+  elapsedMs: number;
 }
 
-export function normalizeEquipmentSlot(slotNum: number, item: unknown): EquipmentSlot {
-  if (!item || typeof item !== 'object') {
-    return { slot: slotNum, unequipped: true, tier: null, level: null };
-  }
-  const rawObj = item as Record<string, unknown>;
-  const tier = toOptionalInt(rawObj.tier);
-  const level = toOptionalInt(rawObj.level);
-  let unequipped = Boolean(rawObj.unequipped);
-
-  if (tier === null && level === null) {
-    unequipped = true;
-  }
-
-  if (unequipped) {
-    return { slot: slotNum, unequipped: true, tier: null, level: null };
-  }
-
-  return {
-    slot: slotNum,
-    unequipped: false,
-    tier: tier !== null ? tier : 1,
-    level: level !== null ? level : 1,
-  };
-}
-
-export function normalizeStatEntry(item: unknown): StatEntry {
-  if (item && typeof item === 'object') {
-    const rawObj = item as Record<string, unknown>;
-    const val = toOptionalInt(rawObj.value ?? rawObj.val ?? rawObj.stat ?? rawObj['값']);
-    let rel = toOptionalInt(
-      rawObj.releaseLevel ?? rawObj.release_level ?? rawObj.potential ?? rawObj['능력개방'] ?? rawObj['개방레벨']
-    );
-    if (rel !== null && rel <= 0) {
-      rel = null;
-    } else if (rel !== null) {
-      rel = Math.min(25, rel);
-    }
-    return { value: val !== null ? val : 0, releaseLevel: rel };
-  }
-
-  const val = toOptionalInt(item);
-  return { value: val !== null ? val : 0, releaseLevel: null };
-}
-
-export function normalizeOcrData(raw: Record<string, any>): NormalizedStudentOcrData {
-  const rawName = String(raw.studentName || raw.student_name || raw.name || raw.student || '')
-    .trim()
-    .replace(/^["'`]|["'`]$/g, '');
-  const studentName = rawName;
-
-  const rawLevel = toOptionalInt(raw.level ?? raw.lvl);
-  const level = rawLevel && rawLevel > 0 ? Math.min(90, Math.max(1, rawLevel)) : 1;
-
-  const rawStar = toOptionalInt(raw.starGrade ?? raw.star_grade ?? raw.stars ?? raw.star);
-  const starGrade = rawStar && rawStar > 0 ? Math.min(5, Math.max(1, rawStar)) : 3;
-
-  // bondRank: 유효 범위 1~100 (초과/음수 값 방어, troubleshooting.md 규격 준수)
-  const rawBond = toOptionalInt(raw.bondRank ?? raw.bond_rank ?? raw.bond);
-  const bondRank = rawBond && rawBond > 0 ? Math.min(100, Math.max(1, rawBond)) : null;
-
-  // skills: 객체 또는 배열 형식 지원
-  const rawSkills = (raw.skills || raw.skill_levels || raw.skillLevels || {}) as Record<string, any>;
-  let exRaw: any;
-  let normalRaw: any;
-  let passiveRaw: any;
-  let subRaw: any;
-
-  if (Array.isArray(rawSkills)) {
-    exRaw = rawSkills[0];
-    normalRaw = rawSkills[1];
-    passiveRaw = rawSkills[2];
-    subRaw = rawSkills[3];
-  } else if (typeof rawSkills === 'object' && rawSkills !== null) {
-    exRaw = rawSkills.ex ?? rawSkills.exSkill ?? rawSkills.ex_skill;
-    normalRaw = rawSkills.normal ?? rawSkills.basic ?? rawSkills.normal_skill ?? rawSkills.normalSkill;
-    passiveRaw = rawSkills.passive ?? rawSkills.enhanced ?? rawSkills.enh ?? rawSkills.passive_skill ?? rawSkills.passiveSkill;
-    subRaw = rawSkills.sub ?? rawSkills.sub_skill ?? rawSkills.subSkill;
-  }
-
-  const skills: SkillLevels = {
-    ex: toSkillLevel(exRaw, true),
-    normal: toSkillLevel(normalRaw, false),
-    passive: toSkillLevel(passiveRaw, false),
-    sub: toSkillLevel(subRaw, false),
-  };
-
-  // equipments: 배열 또는 객체({ slot1, slot2, slot3 }) 형식 지원
-  let rawEquips: any[] = [];
-  if (Array.isArray(raw.equipments)) {
-    rawEquips = raw.equipments;
-  } else if (Array.isArray(raw.equipment)) {
-    rawEquips = raw.equipment;
-  } else if (Array.isArray(raw.gear)) {
-    rawEquips = raw.gear;
-  } else if (typeof raw.equipments === 'object' && raw.equipments !== null) {
-    rawEquips = [
-      raw.equipments.slot1 || raw.equipments['1'],
-      raw.equipments.slot2 || raw.equipments['2'],
-      raw.equipments.slot3 || raw.equipments['3'],
-      raw.equipments.slot4 || raw.equipments['4'],
-    ];
-  }
-
-  const equipments: EquipmentSlot[] = [];
-  for (let idx = 0; idx < 3; idx++) {
-    equipments.push(normalizeEquipmentSlot(idx + 1, rawEquips[idx]));
-  }
-
-  // favoriteItem: 슬롯 4에 배치된 경우 폴백 지원
-  const rawFav =
-    raw.favoriteItem ??
-    raw.favorite_item ??
-    raw.favItem ??
-    raw.item ??
-    (rawEquips.length >= 4 ? rawEquips[3] : undefined);
-  let favTier: number | null = null;
-  let favUnequipped = false;
-
-  if (rawFav === null || rawFav === undefined) {
-    favUnequipped = true;
-  } else if (typeof rawFav === 'number' || typeof rawFav === 'string') {
-    favTier = toOptionalInt(rawFav);
-    favUnequipped = favTier === null;
-  } else if (typeof rawFav === 'object') {
-    const rawFavObj = rawFav as Record<string, any>;
-    favTier = toOptionalInt(rawFavObj.tier ?? rawFavObj.level);
-    favUnequipped = Boolean(rawFavObj.unequipped || favTier === null);
-  } else {
-    favUnequipped = true;
-  }
-
-  const favoriteItem: FavoriteItem =
-    favUnequipped || favTier === null
-      ? { unequipped: true, tier: null }
-      : { unequipped: false, tier: Math.max(1, Math.min(2, favTier)) };
-
-  const rawWp = raw.weapon ?? raw.uniqueWeapon ?? raw.unique_weapon;
-  let wpStar: number | null = null;
-  let wpLevel: number | null = null;
-  let wpUnequipped = false;
-
-  if (rawWp === null || rawWp === undefined) {
-    wpUnequipped = true;
-  } else if (typeof rawWp === 'number') {
-    wpStar = toOptionalInt(rawWp);
-    wpLevel = 50;
-    wpUnequipped = wpStar === null || wpStar <= 0;
-  } else if (typeof rawWp === 'object') {
-    const rawWpObj = rawWp as Record<string, any>;
-    const wpStarSrc = rawWpObj.starGrade ?? rawWpObj.star_grade ?? rawWpObj.stars ?? rawWpObj.star;
-    wpStar = toOptionalInt(wpStarSrc);
-    wpLevel = toOptionalInt(rawWpObj.level ?? rawWpObj.lvl);
-    wpUnequipped = Boolean(rawWpObj.unequipped);
-    if ((wpStar === null || wpStar <= 0) && wpLevel === null) {
-      wpUnequipped = true;
-    }
-  } else {
-    wpUnequipped = true;
-  }
-
-  const weapon: UniqueWeapon = wpUnequipped
-    ? { unequipped: true, starGrade: null, level: null }
-    : {
-        unequipped: false,
-        starGrade: Math.max(1, Math.min(4, wpStar || 1)),
-        level: wpLevel !== null ? Math.max(1, Math.min(60, wpLevel)) : 1,
-      };
-
-  // stats: 한글 키 지원
-  const rawStats = (raw.stats || raw.status || raw.stat || {}) as Record<string, any>;
-  const hpRaw = rawStats.hp ?? rawStats.maxHP ?? rawStats.max_hp ?? rawStats['최대체력'] ?? rawStats['체력'];
-  const atkRaw = rawStats.atk ?? rawStats.attack ?? rawStats.attackPower ?? rawStats['공격력'];
-  const defRaw = rawStats.def ?? rawStats.defense ?? rawStats.defensePower ?? rawStats['방어력'];
-  const healRaw = rawStats.heal ?? rawStats.healing ?? rawStats.healPower ?? rawStats['치유력'];
-
-  const stats = {
-    hp: normalizeStatEntry(hpRaw),
-    atk: normalizeStatEntry(atkRaw),
-    def: normalizeStatEntry(defRaw),
-    heal: normalizeStatEntry(healRaw),
-  };
-
-  return {
-    studentName,
-    level,
-    starGrade,
-    bondRank,
-    skills,
-    equipments,
-    favoriteItem,
-    weapon,
-    stats,
+export interface OcrErrorResponse {
+  success?: false;
+  code: string;
+  message?: string;
+  error?: string;
+  detail?: {
+    slot?: OcrSlotName;
+    detected?: OcrSceneType | 'unknown' | null;
+    expected?: OcrSceneType;
+    activeSlot?: 1 | 2 | 3;
+    conflictingWith?: 'equip1' | 'equip2' | 'equip3';
+    [key: string]: unknown;
   };
 }
 

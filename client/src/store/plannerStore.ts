@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ArchiveRecord } from '../types';
-import { getEquipMaxLevel } from '../lib/equipmentUtils';
+import { getEquipMaxLevel, getWeaponMaxLevel } from '../lib/equipmentUtils';
 
 export interface PlannerRecord {
   id: number;
@@ -56,13 +56,18 @@ export const usePlannerStore = create<PlannerState>()(
       addPlan: (studentId, archiveData) => {
         set((state) => {
           if (state.plans.some(p => p.studentId === studentId)) return state;
-          
+
           const getVal = (val: number | undefined | null, fallback: number) => typeof val === 'number' && !isNaN(val) ? val : fallback;
           const getLvl = (val: number | undefined | null) => getVal(val, 1);
-          
+
           const currentEquip1 = archiveData?.equipment?.slot1 ? getLvl(archiveData.equipment.slot1.tier) : 0;
           const currentEquip2 = archiveData?.equipment?.slot2 ? getLvl(archiveData.equipment.slot2.tier) : 0;
           const currentEquip3 = archiveData?.equipment?.slot3 ? getLvl(archiveData.equipment.slot3.tier) : 0;
+
+          const currentWeaponStar = archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.stars, 0) : 0;
+          const currentWeaponLevel = archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.level, 1) : 1;
+          const targetWeaponStar = Math.max(3, currentWeaponStar);
+          const targetWeaponLevel = Math.max(getWeaponMaxLevel(targetWeaponStar), currentWeaponLevel);
 
           const newPlan: PlannerRecord = {
             id: Date.now(),
@@ -79,8 +84,8 @@ export const usePlannerStore = create<PlannerState>()(
             targetEquip2: 10, targetEquip2Level: 70,
             currentEquip3, currentEquip3Level: archiveData?.equipment?.slot3 ? getLvl(archiveData.equipment.slot3.level) : 1,
             targetEquip3: 10, targetEquip3Level: 70,
-            currentWeaponStar: archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.stars, 0) : 0, targetWeaponStar: 3,
-            currentWeaponLevel: archiveData?.uniqueWeapon ? getVal(archiveData.uniqueWeapon.level, 1) : 1, targetWeaponLevel: 60,
+            currentWeaponStar, targetWeaponStar,
+            currentWeaponLevel, targetWeaponLevel,
             currentAbilityHP: getVal(archiveData?.potentialLevels?.maxHP, 0), targetAbilityHP: 25,
             currentAbilityAtk: getVal(archiveData?.potentialLevels?.attackPower, 0), targetAbilityAtk: 25,
             currentAbilityHeal: getVal(archiveData?.potentialLevels?.healPower, 0), targetAbilityHeal: 25
@@ -90,7 +95,15 @@ export const usePlannerStore = create<PlannerState>()(
       },
       updatePlan: (id, updates) => {
         set((state) => ({
-          plans: state.plans.map(p => p.id === id ? { ...p, ...updates } : p)
+          plans: state.plans.map(p => {
+            if (p.id !== id) return p;
+            const merged = { ...p, ...updates };
+            const maxWLevel = getWeaponMaxLevel(merged.targetWeaponStar);
+            if (merged.targetWeaponLevel > maxWLevel) {
+              merged.targetWeaponLevel = maxWLevel;
+            }
+            return merged;
+          })
         }));
       },
       deletePlan: (id) => {

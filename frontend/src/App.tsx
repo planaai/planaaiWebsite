@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare, Target, ShieldAlert } from 'lucide-react';
+import { Database, Image as ImageIcon, Users, Upload, Download, RefreshCw, MessageSquare, Target, ShieldAlert, Terminal } from 'lucide-react';
 
 import type { ArchiveData, SchemaConfig } from './types';
 import { API } from './constants';
@@ -19,10 +19,11 @@ import { ShadowbanAdminManager } from './components/shadowban/ShadowbanAdminMana
 import { AdminLogin } from './components/auth/AdminLogin';
 import { ReportAdminManager } from './components/reports/ReportAdminManager';
 import { HallOfFameAdminManager } from './components/hof/HallOfFameAdminManager';
+import { ApiDocsAdminManager } from './components/apidocs/ApiDocsAdminManager';
 import { Trophy } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'reports' | 'shadowban' | 'hof'>('master');
+  const [activeTab, setActiveTab] = useState<'master' | 'ooparts' | 'equipments' | 'images' | 'imageOffsets' | 'gifts' | 'gacha' | 'notices' | 'inquiries' | 'raids' | 'reports' | 'shadowban' | 'hof' | 'apiDocs'>('master');
   const [data, setData] = useState<ArchiveData[]>([]);
   const [schema, setSchema] = useState<SchemaConfig | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -195,7 +196,8 @@ export default function App() {
              { id: 'raids', icon: Target, label: '보스 관리', color: 'orange' },
              { id: 'reports', icon: ShieldAlert, label: '공략 신고 관리', color: 'red' },
              { id: 'shadowban', icon: ShieldAlert, label: '쉐도우밴', color: 'red' },
-             { id: 'hof', icon: Trophy, label: '명예의 전당', color: 'yellow' }
+             { id: 'hof', icon: Trophy, label: '명예의 전당', color: 'yellow' },
+             { id: 'apiDocs', icon: Terminal, label: 'API 문서 관리', color: 'cyan' }
           ].map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
@@ -226,6 +228,7 @@ export default function App() {
           { activeTab === 'reports' && <ReportAdminManager showToast={showToast} /> }
           { activeTab === 'shadowban' && <ShadowbanAdminManager showToast={showToast} /> }
           { activeTab === 'hof' && <HallOfFameAdminManager showToast={showToast} data={data} /> }
+          { activeTab === 'apiDocs' && <ApiDocsAdminManager showToast={showToast} /> }
         </div>
       </main>
     </div>
